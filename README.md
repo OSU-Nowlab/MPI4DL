@@ -70,7 +70,7 @@ To install MVAPICH2, follow instructions mentioned on MVAPICH download http://mv
 - Linux OS
 
 [Note:
-We used the following versions during implementation and testing.
+We used the following versions during implementation and testing:
 Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.0a0+git35202d2, MVAPICH2-GDR=2.3.7]
 
 ### Install now-dl:
