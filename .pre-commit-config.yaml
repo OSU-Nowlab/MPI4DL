@@ -1,28 +1,13 @@
-name: pre-commit
-
-# on:
-#   pull_request:
-#   push:
-#     branches: [main]
-
-jobs:
-  pre-commit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
-      - uses: pre-commit/action@v3.0.0
-
 repos:
-  - repo: https://github.com/psf/black
-    rev: stable
-    hooks:
-      - id: black
-        name: black-format-test
+- repo: https://github.com/psf/black
+  rev: stable
+  hooks:
+  - id: black
+    name: black-format-test
 
-  - repo: https://github.com/pycqa/flake8
-    rev: 4.0.1
-    hooks:
-      - id: flake8
-        args: ['--ignore=E,F403,F405,F541,F841,W', '--select=E9,F,W6', '--per-file-ignores=__init__.py:F401']
-        name: flake8-test
+- repo: https://github.com/pycqa/flake8
+  rev: 4.0.1
+  hooks:
+  - id: flake8
+    args: ['--ignore=E,F403,F405,F541,F841,W', '--select=E9,F,W6', '--per-file-ignores=__init__.py:F401']
+    name: flake8-test
