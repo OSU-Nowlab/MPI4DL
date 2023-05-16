@@ -104,9 +104,8 @@ class halo_bench_pt2pt:
             total_rows = int(math.sqrt(self.num_spatial_parts))
             total_cols = int(math.sqrt(self.num_spatial_parts))
 
-            top_left = -(
-                total_cols + 1
-            )  # top_left will be (total_cols + 1) away from current rank
+			# top_left will be (total_cols + 1) away from current rank
+            top_left = -(total_cols + 1)  
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -318,10 +317,11 @@ class halo_bench_pt2pt:
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
-				It will lead to data corruption 
-				Spent 1 week on this issue (data validation) 
+				Synchronization is necessary at this point as all GPU operations 
+    			in PyTorch are asynchronous MPI copy operation is not under 
+       			PyTorch therefore it can start before pytorch finishes 
+          		initilization of tensor with zeros It will lead to data  
+            	corruption Spent 1 week on this issue (data validation) 
 				KEEP THIS IN MIND
 				"""
                 torch.cuda.synchronize()
@@ -340,6 +340,7 @@ class halo_bench_pt2pt:
         return req
 
     def end_halo_exchange(self, reqs):
+
         for req in reqs:
             req.wait()
 
@@ -354,21 +355,17 @@ class halo_bench_pt2pt:
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
+
         s = torch.cuda.Stream(priority=0)
-        # curr_s = torch.cuda.current_stream()
-        # s.synchronize()
-        # with torch.cuda.stream(s):
-        # start_event = torch.cuda.Event(enable_timing=True, blocking=True)
-        # end_event = torch.cuda.Event(enable_timing=True, blocking=True)
+
         rec = torch.cuda.Event(enable_timing=True, blocking=True)
-        # start_event.record()
+
         reqs = self.start_halo_exchange(tensor)
 
         self.end_halo_exchange(reqs)
 
         self.copy_halo_exchange_values(tensor)
 
-        # end_event.record()
         return tensor
 
 

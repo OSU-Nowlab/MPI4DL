@@ -29,15 +29,12 @@ if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
 if args.halo_d2:
-    from models import amoebanet
-    from models import amoebanet_d2
-
+    from models import resnet_cifar_torch
+    from models import resnet_cifar_torch_spatial_d2 as resnet_cifar_torch_spatial
 else:
-    from models import amoebanet
+    from models import resnet_cifar_torch, resnet_cifar_torch_spatial
 
 gems_comm.initialize_cuda()
-
-from torch.nn.parallel import DistributedDataParallel as DDP
 
 
 class Unbuffered(object):
@@ -56,7 +53,7 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
-def init_processes(backend="tcp"):
+def init_processes(backend="mpi"):
     """Initialize the distributed environment."""
     dist.init_process_group(backend)
     size = dist.get_world_size()
@@ -89,8 +86,6 @@ amoebanet_test = False
 image_size = int(args.image_size)
 print("image size", image_size)
 steps = 100
-num_layers = args.num_layers
-num_filters = args.num_filters
 balance = args.balance
 split_size = args.split_size
 spatial_size = args.spatial_size
@@ -105,10 +100,7 @@ else:
     num_spatial_parts_list = num_spatial_parts
 
 times = 1
-num_classes = 1000
-LOCAL_DP_LP = args.local_DP
-
-# DDP support
+num_classes = 10
 
 
 def isPowerTwo(num):
@@ -116,11 +108,10 @@ def isPowerTwo(num):
 
 
 """
-For Amoebanet model, image size and image size after partitioning should be power of two. 
-As, Amoebanet performs summation of results of two convolution layers during training, 
-odd input size(i.e. image size which is not power of 2) will give different output sizes 
-for convolution operations present at same layer, thus it will throw error as addition 
-operation can not be performed with diffent size outputs. 
+For ResNet model, image size and image size after partitioning should be power of two. 
+As, ResNet performs convolution operations at different layers, odd input size
+(i.e. image size which is not power of 2) will lead to truncation of input. Thus,
+other GPU devices will receive truncated input with unexpected input size.
 """
 
 
@@ -146,8 +137,8 @@ def verify_config():
             int(image_size / num_spatial_parts)
         ), "Image size of each partition should be power of Two"
 
-verify_config()
 
+verify_config()
 
 mpi_comm = gems_comm.MPIComm(
     split_size=split_size,
@@ -155,14 +146,11 @@ mpi_comm = gems_comm.MPIComm(
     ENABLE_SPATIAL=True,
     num_spatial_parts=num_spatial_parts,
     spatial_size=spatial_size,
-    LOCAL_DP_LP=LOCAL_DP_LP,
 )
 sync_allreduce = gems_comm.SyncAllreduce(mpi_comm)
-
 rank = mpi_comm.rank
-comm_size = mpi_comm.size
-local_rank = rank
 
+local_rank = rank
 split_rank = mpi_comm.split_rank
 
 
@@ -177,10 +165,10 @@ else:
 The shape of the output will be determined for each model partition based on the values in "image_size_seq."
 These values will then be used to calculate the output shape for a given input size and spatial partition.
 """
-image_size_seq = 512
+image_size_seq = 32
 
-model_seq = amoebanet.amoebanetd(
-    num_layers=num_layers, num_filters=num_filters, num_classes=num_classes
+model_seq = resnet_cifar_torch.get_resnet_v2(
+    (int(batch_size / parts), 3, image_size_seq, image_size_seq), depth=get_depth(2, 12)
 )
 print("length", len(model_seq), balance)
 model_gen_seq = model_generator(
@@ -192,195 +180,79 @@ model_gen_seq = model_generator(
 model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 
 image_size_times = int(image_size / image_size_seq)
-
-
-temp_count = 0
 if args.slice_method == "square":
-    resnet_shapes_list = []
-    for output_shape in model_gen_seq.shape_list:
-        if isinstance(output_shape, list):
-            temp_shape = []
-            for shape_tuple in output_shape:
-                if temp_count < spatial_size:
-                    # reduce shape only when it is smaller than spatial size
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times / 2),
-                        int(shape_tuple[3] * image_size_times / 2),
-                    )
-                    temp_shape.append(x)
-                else:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times),
-                        int(shape_tuple[3] * image_size_times),
-                    )
-                    temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
-        else:
-            if len(output_shape) == 2:
-                x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
-            else:
-                if temp_count < spatial_size:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times / 2),
-                        int(output_shape[3] * image_size_times / 2),
-                    )
-                    resnet_shapes_list.append(x)
-                else:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times),
-                        int(output_shape[3] * image_size_times),
-                    )
-                    resnet_shapes_list.append(x)
-        temp_count += 1
+
+    resnet_shapes_list = [
+        (
+            model_gen_seq.shape_list[0][0],
+            model_gen_seq.shape_list[0][1],
+            int(
+                model_gen_seq.shape_list[0][2]
+                * image_size_times
+                / math.sqrt(num_spatial_parts)
+            ),
+            int(
+                model_gen_seq.shape_list[0][3]
+                * image_size_times
+                / math.sqrt(num_spatial_parts)
+            ),
+        ),
+        model_gen_seq.shape_list[1],
+    ]
 
 elif args.slice_method == "vertical":
-    resnet_shapes_list = []
-    for output_shape in model_gen_seq.shape_list:
-        if isinstance(output_shape, list):
-            temp_shape = []
-            for shape_tuple in output_shape:
-                if temp_count < spatial_size:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times / 1),
-                        int(
-                            shape_tuple[3]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                    )
-                    temp_shape.append(x)
-                else:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times),
-                        int(shape_tuple[3] * image_size_times),
-                    )
-                    temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
-        else:
-            if len(output_shape) == 2:
-                x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
-            else:
-                if temp_count < spatial_size:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times / 1),
-                        int(
-                            output_shape[3]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                    )
-                    resnet_shapes_list.append(x)
-                else:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times),
-                        int(output_shape[3] * image_size_times),
-                    )
-                    resnet_shapes_list.append(x)
-        temp_count += 1
-
+    resnet_shapes_list = [
+        (
+            model_gen_seq.shape_list[0][0],
+            model_gen_seq.shape_list[0][1],
+            int(model_gen_seq.shape_list[0][2] * image_size_times / 1),
+            int(model_gen_seq.shape_list[0][3] * image_size_times / num_spatial_parts),
+        ),
+        model_gen_seq.shape_list[1],
+    ]
 
 elif args.slice_method == "horizontal":
-    resnet_shapes_list = []
-    for output_shape in model_gen_seq.shape_list:
-        if isinstance(output_shape, list):
-            temp_shape = []
-            for shape_tuple in output_shape:
-                if temp_count < spatial_size:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(
-                            shape_tuple[2]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                        int(shape_tuple[3] * image_size_times / 1),
-                    )
-                    temp_shape.append(x)
-                else:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times),
-                        int(shape_tuple[3] * image_size_times),
-                    )
-                    temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
-        else:
-            if len(output_shape) == 2:
-                x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
-            else:
-                if temp_count < spatial_size:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(
-                            output_shape[2]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                        int(output_shape[3] * image_size_times / 1),
-                    )
-                    resnet_shapes_list.append(x)
-                else:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times),
-                        int(output_shape[3] * image_size_times),
-                    )
-                    resnet_shapes_list.append(x)
-        temp_count += 1
+    resnet_shapes_list = [
+        (
+            model_gen_seq.shape_list[0][0],
+            model_gen_seq.shape_list[0][1],
+            int(model_gen_seq.shape_list[0][2] * image_size_times / num_spatial_parts),
+            int(model_gen_seq.shape_list[0][3] * image_size_times / 1),
+        ),
+        model_gen_seq.shape_list[1],
+    ]
 
-
-print(model_gen_seq.shape_list, resnet_shapes_list)
 
 del model_seq
 del model_gen_seq
 torch.cuda.ipc_collect()
 
 if args.halo_d2:
-    model = amoebanet_d2.amoebanetd_spatial(
-        local_rank=local_rank % mpi_comm.total_spatial_processes,
-        spatial_size=spatial_size,
-        num_spatial_parts=num_spatial_parts,
+
+    model, balance = resnet_cifar_torch_spatial.get_resnet_v2(
+        input_shape=(batch_size / parts, 3, image_size, image_size),
+        depth=get_depth(2, 12),
+        local_rank=local_rank % num_spatial_parts,
         mp_size=split_size,
         balance=balance,
-        slice_method="square",
-        num_classes=num_classes,
-        num_layers=num_layers,
-        num_filters=num_filters,
+        spatial_size=spatial_size,
+        num_spatial_parts=num_spatial_parts,
+        num_classes=10,
+        fused_layers=args.fused_layers,
+        slice_method=args.slice_method,
     )
 else:
-    model = amoebanet.amoebanetd_spatial(
-        local_rank=local_rank % mpi_comm.total_spatial_processes,
-        spatial_size=spatial_size,
-        num_spatial_parts=num_spatial_parts,
+    model = resnet_cifar_torch_spatial.get_resnet_v2(
+        input_shape=(batch_size / parts, 3, image_size, image_size),
+        depth=get_depth(2, 12),
+        local_rank=local_rank % num_spatial_parts,
         mp_size=split_size,
         balance=balance,
-        slice_method="square",
-        num_classes=num_classes,
-        num_layers=num_layers,
-        num_filters=num_filters,
+        spatial_size=spatial_size,
+        num_spatial_parts=num_spatial_parts,
+        num_classes=10,
+        fused_layers=args.fused_layers,
+        slice_method=args.slice_method,
     )
 
 
@@ -394,10 +266,11 @@ model_gen = model_generator(
 
 
 model_gen.ready_model(split_rank=split_rank)
-model_gen.DDP_model(mpi_comm, num_spatial_parts, spatial_size, bucket_size=0)
-
 
 print("Shape list", resnet_shapes_list)
+
+if local_rank == num_spatial_parts:
+    print(model_gen.models)
 
 
 t_s = train_model_spatial(
@@ -409,11 +282,10 @@ t_s = train_model_spatial(
     num_spatial_parts=num_spatial_parts,
     criterion=None,
     optimizer=None,
-    parts=parts,
+    parts=1,
     ASYNC=True,
     GEMS_INVERSE=False,
     slice_method=args.slice_method,
-    LOCAL_DP_LP=LOCAL_DP_LP,
     mpi_comm=mpi_comm,
 )
 
@@ -430,9 +302,7 @@ torch.manual_seed(0)
 
 if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        "/usr/workspace/jain8/project/cancer/1024_1024_5/train",
-        transform=transform,
-        target_transform=None,
+        "./train", transform=transform, target_transform=None
     )
     my_dataloader = torch.utils.data.DataLoader(
         trainset,
@@ -455,6 +325,7 @@ elif APP == 2:
     )
     size_dataset = 50000
 else:
+
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
         image_size=(3, image_size, image_size),
@@ -473,7 +344,7 @@ else:
     size_dataset = 10 * batch_size
 
 
-# sync_allreduce.sync_model_spatial(model_gen)
+sync_allreduce.sync_model_spatial(model_gen)
 perf = []
 
 
@@ -532,6 +403,7 @@ def run_epoch():
         correct = 0
         t = time.time()
         for i, data in enumerate(my_dataloader, 0):
+
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
@@ -547,11 +419,14 @@ def run_epoch():
             temp_loss, temp_correct = t_s.run_step(x, labels)
             loss += temp_loss
             correct += temp_correct
-
+            if local_rank < spatial_size * num_spatial_parts:
+                sync_allreduce.apply_allreduce(
+                    model_gen, mpi_comm.spatial_allreduce_grp
+                )
             torch.cuda.synchronize()
 
             t_s.update()
-            if local_rank == comm_size - 1:
+            if local_rank == num_spatial_parts:
                 logging.info(
                     f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)} Acc: {temp_correct}"
                 )
@@ -560,12 +435,11 @@ def run_epoch():
             torch.cuda.synchronize()
             t = start_event.elapsed_time(end_event) / 1000
             if local_rank == 0:
-                None
                 print("images per sec:", batch_size / t)
                 perf.append(batch_size / t)
 
             t = time.time()
-        if local_rank == comm_size - 1:
+        if local_rank == num_spatial_parts:
             print("epoch", i_e, " Global loss:", loss, " acc", correct / i)
 
 
@@ -573,4 +447,5 @@ run_epoch()
 
 if local_rank == 0:
     print("Mean {} Median {}".format(sum(perf) / len(perf), np.median(perf)))
+
 exit()

@@ -60,10 +60,9 @@ def validate_config(num_spatial_parts, comm_size):
     assert (
         num_spatial_parts > 1
     ), "num_spatial_parts should be greater than 1 for spatial parallelism."
-    # assert comm_size >= num_spatial_parts, "Spatial parts {num_spatial_parts} require {num_spatial_parts} GPUs."
     assert (
         comm_size == num_spatial_parts
-    ), "Spatial parts {num_spatial_parts} is not qual to world size."  # TBD: working on changes to support comm_size >= num_spatial_parts
+    ), "Spatial parts {num_spatial_parts} is not equal to world size."
 
     if slice_method == "square":
         parts = int(math.sqrt(num_spatial_parts))
@@ -124,9 +123,8 @@ class halo_bench_pt2pt(nn.Conv2d):
             total_rows = int(math.sqrt(self.comm_size))
             total_cols = int(math.sqrt(self.comm_size))
 
-            top_left = -(
-                total_cols + 1
-            )  # top_left will be (total_cols + 1) away from current rank
+            # top_left will be (total_cols + 1) away from current rank
+            top_left = -(total_cols + 1)
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -296,10 +294,10 @@ class halo_bench_pt2pt(nn.Conv2d):
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
+
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
-                # print("Local rank:",self.local_rank, " to:",self.local_rank + self.rank_neighbours[i], " I:",i)
                 temp = (
                     halo_input[
                         :,
@@ -338,8 +336,10 @@ class halo_bench_pt2pt(nn.Conv2d):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
+				Synchronization is necessary at this point as all GPU operations 
+    			in PyTorch are asynchronous. MPI copy operation is not under 
+       			PyTorch therefore it can start before pytorch finishes 
+          		initilization of tensor with zeros 
 				It will lead to data corruption 
 				Spent 1 week on this issue (data validation) 
 				KEEP THIS IN MIND
@@ -360,6 +360,7 @@ class halo_bench_pt2pt(nn.Conv2d):
         return req
 
     def end_halo_exchange(self, reqs):
+
         for req in reqs:
             req.wait()
 
@@ -374,6 +375,7 @@ class halo_bench_pt2pt(nn.Conv2d):
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
+
         reqs = self.start_halo_exchange(tensor)
         self.end_halo_exchange(reqs)
         res_final = super(halo_bench_pt2pt, self).forward(tensor)

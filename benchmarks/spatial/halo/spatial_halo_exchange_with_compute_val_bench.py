@@ -113,9 +113,8 @@ class halo_bench_pt2pt(nn.Conv2d):
             total_rows = int(math.sqrt(self.num_spatial_parts))
             total_cols = int(math.sqrt(self.num_spatial_parts))
 
-            top_left = -(
-                total_cols + 1
-            )  # top_left will be (total_cols + 1) away from current rank
+            # top_left will be (total_cols + 1) away from current rank
+            top_left = -(total_cols + 1)
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -329,9 +328,11 @@ class halo_bench_pt2pt(nn.Conv2d):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
-				It will lead to data corruption 
+				Synchronization is necessary at this point as all GPU operations 
+    			in PyTorch are asynchronous. MPI copy operation is not under 
+       			PyTorch therefore it can start before pytorch finishes 
+          		initilization of tensor with zeros. It will lead to data 
+            	corruption.
 				Spent 1 week on this issue (data validation) 
 				KEEP THIS IN MIND
 				"""
@@ -366,6 +367,7 @@ class halo_bench_pt2pt(nn.Conv2d):
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
+
         reqs = self.start_halo_exchange(tensor)
         self.end_halo_exchange(reqs)
         self.copy_halo_exchange_values(tensor)
@@ -375,6 +377,7 @@ class halo_bench_pt2pt(nn.Conv2d):
         return tensor, res_final
         print("Rank:", self.local_rank, "\n", tensor)
 
+    pad_width = [(0, 0), (0, 0), (halo_len, halo_len), (halo_len, halo_len)]
 
 def env2int(env_list, default=-1):
     for e in env_list:
@@ -393,6 +396,8 @@ def initialize_cuda():
 
     torch.cuda.init()
 
+    start_left_i = rank * image_width_local
+    end_right_i = (rank + 1) * image_width_local
 
 def init_comm(backend="mpi"):
     """Initialize the distributed environment."""
@@ -572,15 +577,6 @@ def test_output_square(image_size, output, expected_output, rank, size):
     e_top_idx = row * expected_out_height
     e_bottom_idx = (row + 1) * expected_out_height
 
-    # if(rank==0):
-    # 	expected_output = expected_output[:,:,:expected_out_width, :expected_out_height]
-    # elif(rank==1):
-    # 	expected_output = expected_output[:,:,:expected_out_width, -expected_out_height:]
-    # elif(rank==2):
-    # 	expected_output = expected_output[:,:,-expected_out_width:, :expected_out_height]
-    # elif(rank==3):
-    # 	expected_output = expected_output[:,:,-expected_out_width:, -expected_out_height:]
-
     expected_output = expected_output[
         :, :, e_top_idx:e_bottom_idx, e_left_idx:e_right_idx
     ]
@@ -670,56 +666,25 @@ def test_output_horizontal(image_size, output, expected_output, rank, size):
             + str(rank)
         )
 
+    expected_output = expected_output.detach().cpu().numpy()
+    output = output.detach().cpu().numpy()
 
 def test_output(image_size, output, expected_output, rank, size):
-    # only padding ==  halo_len case is supported
-    # image_height_local = int( image_size[0] / math.sqrt(size) )
-    # image_width_local = int( image_size[1] / math.sqrt(size) )
-    # expected_out_width = image_width_local
-    # expected_out_height = image_height_local
-
-    # if(rank==0):
-    # 	expected_output = expected_output[:,:,:expected_out_width, :expected_out_height]
-    # elif(rank==1):
-    # 	expected_output = expected_output[:,:,:expected_out_width, -expected_out_height:]
-    # elif(rank==2):
-    # 	expected_output = expected_output[:,:,-expected_out_width:, :expected_out_height]
-    # elif(rank==3):
-    # 	expected_output = expected_output[:,:,-expected_out_width:, -expected_out_height:]
-
-    # expected_output = expected_output.detach().cpu().numpy()
-    # output = output.detach().cpu().numpy()
-    # time.sleep(rank*10)
-    # if(rank==0):
-    # 	print(expected_output, output)
-
-    # if(np.equal(output,expected_output).all()):
-    # 	print("Validation passed Rank:"+str(rank))
-    # else:
-    # 	if(rank==0):
-    # 		uneq = np.not_equal(output,expected_output)
-    # 		print(uneq)
-    # 		# print("Rank:"+str(rank), output[uneq] -  expected_output[uneq])
-    # 	print("Validation failed Rank.............................................................................:"+str(rank))
-    # print(np.equal(np_out.astype('int'),expected_output.astype('int')))
-    # print("Rank:",rank,"\n", np_out.astype('int'),"\n",expected_output.astype('int'))
     if args.slice_method == "vertical":
+
         test_output_vertical(image_size, output, expected_output, rank, size)
 
     elif args.slice_method == "horizontal":
+
         test_output_horizontal(image_size, output, expected_output, rank, size)
 
     elif args.slice_method == "square":
+
         test_output_square(image_size, output, expected_output, rank, size)
 
 
 def test_output_recv(output, expected_output, rank):
-    # only padding ==  halo_len case is supported
-
-    # np_out = output.data.cpu().numpy()
     np_out = output.to("cpu").numpy()
-
-    # time.sleep(rank*10)
 
     if np.equal(np_out, expected_output).all():
         print("Recv Validation passed Rank:" + str(rank))
@@ -742,11 +707,6 @@ size, rank = init_comm()
 
 image_size = (args.image_size, args.image_size)
 
-# input_tensor_local, expected_output_recv = create_input(halo_len=halo_len,
-# 													image_size=image_size,
-# 													num_spatial_parts = num_spatial_parts,
-# 													rank = rank)
-
 
 input_tensor_local, expected_output_recv = create_input(
     halo_len=halo_len,
@@ -756,6 +716,13 @@ input_tensor_local, expected_output_recv = create_input(
     slice_method=slice_method,
 )
 
+input_tensor_local, expected_output_recv = create_input(
+    halo_len=halo_len,
+    image_size=image_size,
+    num_spatial_parts=num_spatial_parts,
+    rank=rank,
+    slice_method=slice_method,
+)
 
 b_pt2pt = halo_bench_pt2pt(
     local_rank=rank,
@@ -778,7 +745,6 @@ start_event.record()
 
 for i in range(iterations):
     recv, y = b_pt2pt.run(input_tensor_local)
-    # torch.cuda.synchronize()
 output = y
 end_event.record()
 torch.cuda.synchronize()
@@ -788,9 +754,6 @@ t = start_event.elapsed_time(end_event)
 print("Rank:" + str(rank) + " Time taken (ms):" + str(t / iterations))
 
 test_output_recv(recv, expected_output_recv, rank)
-
-
-# test_output(y, expected_output, rank)
 
 
 """
@@ -843,10 +806,3 @@ print("Rank:" + str(rank) + " Time taken Seq (ms):" + str(t / iterations))
 
 
 test_output(image_size, output, expected_output, rank, size)
-
-
-# time.sleep(rank*10)
-
-
-# if(rank==0):
-# 	print(np_x)

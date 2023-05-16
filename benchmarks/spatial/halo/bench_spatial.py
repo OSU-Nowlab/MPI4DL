@@ -165,9 +165,8 @@ class halo_bench_pt2pt(nn.Conv2d):
             total_rows = int(math.sqrt(self.comm_size))
             total_cols = int(math.sqrt(self.comm_size))
 
-            top_left = -(
-                total_cols + 1
-            )  # top_left will be (total_cols + 1) away from current rank
+            # top_left will be (total_cols + 1) away from current rank
+            top_left = -(total_cols + 1)  
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -489,8 +488,10 @@ class halo_bench_pt2pt(nn.Conv2d):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
+				Synchronization is necessary at this point as all GPU operations 
+                in PyTorch are asynchronous. MPI copy operation is not under 
+                PyTorch therefore it can start before pytorch finishes 
+                initilization of tensor with zeros.
 				It will lead to data corruption 
 				Spent 1 week on this issue (data validation) 
 				KEEP THIS IN MIND
@@ -674,6 +675,8 @@ def create_input_horizontal(kernel_size, halo_len, image_size, comm_size, rank):
 
     return input_tensor_local, expected_output
 
+    halo_len_height = int((kernel_size[0] - 1) / 2)
+    halo_len_width = int((kernel_size[1] - 1) / 2)
 
 def create_input_square(kernel_size, halo_len, image_size, comm_size, rank):
     image_height_local = int(image_size[0] / math.sqrt(comm_size))
