@@ -275,7 +275,6 @@ class halo_bench_pt2pt:
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
-
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
@@ -307,7 +306,6 @@ class halo_bench_pt2pt:
             self.shapes_recv = self.get_shapes_recv(shapes)
 
         for i in range(9):
-
             if self.neighbours[i] == 1:
                 temp_tensor = torch.zeros(
                     shapes[0],

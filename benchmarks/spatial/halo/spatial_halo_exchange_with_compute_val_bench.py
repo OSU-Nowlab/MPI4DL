@@ -288,7 +288,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
-
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
@@ -318,7 +317,6 @@ class halo_bench_pt2pt(nn.Conv2d):
             self.shapes_recv = self.get_shapes_recv(shapes)
 
         for i in range(9):
-
             if self.neighbours[i] == 1:
                 temp_tensor = torch.zeros(
                     shapes[0],
@@ -379,6 +377,7 @@ class halo_bench_pt2pt(nn.Conv2d):
         return tensor, res_final
         print("Rank:", self.local_rank, "\n", tensor)
 
+    pad_width = [(0, 0), (0, 0), (halo_len, halo_len), (halo_len, halo_len)]
 
 def env2int(env_list, default=-1):
     for e in env_list:
@@ -397,6 +396,8 @@ def initialize_cuda():
 
     torch.cuda.init()
 
+    start_left_i = rank * image_width_local
+    end_right_i = (rank + 1) * image_width_local
 
 def init_comm(backend="mpi"):
     """Initialize the distributed environment."""
@@ -665,6 +666,8 @@ def test_output_horizontal(image_size, output, expected_output, rank, size):
             + str(rank)
         )
 
+    expected_output = expected_output.detach().cpu().numpy()
+    output = output.detach().cpu().numpy()
 
 def test_output(image_size, output, expected_output, rank, size):
     if args.slice_method == "vertical":
@@ -713,6 +716,13 @@ input_tensor_local, expected_output_recv = create_input(
     slice_method=slice_method,
 )
 
+input_tensor_local, expected_output_recv = create_input(
+    halo_len=halo_len,
+    image_size=image_size,
+    num_spatial_parts=num_spatial_parts,
+    rank=rank,
+    slice_method=slice_method,
+)
 
 b_pt2pt = halo_bench_pt2pt(
     local_rank=rank,
@@ -735,7 +745,6 @@ start_event.record()
 
 for i in range(iterations):
     recv, y = b_pt2pt.run(input_tensor_local)
-
 output = y
 end_event.record()
 torch.cuda.synchronize()
