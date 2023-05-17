@@ -104,8 +104,8 @@ class halo_bench_pt2pt:
             total_rows = int(math.sqrt(self.num_spatial_parts))
             total_cols = int(math.sqrt(self.num_spatial_parts))
 
-			# top_left will be (total_cols + 1) away from current rank
-            top_left = -(total_cols + 1)  
+            # top_left will be (total_cols + 1) away from current rank
+            top_left = -(total_cols + 1)
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -275,7 +275,6 @@ class halo_bench_pt2pt:
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
-
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
@@ -307,7 +306,6 @@ class halo_bench_pt2pt:
             self.shapes_recv = self.get_shapes_recv(shapes)
 
         for i in range(9):
-
             if self.neighbours[i] == 1:
                 temp_tensor = torch.zeros(
                     shapes[0],
@@ -342,7 +340,6 @@ class halo_bench_pt2pt:
         return req
 
     def end_halo_exchange(self, reqs):
-
         for req in reqs:
             req.wait()
 
@@ -357,7 +354,6 @@ class halo_bench_pt2pt:
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
-
         s = torch.cuda.Stream(priority=0)
 
         rec = torch.cuda.Event(enable_timing=True, blocking=True)

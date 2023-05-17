@@ -118,7 +118,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         out_channels,
         slice_method="square",
     ):
-
         # slice_method: "vertical" "horizontal" "square"
         self.slice_method = slice_method
 
@@ -167,7 +166,7 @@ class halo_bench_pt2pt(nn.Conv2d):
             total_cols = int(math.sqrt(self.comm_size))
 
             # top_left will be (total_cols + 1) away from current rank
-            top_left = -(total_cols + 1)  
+            top_left = -(total_cols + 1)
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -446,7 +445,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
-
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
@@ -479,7 +477,6 @@ class halo_bench_pt2pt(nn.Conv2d):
             self.shapes_recv = self.get_shapes_recv(shapes)
 
         for i in range(9):
-
             if self.neighbours[i] == 1:
                 temp_tensor = torch.zeros(
                     shapes[0],
@@ -531,7 +528,6 @@ class halo_bench_pt2pt(nn.Conv2d):
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
-
         reqs = self.start_halo_exchange(tensor)
         self.end_halo_exchange(reqs)
         self.copy_halo_exchange_values(tensor)
@@ -1073,7 +1069,6 @@ Run convolution on expected recv tensor
 """
 
 if ENABLE_VAL_SMALL_CONV:
-
     conv_seq_small = nn.Conv2d(
         args.in_channels,
         args.out_channels,
@@ -1116,19 +1111,16 @@ if ENABLE_VAL_SMALL_CONV:
         torch.cuda.synchronize()
 
     if args.slice_method == "vertical":
-
         test_output_vertical(
             image_size, output, expected_output, rank, size, mode="SMALL CONV"
         )
 
     elif args.slice_method == "horizontal":
-
         test_output_horizontal(
             image_size, output, expected_output, rank, size, mode="SMALL CONV"
         )
 
     elif args.slice_method == "square":
-
         test_output_square(
             image_size, output, expected_output, rank, size, mode="SMALL CONV"
         )

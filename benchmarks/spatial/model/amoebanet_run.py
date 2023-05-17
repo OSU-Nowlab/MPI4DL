@@ -221,7 +221,6 @@ if args.slice_method == "square":
                     temp_shape.append(x)
             resnet_shapes_list.append(temp_shape)
         else:
-
             if len(output_shape) == 2:
                 x = (int(output_shape[0]), output_shape[1])
                 resnet_shapes_list.append(x)
@@ -272,7 +271,6 @@ elif args.slice_method == "vertical":
                     temp_shape.append(x)
             resnet_shapes_list.append(temp_shape)
         else:
-
             if len(output_shape) == 2:
                 x = (int(output_shape[0]), output_shape[1])
                 resnet_shapes_list.append(x)
@@ -301,7 +299,6 @@ elif args.slice_method == "vertical":
 
 
 elif args.slice_method == "horizontal":
-
     resnet_shapes_list = []
     for output_shape in model_gen_seq.shape_list:
         if isinstance(output_shape, list):
@@ -329,7 +326,6 @@ elif args.slice_method == "horizontal":
                     temp_shape.append(x)
             resnet_shapes_list.append(temp_shape)
         else:
-
             if len(output_shape) == 2:
                 x = (int(output_shape[0]), output_shape[1])
                 resnet_shapes_list.append(x)
@@ -364,7 +360,6 @@ del model_gen_seq
 torch.cuda.ipc_collect()
 
 if args.halo_d2:
-
     model = amoebanet_d2.amoebanetd_spatial(
         local_rank=local_rank % mpi_comm.total_spatial_processes,
         spatial_size=spatial_size,
@@ -461,7 +456,6 @@ elif APP == 2:
     )
     size_dataset = 50000
 else:
-
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
         image_size=(3, image_size, image_size),
@@ -539,7 +533,6 @@ def run_epoch():
         correct = 0
         t = time.time()
         for i, data in enumerate(my_dataloader, 0):
-
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()

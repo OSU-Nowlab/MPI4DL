@@ -288,7 +288,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
-
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
@@ -318,7 +317,6 @@ class halo_bench_pt2pt(nn.Conv2d):
             self.shapes_recv = self.get_shapes_recv(shapes)
 
         for i in range(9):
-
             if self.neighbours[i] == 1:
                 temp_tensor = torch.zeros(
                     shapes[0],
@@ -369,7 +367,6 @@ class halo_bench_pt2pt(nn.Conv2d):
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
-
         reqs = self.start_halo_exchange(tensor)
         self.end_halo_exchange(reqs)
         self.copy_halo_exchange_values(tensor)
@@ -668,15 +665,12 @@ def test_output_horizontal(image_size, output, expected_output, rank, size):
 
 def test_output(image_size, output, expected_output, rank, size):
     if args.slice_method == "vertical":
-
         test_output_vertical(image_size, output, expected_output, rank, size)
 
     elif args.slice_method == "horizontal":
-
         test_output_horizontal(image_size, output, expected_output, rank, size)
 
     elif args.slice_method == "square":
-
         test_output_square(image_size, output, expected_output, rank, size)
 
 
