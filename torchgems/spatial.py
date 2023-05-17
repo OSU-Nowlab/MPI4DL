@@ -1,13 +1,6 @@
 import torch.nn as nn
-import torch.optim as optim
-from torch.optim import lr_scheduler
 import torch
 import torch.distributed as dist
-from torch.multiprocessing import Process
-import torch.nn.functional as F
-import torchvision.transforms as transforms
-import torchvision
-from collections import OrderedDict
 import time
 
 
@@ -609,7 +602,7 @@ class conv_spatial(nn.Conv2d):
         if self.neighbours[5] == 1:
             if self.neighbours[3] == 1:
                 res_final = torch.cat(
-                    (res_final, res_vertical[:, :, halo_len:, :]), axis=3
+                    (res_final, res_vertical[:, :, self.halo_len :, :]), axis=3
                 )
             else:
                 res_final = torch.cat((res_final, res_vertical[:, :, :, :]), axis=3)

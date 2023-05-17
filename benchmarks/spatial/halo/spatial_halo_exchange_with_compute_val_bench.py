@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.distributed as dist
 import numpy as np
 import os
-import time
 import math
 import argparse
 

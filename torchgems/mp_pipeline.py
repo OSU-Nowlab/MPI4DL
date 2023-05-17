@@ -1,12 +1,7 @@
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim import lr_scheduler
 import torch
 import torch.distributed as dist
-from torch.multiprocessing import Process
-import torch.nn.functional as F
-import torchvision.transforms as transforms
-import torchvision
 from collections import OrderedDict
 import time
 from torch.nn.parallel import DistributedDataParallel as DDP

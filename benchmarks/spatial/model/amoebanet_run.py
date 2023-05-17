@@ -1,26 +1,16 @@
-import torch.nn as nn
-import torch.optim as optim
-from torch.optim import lr_scheduler
 import torch
 import torch.distributed as dist
-from torch.multiprocessing import Process
-import torch.nn.functional as F
 import torchvision.transforms as transforms
 import torchvision
 import numpy as np
 import time
 import sys
-import os
 import math
 import logging
-from collections import OrderedDict
 from torchgems import parser
-import time
-from torchgems.mp_pipeline import model_generator, train_model
-from torchgems.gems_master import train_model_master
+from torchgems.mp_pipeline import model_generator
 from torchgems.train_spatial import train_model_spatial
 import torchgems.comm as gems_comm
-from torchgems.spatial_new import conv_spatial
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -36,8 +26,6 @@ else:
     from models import amoebanet
 
 gems_comm.initialize_cuda()
-
-from torch.nn.parallel import DistributedDataParallel as DDP
 
 
 class Unbuffered(object):
