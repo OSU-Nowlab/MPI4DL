@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.distributed as dist
 import numpy as np
 import os
-import time
 import math
 import argparse
 
@@ -104,8 +103,8 @@ class halo_bench_pt2pt:
             total_rows = int(math.sqrt(self.num_spatial_parts))
             total_cols = int(math.sqrt(self.num_spatial_parts))
 
-			# top_left will be (total_cols + 1) away from current rank
-            top_left = -(total_cols + 1)  
+            # top_left will be (total_cols + 1) away from current rank
+            top_left = -(total_cols + 1)
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -340,7 +339,6 @@ class halo_bench_pt2pt:
         return req
 
     def end_halo_exchange(self, reqs):
-
         for req in reqs:
             req.wait()
 
@@ -355,7 +353,6 @@ class halo_bench_pt2pt:
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
-
         s = torch.cuda.Stream(priority=0)
 
         rec = torch.cuda.Event(enable_timing=True, blocking=True)

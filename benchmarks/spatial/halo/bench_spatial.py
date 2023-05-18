@@ -166,7 +166,7 @@ class halo_bench_pt2pt(nn.Conv2d):
             total_cols = int(math.sqrt(self.comm_size))
 
             # top_left will be (total_cols + 1) away from current rank
-            top_left = -(total_cols + 1)  
+            top_left = -(total_cols + 1)
             top = -total_cols
             top_right = -(total_cols - 1)
             left = -1
@@ -675,8 +675,6 @@ def create_input_horizontal(kernel_size, halo_len, image_size, comm_size, rank):
 
     return input_tensor_local, expected_output
 
-    halo_len_height = int((kernel_size[0] - 1) / 2)
-    halo_len_width = int((kernel_size[1] - 1) / 2)
 
 def create_input_square(kernel_size, halo_len, image_size, comm_size, rank):
     image_height_local = int(image_size[0] / math.sqrt(comm_size))

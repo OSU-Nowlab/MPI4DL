@@ -1,26 +1,16 @@
-import torch.nn as nn
-import torch.optim as optim
-from torch.optim import lr_scheduler
 import torch
 import torch.distributed as dist
-from torch.multiprocessing import Process
-import torch.nn.functional as F
 import torchvision.transforms as transforms
 import torchvision
 import numpy as np
 import time
 import sys
-import os
 import math
 import logging
-from collections import OrderedDict
 from torchgems import parser
-import time
-from torchgems.mp_pipeline import model_generator, train_model
-from torchgems.gems_master import train_model_master
+from torchgems.mp_pipeline import model_generator
 from torchgems.train_spatial import train_model_spatial
 import torchgems.comm as gems_comm
-from torchgems.spatial_new import conv_spatial
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -181,7 +171,6 @@ model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 
 image_size_times = int(image_size / image_size_seq)
 if args.slice_method == "square":
-
     resnet_shapes_list = [
         (
             model_gen_seq.shape_list[0][0],
@@ -228,7 +217,6 @@ del model_gen_seq
 torch.cuda.ipc_collect()
 
 if args.halo_d2:
-
     model, balance = resnet_cifar_torch_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
         depth=get_depth(2, 12),
@@ -325,7 +313,6 @@ elif APP == 2:
     )
     size_dataset = 50000
 else:
-
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
         image_size=(3, image_size, image_size),
@@ -403,7 +390,6 @@ def run_epoch():
         correct = 0
         t = time.time()
         for i, data in enumerate(my_dataloader, 0):
-
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()

@@ -3,7 +3,6 @@ import torch.nn as nn
 import torch.distributed as dist
 import numpy as np
 import os
-import time
 import math
 import argparse
 
@@ -294,7 +293,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         return shapes_recv
 
     def start_halo_exchange(self, halo_input):
-
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
@@ -360,7 +358,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         return req
 
     def end_halo_exchange(self, reqs):
-
         for req in reqs:
             req.wait()
 
@@ -375,7 +372,6 @@ class halo_bench_pt2pt(nn.Conv2d):
                 ] = self.recv_tensors[i]
 
     def run(self, tensor):
-
         reqs = self.start_halo_exchange(tensor)
         self.end_halo_exchange(reqs)
         res_final = super(halo_bench_pt2pt, self).forward(tensor)

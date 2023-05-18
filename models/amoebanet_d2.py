@@ -1,16 +1,7 @@
-import sys
 import torch
 import torch.nn as nn
-import torch.optim as optim
-from torch.optim import lr_scheduler
-import torch.nn.functional as F
 from collections import OrderedDict
-import sys
-
-sys.path.append("../")
 from torchgems.spatial_new import conv_spatial, halo_exchange_layer, Pool
-import math
-from collections import OrderedDict
 from typing import Any, TYPE_CHECKING, Iterator, List, Tuple, Union, cast
 from torch import Tensor
 

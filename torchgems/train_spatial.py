@@ -949,7 +949,7 @@ class train_model_spatial(train_model):
 
         ######################################################
 
-    def recv_grad_spatial_MP_joint_LP_DP(self):
+    def recv_grad_spatial_MP_joint_LP_DP(self, y):
         # This function is called by first MP split to recv its input
         # from previous split that is spatial (MP/LP) with Data Parallelism
         #########################################################
@@ -1343,12 +1343,12 @@ class train_model_spatial(train_model):
         if self.split_rank != self.split_size - 1:
             if self.ENABLE_ASYNC:
                 if self.split_rank == self.spatial_size - 1 and self.ENABLE_LOCAL_DP_LP:
-                    self.recv_grad_spatial_MP_joint_LP_DP()
+                    self.recv_grad_spatial_MP_joint_LP_DP(y)
                 else:
                     self.receive_grad_async()
             else:
                 if self.split_rank == self.spatial_size - 1 and self.ENABLE_LOCAL_DP_LP:
-                    self.recv_grad_spatial_MP_joint_LP_DP()
+                    self.recv_grad_spatial_MP_joint_LP_DP(y)
                 else:
                     self.receive_grad_sync()
 
