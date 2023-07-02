@@ -56,7 +56,7 @@ epoch=args.num_epochs
 ENABLE_ASYNC=True
 ENABLE_APP=False
 amoebanet_test = False
-image_size = int(args.image_size) #1024
+image_size = int(args.image_size)
 print("image size", image_size)
 steps = 100
 num_layers = args.num_layers
@@ -64,7 +64,7 @@ num_filters = args.num_filters
 balance = args.balance
 mp_size = args.split_size
 image_size_seq = 512
-
+times = 1
 MODEL_TYPE=2
 num_classes=1000
 
@@ -104,7 +104,7 @@ mul_shape = int(args.image_size/32)
 model_gen = model_generator(
     model=model,
     split_size=mp_size,
-    input_size=(int(batch_size / parts), 3, image_size, image_size),
+    input_size=(int(batch_size / parts), 3, image_size_seq, image_size_seq),
     balance=balance
 )
 model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
@@ -166,9 +166,22 @@ if(ENABLE_APP==True):
 											  shuffle=True, num_workers=0,pin_memory=True)
 else:
 
-	my_dataset=torchvision.datasets.FakeData(size=10*batch_size, image_size=(3, image_size, image_size), num_classes=num_classes, transform=transform, target_transform=None, random_offset=0)
-	my_dataloader = torch.utils.data.DataLoader(my_dataset, batch_size=batch_size,
-											  shuffle=False, num_workers=0,pin_memory=True)
+	my_dataset = torchvision.datasets.FakeData(
+		size=10 * batch_size,
+		image_size=(3, image_size, image_size),
+		num_classes=num_classes,
+		transform=transform,
+		target_transform=None,
+		random_offset=0,
+	)
+	my_dataloader = torch.utils.data.DataLoader(
+		my_dataset,
+		batch_size=batch_size * times,
+		shuffle=False,
+		num_workers=0,
+		pin_memory=True,
+	)
+	size_dataset = 10 * batch_size
 
 perf = []
 def run_epoch():
@@ -177,15 +190,15 @@ def run_epoch():
 		loss =0
 		t = time.time()
 		for i, data in enumerate(my_dataloader, 0):
-			if(i>math.floor(50000/batch_size)-1):
-				break
+			
 			#inputs=data_x
 			#labels = data_y
 			start_event = torch.cuda.Event(enable_timing=True, blocking=True)
 			end_event = torch.cuda.Event(enable_timing=True, blocking=True)
 			start_event.record()
 
-
+			if i > math.floor(size_dataset / (times * batch_size)) - 1:
+				break
 			inputs, labels = data
 			#inputs = inputs.to(device)
 			#labels = labels.to(device)
