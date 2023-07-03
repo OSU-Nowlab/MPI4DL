@@ -267,6 +267,14 @@ class end_part_v1(nn.Module):
         return x
 
 
+def get_balance(num_layers, mp_size):
+    part_layer = int(num_layers / mp_size)
+    balance = [part_layer] * mp_size
+    # add remianing layers to last split if split is uneven
+    balance[mp_size - 1] = balance[mp_size - 1] + (num_layers - sum(balance))
+    return balance
+
+
 def get_start_end_layer_index(num_layers, balance, mp_size, local_rank=0):
     # return the index of start and end layer for the model
     # based on the size of model parallelism and local rank of the process
@@ -571,6 +579,9 @@ def get_resnet_v2(
     num_res_blocks = int((depth - 2) / 9)
 
     num_layers = num_res_blocks * 3 + 2
+
+    if balance == None:
+        balance = get_balance(num_layers, mp_size)
 
     _, end_layer = get_start_end_layer_index(
         num_layers, balance, mp_size, local_rank=spatial_size - 1

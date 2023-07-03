@@ -66,7 +66,7 @@ class conv_spatial(nn.Conv2d):
                 elif self.spatial_local_rank == 1:
                     padding_left, padding_right, padding_top, padding_bottom = (
                         self.halo_len_width,
-                        padding,
+                        padding[1],
                         padding[0],
                         self.halo_len_height,
                     )
