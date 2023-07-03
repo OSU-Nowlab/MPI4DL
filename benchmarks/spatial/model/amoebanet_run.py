@@ -92,7 +92,7 @@ else:
     num_spatial_parts = [int(i) for i in temp_num_spatial_parts]
     num_spatial_parts_list = num_spatial_parts
 
-spatial_part_size = num_spatial_parts_list[0] #Partition size for spatial parallelism
+spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
 
 times = 1
 num_classes = 1000
@@ -135,9 +135,11 @@ def verify_config():
         assert isPowerTwo(
             int(image_size / spatial_part_size)
         ), "Image size of each partition should be power of Two"
-    
+
     for each_part_size in num_spatial_parts_list:
-        assert each_part_size == spatial_part_size, "Size of each SP partition should be same"
+        assert (
+            each_part_size == spatial_part_size
+        ), "Size of each SP partition should be same"
 
 
 verify_config()

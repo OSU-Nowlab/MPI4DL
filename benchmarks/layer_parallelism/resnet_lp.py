@@ -92,7 +92,6 @@ for output_shape in model_gen.shape_list:
     if isinstance(output_shape, list):
         temp_shape = []
         for shape_tuple in output_shape:
-
             x = (
                 shape_tuple[0],
                 shape_tuple[1],
@@ -102,11 +101,9 @@ for output_shape in model_gen.shape_list:
             temp_shape.append(x)
         resnet_shapes_list.append(temp_shape)
     else:
-
         if len(output_shape) == 2:
             resnet_shapes_list.append(output_shape)
         else:
-
             x = (
                 output_shape[0],
                 output_shape[1],
@@ -183,7 +180,6 @@ perf = []
 
 
 def run_epoch():
-
     for i_e in range(epoch):
         t = time.time()
         for i, data in enumerate(my_dataloader, 0):
