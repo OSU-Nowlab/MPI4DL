@@ -89,6 +89,8 @@ else:
     num_spatial_parts = [int(i) for i in temp_num_spatial_parts]
     num_spatial_parts_list = num_spatial_parts
 
+spatial_part_size = num_spatial_parts_list[0] #Partition size for spatial parallelism
+
 times = 1
 num_classes = 10
 
@@ -120,12 +122,16 @@ def verify_config():
 
     if args.slice_method == "square":
         assert isPowerTwo(
-            int(image_size / math.sqrt(num_spatial_parts))
+            int(image_size / math.sqrt(spatial_part_size))
         ), "Image size of each partition should be power of Two"
     else:
         assert isPowerTwo(
-            int(image_size / num_spatial_parts)
+            int(image_size / spatial_part_size)
         ), "Image size of each partition should be power of Two"
+    
+    for each_part_size in num_spatial_parts_list:
+        assert each_part_size == spatial_part_size, "Size of each SP partition should be same"
+
 
 
 verify_config()
@@ -178,12 +184,12 @@ if args.slice_method == "square":
             int(
                 model_gen_seq.shape_list[0][2]
                 * image_size_times
-                / math.sqrt(num_spatial_parts)
+                / math.sqrt(spatial_part_size)
             ),
             int(
                 model_gen_seq.shape_list[0][3]
                 * image_size_times
-                / math.sqrt(num_spatial_parts)
+                / math.sqrt(spatial_part_size)
             ),
         ),
         model_gen_seq.shape_list[1],
@@ -195,7 +201,7 @@ elif args.slice_method == "vertical":
             model_gen_seq.shape_list[0][0],
             model_gen_seq.shape_list[0][1],
             int(model_gen_seq.shape_list[0][2] * image_size_times / 1),
-            int(model_gen_seq.shape_list[0][3] * image_size_times / num_spatial_parts),
+            int(model_gen_seq.shape_list[0][3] * image_size_times / spatial_part_size),
         ),
         model_gen_seq.shape_list[1],
     ]
@@ -205,7 +211,7 @@ elif args.slice_method == "horizontal":
         (
             model_gen_seq.shape_list[0][0],
             model_gen_seq.shape_list[0][1],
-            int(model_gen_seq.shape_list[0][2] * image_size_times / num_spatial_parts),
+            int(model_gen_seq.shape_list[0][2] * image_size_times / spatial_part_size),
             int(model_gen_seq.shape_list[0][3] * image_size_times / 1),
         ),
         model_gen_seq.shape_list[1],
@@ -220,7 +226,7 @@ if args.halo_d2:
     model, balance = resnet_cifar_torch_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
         depth=get_depth(2, 12),
-        local_rank=local_rank % num_spatial_parts,
+        local_rank=local_rank % spatial_part_size,
         mp_size=split_size,
         balance=balance,
         spatial_size=spatial_size,
@@ -233,7 +239,7 @@ else:
     model = resnet_cifar_torch_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
         depth=get_depth(2, 12),
-        local_rank=local_rank % num_spatial_parts,
+        local_rank=local_rank % spatial_part_size,
         mp_size=split_size,
         balance=balance,
         spatial_size=spatial_size,
@@ -257,7 +263,7 @@ model_gen.ready_model(split_rank=split_rank)
 
 print("Shape list", resnet_shapes_list)
 
-if local_rank == num_spatial_parts:
+if local_rank == spatial_part_size:
     print(model_gen.models)
 
 
@@ -337,13 +343,13 @@ perf = []
 
 def split_input(inputs):
     if args.slice_method == "square":
-        image_height_local = int(image_size / math.sqrt(num_spatial_parts))
-        image_width_local = int(image_size / math.sqrt(num_spatial_parts))
+        image_height_local = int(image_size / math.sqrt(spatial_part_size))
+        image_width_local = int(image_size / math.sqrt(spatial_part_size))
 
-        total_rows = int(math.sqrt(num_spatial_parts))
-        total_cols = int(math.sqrt(num_spatial_parts))
+        total_rows = int(math.sqrt(spatial_part_size))
+        total_cols = int(math.sqrt(spatial_part_size))
 
-        # current position of rank in matrix of math.sqrt(num_spatial_parts) * math.sqrt(num_spatial_parts)
+        # current position of rank in matrix of math.sqrt(spatial_part_size) * math.sqrt(spatial_part_size)
         row = int(local_rank / total_cols)
         col = int(local_rank % total_cols)
 
@@ -356,13 +362,13 @@ def split_input(inputs):
         return inputs[:, :, start_top:end_bottom, start_left:end_right]
 
     elif args.slice_method == "vertical":
-        image_height_local = int(image_size / num_spatial_parts)
-        image_width_local = int(image_size / num_spatial_parts)
+        image_height_local = int(image_size / spatial_part_size)
+        image_width_local = int(image_size / spatial_part_size)
 
         start_left = local_rank * image_width_local
         end_right = (local_rank + 1) * image_width_local
 
-        if local_rank == num_spatial_parts - 1:
+        if local_rank == spatial_part_size - 1:
             # In case of GPU count, partition size will be uneven and last
             # rank will receive remaining image
             return inputs[:, :, :, start_left:]
@@ -370,13 +376,13 @@ def split_input(inputs):
             return inputs[:, :, :, start_left:end_right]
 
     elif args.slice_method == "horizontal":
-        image_height_local = int(image_size / num_spatial_parts)
-        image_width_local = int(image_size / num_spatial_parts)
+        image_height_local = int(image_size / spatial_part_size)
+        image_width_local = int(image_size / spatial_part_size)
 
         start_top = local_rank * image_height_local
         end_bottom = (local_rank + 1) * image_height_local
 
-        if local_rank == num_spatial_parts - 1:
+        if local_rank == spatial_part_size - 1:
             # In case of odd GPU count, partition size will be uneven and last
             # rank will receive remaining image
             return inputs[:, :, start_top:, :]
@@ -397,7 +403,7 @@ def run_epoch():
                 break
             inputs, labels = data
 
-            if local_rank < num_spatial_parts_list[0]:
+            if local_rank < spatial_part_size:
                 x = split_input(inputs)
             else:
                 x = inputs
@@ -405,14 +411,14 @@ def run_epoch():
             temp_loss, temp_correct = t_s.run_step(x, labels)
             loss += temp_loss
             correct += temp_correct
-            if local_rank < spatial_size * num_spatial_parts:
+            if local_rank < spatial_size * spatial_part_size:
                 sync_allreduce.apply_allreduce(
                     model_gen, mpi_comm.spatial_allreduce_grp
                 )
             torch.cuda.synchronize()
 
             t_s.update()
-            if local_rank == num_spatial_parts:
+            if local_rank == spatial_part_size:
                 logging.info(
                     f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)} Acc: {temp_correct}"
                 )
@@ -425,7 +431,7 @@ def run_epoch():
                 perf.append(batch_size / t)
 
             t = time.time()
-        if local_rank == num_spatial_parts:
+        if local_rank == spatial_part_size:
             print("epoch", i_e, " Global loss:", loss, " acc", correct / i)
 
 

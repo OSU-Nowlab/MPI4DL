@@ -92,6 +92,8 @@ else:
     num_spatial_parts = [int(i) for i in temp_num_spatial_parts]
     num_spatial_parts_list = num_spatial_parts
 
+spatial_part_size = num_spatial_parts_list[0] #Partition size for spatial parallelism
+
 times = 1
 num_classes = 1000
 LOCAL_DP_LP = args.local_DP
@@ -127,12 +129,15 @@ def verify_config():
 
     if args.slice_method == "square":
         assert isPowerTwo(
-            int(image_size / math.sqrt(num_spatial_parts))
+            int(image_size / math.sqrt(spatial_part_size))
         ), "Image size of each partition should be power of Two"
     else:
         assert isPowerTwo(
-            int(image_size / num_spatial_parts)
+            int(image_size / spatial_part_size)
         ), "Image size of each partition should be power of Two"
+    
+    for each_part_size in num_spatial_parts_list:
+        assert each_part_size == spatial_part_size, "Size of each SP partition should be same"
 
 
 verify_config()
@@ -419,7 +424,7 @@ torch.manual_seed(0)
 
 if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        "/usr/workspace/jain8/project/cancer/1024_1024_5/train",
+        "./train",
         transform=transform,
         target_transform=None,
     )
@@ -468,13 +473,13 @@ perf = []
 
 def split_input(inputs):
     if args.slice_method == "square":
-        image_height_local = int(image_size / math.sqrt(num_spatial_parts))
-        image_width_local = int(image_size / math.sqrt(num_spatial_parts))
+        image_height_local = int(image_size / math.sqrt(spatial_part_size))
+        image_width_local = int(image_size / math.sqrt(spatial_part_size))
 
-        total_rows = int(math.sqrt(num_spatial_parts))
-        total_cols = int(math.sqrt(num_spatial_parts))
+        total_rows = int(math.sqrt(spatial_part_size))
+        total_cols = int(math.sqrt(spatial_part_size))
 
-        # current position of rank in matrix of math.sqrt(num_spatial_parts) * math.sqrt(num_spatial_parts)
+        # current position of rank in matrix of math.sqrt(spatial_part_size) * math.sqrt(num_spatial_parts)
         row = int(local_rank / total_cols)
         col = int(local_rank % total_cols)
 
@@ -487,13 +492,13 @@ def split_input(inputs):
         return inputs[:, :, start_top:end_bottom, start_left:end_right]
 
     elif args.slice_method == "vertical":
-        image_height_local = int(image_size / num_spatial_parts)
-        image_width_local = int(image_size / num_spatial_parts)
+        image_height_local = int(image_size / spatial_part_size)
+        image_width_local = int(image_size / spatial_part_size)
 
         start_left = local_rank * image_width_local
         end_right = (local_rank + 1) * image_width_local
 
-        if local_rank == num_spatial_parts - 1:
+        if local_rank == spatial_part_size - 1:
             # In case of GPU count, partition size will be uneven and last
             # rank will receive remaining image
             return inputs[:, :, :, start_left:]
@@ -501,13 +506,13 @@ def split_input(inputs):
             return inputs[:, :, :, start_left:end_right]
 
     elif args.slice_method == "horizontal":
-        image_height_local = int(image_size / num_spatial_parts)
-        image_width_local = int(image_size / num_spatial_parts)
+        image_height_local = int(image_size / spatial_part_size)
+        image_width_local = int(image_size / spatial_part_size)
 
         start_top = local_rank * image_height_local
         end_bottom = (local_rank + 1) * image_height_local
 
-        if local_rank == num_spatial_parts - 1:
+        if local_rank == spatial_part_size - 1:
             # In case of odd GPU count, partition size will be uneven and last
             # rank will receive remaining image
             return inputs[:, :, start_top:, :]
@@ -528,7 +533,7 @@ def run_epoch():
                 break
             inputs, labels = data
 
-            if local_rank < num_spatial_parts_list[0]:
+            if local_rank < spatial_part_size:
                 x = split_input(inputs)
             else:
                 x = inputs

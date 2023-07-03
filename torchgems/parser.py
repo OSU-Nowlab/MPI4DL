@@ -6,6 +6,14 @@ def get_parser():
         description="MP-DP ResNet Script",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
+
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        help="Prints performance numbers or logs",
+        action="store_true",
+    )
+
     parser.add_argument(
         "--fp16-allreduce",
         action="store_true",
@@ -124,5 +132,12 @@ def get_parser():
         default="square",
         help="Slice method (square, vertical, and horizontal) in Spatial parallelism",
     )
+    parser.add_argument(
+        "--app",
+        type=int,
+        default=3,
+        help="Application type (1.medical, 2.cifar, and synthetic) in Spatial parallelism",
+    )
+
     parser.set_defaults(enable_dp=False)
     return parser
