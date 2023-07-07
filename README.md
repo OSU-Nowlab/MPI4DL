@@ -83,6 +83,26 @@ Example to run Amoebanet model with partition size for model as two, spatial par
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial/model/amoebanet_run.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
 ```
+
+## Experimental Results:
+
+#### Using Spatial, Model and Pipeline Parallelism, where the model is split into two parts and utilizes spatial parallelism by dividing the image into four parts
+
+- AmeobaNet Model 
+
+<div align="center">
+<img src="docs/assets/images/AmeobaNet_img_size_1024.png" width="400"> 
+<img src="docs/assets/images/AmeobaNet_img_size_2048.png" width="400"> 
+</div>
+
+- ResNet Model 
+
+<div align="center">
+<img src="docs/assets/images/ResNet_img_size_1024.png" width="400"> 
+<img src="docs/assets/images/ResNet_img_size_2048.png" width="400"> 
+</div>
+
+
 ## References:
 1. Arpan Jain, Ammar Ahmad Awan, Asmaa M. Aljuhani, Jahanzeb Maqbool Hashmi, Quentin G. Anthony, Hari Subramoni, Dhableswar K. Panda, Raghu Machiraju, and Anil Parwani. 2020. GEMS: <u>G</u>PU-<u>e</u>nabled <u>m</u>emory-aware model-parallelism <u>s</u>ystem for distributed DNN training. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC '20). IEEE Press, Article 45, 1–15.
 2. Arpan Jain, Aamir Shafi, Quentin Anthony, Pouya Kousha, Hari Subramoni, and Dhableswar K. Panda. 2022. Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters. In High Performance Computing: 37th International Conference, ISC High Performance 2022, Hamburg, Germany, May 29 – June 2, 2022, Proceedings. Springer-Verlag, Berlin, Heidelberg, 109–130. https://doi.org/10.1007/978-3-031-07312-0_6
