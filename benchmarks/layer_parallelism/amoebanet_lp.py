@@ -4,6 +4,7 @@ import torchvision
 import numpy as np
 import sys
 import math
+import logging
 from torchgems import parser
 import time
 from torchgems.mp_pipeline import model_generator, train_model
@@ -13,6 +14,9 @@ import torchgems.comm as gems_comm
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
+
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
 
 gems_comm.initialize_cuda()
 
@@ -139,7 +143,7 @@ transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
 torch.manual_seed(0)
-if ENABLE_APP:
+if ENABLE_APP == True:
     trainset = torchvision.datasets.ImageFolder(
         "/train", transform=transform, target_transform=None
     )
@@ -169,6 +173,7 @@ perf = []
 
 def run_epoch():
     for i_e in range(epoch):
+        loss = 0
         t = time.time()
         for i, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
@@ -179,6 +184,8 @@ def run_epoch():
                 break
             inputs, labels = data
 
+            temp_loss = tm.run_step(inputs, labels)
+            loss += temp_loss
             tm.update()
 
             end_event.record()
@@ -186,7 +193,7 @@ def run_epoch():
             t = start_event.elapsed_time(end_event) / 1000
 
             if local_rank == mp_size - 1:
-                None
+                logging.info(f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)}")
 
             if local_rank == 0:
                 print("Epoch: {} images per sec:{}".format(i_e, batch_size / t))
