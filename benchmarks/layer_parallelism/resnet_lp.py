@@ -18,7 +18,6 @@ args = parser_obj.parse_args()
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
-
 gems_comm.initialize_cuda()
 
 
@@ -41,23 +40,23 @@ class Unbuffered(object):
 sys.stdout = Unbuffered(sys.stdout)
 
 np.random.seed(seed=1405)
-parts = args.parts
-batch_size = args.batch_size
-resnet_n = 12
-epoch = args.num_epochs
 ENABLE_ASYNC = True
 ENABLE_APP = False
-amoebanet_test = False
-image_size = int(args.image_size)  # 1024
-print("image size", image_size)
-steps = 100
+parts = args.parts
+batch_size = args.batch_size
+epoch = args.num_epochs
+image_size = int(args.image_size)
 num_layers = args.num_layers
 num_filters = args.num_filters
 balance = args.balance
 mp_size = args.split_size
+times = args.times
+datapath = args.datapath
+
 image_size_seq = 32
-times = 1
 num_classes = 10
+resnet_n = 12
+steps = 100
 
 mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False)
 rank = mpi_comm.rank
@@ -156,7 +155,7 @@ transform = transforms.Compose(
 torch.manual_seed(0)
 if ENABLE_APP == True:
     trainset = torchvision.datasets.ImageFolder(
-        "/usr/workspace/jain8/project/cancer/1024_1024_5/train",
+        datapath,
         transform=transform,
         target_transform=None,
     )

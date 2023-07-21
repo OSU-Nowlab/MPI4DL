@@ -79,10 +79,12 @@ Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.0a0+git35202d2,
 cd torch-gems
 python setup.py install
 ```
-Example to run Amoebanet model with partition size for model as two, spatial partition as four and spatial size (i.e. number of model partition which will use spatial partition) as 1
+Example to run AmoebaNet model with partition size for model as two, spatial partition as four and spatial size (i.e. number of model partition which will use spatial partition) as 1
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial/model/amoebanet_run.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
 ```
+
+Refer [Spatial Parallelism Benchmarks](https://github.com/OSU-Nowlab/now-dl/tree/main/benchmarks/spatial) for more details.
 
 ## Experimental Results:
 

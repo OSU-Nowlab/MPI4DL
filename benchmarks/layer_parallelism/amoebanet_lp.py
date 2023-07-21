@@ -40,23 +40,22 @@ class Unbuffered(object):
 sys.stdout = Unbuffered(sys.stdout)
 
 np.random.seed(seed=1405)
-parts = args.parts
-batch_size = args.batch_size
-resnet_n = 18
-epoch = args.num_epochs
 ENABLE_ASYNC = True
 ENABLE_APP = False
-amoebanet_test = False
+parts = args.parts
+batch_size = args.batch_size
+epoch = args.num_epochs
 image_size = int(args.image_size)
-print("image size", image_size)
-steps = 100
 num_layers = args.num_layers
 num_filters = args.num_filters
 balance = args.balance
 mp_size = args.split_size
+times = args.times
+datapath = args.datapath
+
 image_size_seq = 512
-times = 1
 num_classes = 1000
+steps = 100
 
 mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False)
 rank = mpi_comm.rank
@@ -80,7 +79,7 @@ model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
 
 
 image_size_times = int(image_size / image_size_seq)
-resnet_shapes_list = []
+amoebanet_shapes_list = []
 for output_shape in model_gen.shape_list:
     if isinstance(output_shape, list):
         temp_shape = []
@@ -92,10 +91,10 @@ for output_shape in model_gen.shape_list:
                 int(shape_tuple[3] * image_size_times),
             )
             temp_shape.append(x)
-        resnet_shapes_list.append(temp_shape)
+        amoebanet_shapes_list.append(temp_shape)
     else:
         if len(output_shape) == 2:
-            resnet_shapes_list.append(output_shape)
+            amoebanet_shapes_list.append(output_shape)
         else:
             x = (
                 output_shape[0],
@@ -103,9 +102,9 @@ for output_shape in model_gen.shape_list:
                 int(output_shape[2] * image_size_times),
                 int(output_shape[3] * image_size_times),
             )
-            resnet_shapes_list.append(x)
+            amoebanet_shapes_list.append(x)
 
-model_gen.shape_list = resnet_shapes_list
+model_gen.shape_list = amoebanet_shapes_list
 print("local_ran:", local_rank, " Shapes:", model_gen.shape_list)
 
 
@@ -123,7 +122,7 @@ model_gen = model_generator(
     split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size, image_size),
     balance=balance,
-    shape_list=resnet_shapes_list,
+    shape_list=amoebanet_shapes_list,
 )
 model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
 
@@ -145,7 +144,7 @@ transform = transforms.Compose(
 torch.manual_seed(0)
 if ENABLE_APP == True:
     trainset = torchvision.datasets.ImageFolder(
-        "/train", transform=transform, target_transform=None
+        datapath, transform=transform, target_transform=None
     )
     my_dataloader = torch.utils.data.DataLoader(
         trainset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True

@@ -3,7 +3,7 @@ import argparse
 
 def get_parser():
     parser = argparse.ArgumentParser(
-        description="MP-DP ResNet Script",
+        description="SP-MP-DP Configuration Script",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
 
@@ -14,30 +14,7 @@ def get_parser():
         action="store_true",
     )
 
-    parser.add_argument(
-        "--fp16-allreduce",
-        action="store_true",
-        default=False,
-        help="use fp16 compression during allreduce",
-    )
-
-    parser.add_argument(
-        "--model", type=str, default="resnet50", help="model to benchmark"
-    )
     parser.add_argument("--batch-size", type=int, default=32, help="input batch size")
-
-    parser.add_argument(
-        "--learning-rate",
-        type=float,
-        default=0.001,
-        help="learning rate for the optimizer",
-    )
-    parser.add_argument(
-        "--num-gpus-mp", type=int, default=1, help="number of GPUS per node for MP"
-    )
-    parser.add_argument(
-        "--mem-per-process", type=float, default=1, help="TF GPU memory per GPU"
-    )
 
     parser.add_argument("--parts", type=int, default=1, help="Number of parts for MP")
 
@@ -66,29 +43,6 @@ def get_parser():
         "--image-size", type=int, default=32, help="Image size for synthetic benchmark"
     )
 
-    parser.add_argument(
-        "--dp-per-node", type=int, default=1, help="Number of DP modes per node"
-    )
-
-    parser.add_argument(
-        "--enable-dp",
-        dest="enable_dp",
-        action="store_true",
-        help="Enable DP for pytorch scripts",
-    )
-
-    parser.add_argument(
-        "--enable-master-comm-opt",
-        dest="enable_master_comm_opt",
-        action="store_true",
-        default=False,
-        help="Enable communication optimization for MASTER in Spatial",
-    )
-
-    parser.add_argument(
-        "--num-gpu-per-node", type=int, default=4, help="Number of GPUs per node"
-    )
-
     parser.add_argument("--num-epochs", type=int, default=1, help="Number of epochs")
 
     parser.add_argument(
@@ -96,10 +50,6 @@ def get_parser():
     )
     parser.add_argument(
         "--num-filters", type=int, default=416, help="Number of layers in amoebanet"
-    )
-    parser.add_argument("--unet-b", type=int, default=6, help="B hyperparamter in unet")
-    parser.add_argument(
-        "--unet-c", type=int, default=72, help="C hyperparamter in unet"
     )
     parser.add_argument(
         "--balance",
@@ -138,6 +88,10 @@ def get_parser():
         default=3,
         help="Application type (1.medical, 2.cifar, and synthetic) in Spatial parallelism",
     )
-
-    parser.set_defaults(enable_dp=False)
+    parser.add_argument(
+        "--datapath",
+        type=int,
+        default="./train",
+        help="local Dataset path",
+    )
     return parser

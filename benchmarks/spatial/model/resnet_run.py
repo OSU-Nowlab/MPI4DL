@@ -61,24 +61,27 @@ def get_depth(version, n):
 sys.stdout = Unbuffered(sys.stdout)
 
 np.random.seed(seed=1405)
+
+ENABLE_ASYNC = True
 parts = args.parts
 batch_size = args.batch_size
-resnet_n = 12
 epoch = args.num_epochs
-ENABLE_ASYNC = True
+image_size = int(args.image_size)
+balance = args.balance
+split_size = args.split_size
+spatial_size = args.spatial_size
+times = args.times
+datapath = args.datapath
 
 # APP
 # 1: Medical
 # 2: Cifar
 # 3: synthetic
 APP = args.app
-amoebanet_test = False
-image_size = int(args.image_size)
-print("image size", image_size)
+
+resnet_n = 12
+num_classes = 10
 steps = 100
-balance = args.balance
-split_size = args.split_size
-spatial_size = args.spatial_size
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
@@ -90,9 +93,6 @@ else:
     num_spatial_parts_list = num_spatial_parts
 
 spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
-
-times = 1
-num_classes = 10
 
 
 def isPowerTwo(num):
@@ -297,7 +297,7 @@ torch.manual_seed(0)
 
 if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        "./train", transform=transform, target_transform=None
+        datapath, transform=transform, target_transform=None
     )
     my_dataloader = torch.utils.data.DataLoader(
         trainset,

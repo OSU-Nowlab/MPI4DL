@@ -61,27 +61,30 @@ def get_depth(version, n):
 
 sys.stdout = Unbuffered(sys.stdout)
 
+ENABLE_ASYNC = True
+
 np.random.seed(seed=1405)
 parts = args.parts
 batch_size = args.batch_size
-resnet_n = 12
 epoch = args.num_epochs
-ENABLE_ASYNC = True
-
-# APP
-# 1: Medical
-# 2: Cifar
-# 3: synthetic
-APP = args.app
-amoebanet_test = False
 image_size = int(args.image_size)
-print("image size", image_size)
-steps = 100
 num_layers = args.num_layers
 num_filters = args.num_filters
 balance = args.balance
 split_size = args.split_size
 spatial_size = args.spatial_size
+times = args.times
+datapath = args.datapath
+
+LOCAL_DP_LP = args.local_DP
+# APP
+# 1: Medical
+# 2: Cifar
+# 3: synthetic
+APP = args.app
+
+num_classes = 1000
+steps = 100
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
@@ -93,12 +96,6 @@ else:
     num_spatial_parts_list = num_spatial_parts
 
 spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
-
-times = 1
-num_classes = 1000
-LOCAL_DP_LP = args.local_DP
-
-# DDP support
 
 
 def isPowerTwo(num):
@@ -192,7 +189,7 @@ image_size_times = int(image_size / image_size_seq)
 
 temp_count = 0
 if args.slice_method == "square":
-    resnet_shapes_list = []
+    amoebanet_shapes_list = []
     for output_shape in model_gen_seq.shape_list:
         if isinstance(output_shape, list):
             temp_shape = []
@@ -214,11 +211,11 @@ if args.slice_method == "square":
                         int(shape_tuple[3] * image_size_times),
                     )
                     temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
+            amoebanet_shapes_list.append(temp_shape)
         else:
             if len(output_shape) == 2:
                 x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
+                amoebanet_shapes_list.append(x)
             else:
                 if temp_count < spatial_size:
                     x = (
@@ -227,7 +224,7 @@ if args.slice_method == "square":
                         int(output_shape[2] * image_size_times / 2),
                         int(output_shape[3] * image_size_times / 2),
                     )
-                    resnet_shapes_list.append(x)
+                    amoebanet_shapes_list.append(x)
                 else:
                     x = (
                         int(output_shape[0]),
@@ -235,11 +232,11 @@ if args.slice_method == "square":
                         int(output_shape[2] * image_size_times),
                         int(output_shape[3] * image_size_times),
                     )
-                    resnet_shapes_list.append(x)
+                    amoebanet_shapes_list.append(x)
         temp_count += 1
 
 elif args.slice_method == "vertical":
-    resnet_shapes_list = []
+    amoebanet_shapes_list = []
     for output_shape in model_gen_seq.shape_list:
         if isinstance(output_shape, list):
             temp_shape = []
@@ -264,11 +261,11 @@ elif args.slice_method == "vertical":
                         int(shape_tuple[3] * image_size_times),
                     )
                     temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
+            amoebanet_shapes_list.append(temp_shape)
         else:
             if len(output_shape) == 2:
                 x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
+                amoebanet_shapes_list.append(x)
             else:
                 if temp_count < spatial_size:
                     x = (
@@ -281,7 +278,7 @@ elif args.slice_method == "vertical":
                             / num_spatial_parts_list[temp_count]
                         ),
                     )
-                    resnet_shapes_list.append(x)
+                    amoebanet_shapes_list.append(x)
                 else:
                     x = (
                         int(output_shape[0]),
@@ -289,12 +286,12 @@ elif args.slice_method == "vertical":
                         int(output_shape[2] * image_size_times),
                         int(output_shape[3] * image_size_times),
                     )
-                    resnet_shapes_list.append(x)
+                    amoebanet_shapes_list.append(x)
         temp_count += 1
 
 
 elif args.slice_method == "horizontal":
-    resnet_shapes_list = []
+    amoebanet_shapes_list = []
     for output_shape in model_gen_seq.shape_list:
         if isinstance(output_shape, list):
             temp_shape = []
@@ -319,11 +316,11 @@ elif args.slice_method == "horizontal":
                         int(shape_tuple[3] * image_size_times),
                     )
                     temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
+            amoebanet_shapes_list.append(temp_shape)
         else:
             if len(output_shape) == 2:
                 x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
+                amoebanet_shapes_list.append(x)
             else:
                 if temp_count < spatial_size:
                     x = (
@@ -336,7 +333,7 @@ elif args.slice_method == "horizontal":
                         ),
                         int(output_shape[3] * image_size_times / 1),
                     )
-                    resnet_shapes_list.append(x)
+                    amoebanet_shapes_list.append(x)
                 else:
                     x = (
                         int(output_shape[0]),
@@ -344,11 +341,11 @@ elif args.slice_method == "horizontal":
                         int(output_shape[2] * image_size_times),
                         int(output_shape[3] * image_size_times),
                     )
-                    resnet_shapes_list.append(x)
+                    amoebanet_shapes_list.append(x)
         temp_count += 1
 
 
-print(model_gen_seq.shape_list, resnet_shapes_list)
+print(model_gen_seq.shape_list, amoebanet_shapes_list)
 
 del model_seq
 del model_gen_seq
@@ -385,7 +382,7 @@ model_gen = model_generator(
     split_size=split_size,
     input_size=(int(batch_size / parts), 3, image_size, image_size),
     balance=balance,
-    shape_list=resnet_shapes_list,
+    shape_list=amoebanet_shapes_list,
 )
 
 
@@ -393,7 +390,7 @@ model_gen.ready_model(split_rank=split_rank)
 model_gen.DDP_model(mpi_comm, num_spatial_parts, spatial_size, bucket_size=0)
 
 
-print("Shape list", resnet_shapes_list)
+print("Shape list", amoebanet_shapes_list)
 
 
 t_s = train_model_spatial(
@@ -426,7 +423,7 @@ torch.manual_seed(0)
 
 if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        "./train",
+        datapath,
         transform=transform,
         target_transform=None,
     )
