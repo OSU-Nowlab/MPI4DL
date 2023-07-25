@@ -1,85 +1,35 @@
 # Spatial Parallelism Benchmarks
 
-Spatial parallelism benchmarks include halo exchange and model benchmarks. These benchmarks will test the working of spatial parallelism.
-
-
-##  Halo exchnage benchmark:
-- While performing convolutional operations on each partition of the image, halo exchange will be performed to receive input from neighboring partitions.
-- Halo exchange can also be performed in parallel, while convolution operations on available input are done in parallel while performing halo exchange.
-- spatial_halo_exchange_bench.py and spatial_halo_exchange_with_compute_bench.py are used to test the proper functioning of send and receive operations for halo regions.
-- spatial_halo_exchange_with_compute_val_bench.py is utilized to validate the received inputs, in addition to testing the halo region send and receive operations.
-
-
-**Run halo-exchange benchmarks:**
-
-- Load Required model:
-```bash
-cd now-dl
-python setup.py install
-```
-
-- Example to run halo exchange benchmark for four vertical partition : 
-```bash
-cd benchmarks/spatial/model/
-$MV2_HOME/bin/mpirun_rsh --export-all -np 4 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python spatial_halo_exchange_bench.py --image-size 32 --batch-size 32 --num-spatial-parts 4 --slice-method "vertical"
-```
-
-Halo exchange benchmarks can also be configured for different num-spatial-parts, slice-method, etc. Find all available options below:
-<pre>
-usage: spatial_halo_exchange_bench.py [-h] [--fp16-allreduce] [--image-size IMAGE_SIZE] [--batch-size BATCH_SIZE] [--halo-len HALO_LEN] [--in-channels IN_CHANNELS]
-                                      [--warmup WARMUP] [--iterations ITERATIONS] [--out-channels OUT_CHANNELS]
-
-Halo exchange benchmark
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --fp16-allreduce      use fp16 compression during allreduce (default: False)
-  --image-size IMAGE_SIZE
-                        Full image size (default: 8)
-  --batch-size BATCH_SIZE
-                        input batch size (default: 1)
-  --halo-len HALO_LEN   halo length (default: 1)
-  --in-channels IN_CHANNELS
-                        Number of channels in the input (default: 1)
-  --warmup WARMUP       warmups (default: 10)
-  --iterations ITERATIONS
-                        Iterations (default: 100)
-  --out-channels OUT_CHANNELS
-                        number of output channels (default: 256)
-</pre>
-
-## Model benchmarks
-
 Model benchmarks for spatial parallelism also require performing model parallelism. To configure the number of model partitions and the number of model partitions that will use spatial parallelism, you can use the --split-size and --spatial-size arguments respectively.
 
-Run spatial parallelism:
+## Run spatial parallelism:
 
-# Generic command:
+#### Generic command:
 ```bash
 
-$MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile  {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so /home/gulhane.2/map_rank_to_gpu python ${model_type} --halo-D2 --num-spatial-parts ${num_spatial_parts}  --image-size ${image_size} --batch-size ${batch_size} --slice-method ${partition}
+$MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile  {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python ${model_type} --halo-D2 --num-spatial-parts ${num_spatial_parts}  --image-size ${image_size} --batch-size ${batch_size} --slice-method ${partition}
 
 ```
-# Examples
+#### Examples
 
 - With 5 GPUs [split size: 2, num_spatial_parts: 4, spatial_size: 1]
 
 Example to run AmoebaNet model with 2 model split size(i.e. # of partitions for MP), spatial partition (# of image partitions) as 4 and 1 as spatial size (i.e. number of model partition which will use spatial partition). In this configuration, we split model into two parts where first part will use spatial parallelism. 
 
 ```bash
-$MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python amoebanet_run.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
+$MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
 ```
 - With 9 GPUs [split size: 3, num_spatial_parts: 4, spatial_size: 2]
 In this configuration, we split model int three parts where first two part will use spatial parallelism. 
 
 ```bash
-$MV2_HOME/bin/mpirun_rsh --export-all -np 9 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python amoebanet_run.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 3 --spatial-size 2
+$MV2_HOME/bin/mpirun_rsh --export-all -np 9 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 3 --spatial-size 2
 ```
 
 - Similarly, we can run benchmark for ResNet model.
 Find the example to run ResNet with halo-D2 enabled to reduce communication opertaions. To learn more about halo-D2, refer [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6)
 ```bash
-$MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so resnet_model.py --halo-D2 --num-spatial-parts 4 --image-size 1024 --batch-size 2 --slice-method "square"
+$MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so benchmarks/spatial_parallelism/benchmark_resnet_sp.py --halo-D2 --num-spatial-parts 4 --image-size 1024 --batch-size 2 --slice-method "square"
 ``` 
 
 Below are the available configuration options :

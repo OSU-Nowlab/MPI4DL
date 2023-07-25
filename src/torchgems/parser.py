@@ -90,7 +90,7 @@ def get_parser():
     )
     parser.add_argument(
         "--datapath",
-        type=int,
+        type=str,
         default="./train",
         help="local Dataset path",
     )

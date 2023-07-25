@@ -177,46 +177,163 @@ model_gen_seq = model_generator(
 model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 
 image_size_times = int(image_size / image_size_seq)
+
+temp_count = 0
 if args.slice_method == "square":
-    resnet_shapes_list = [
-        (
-            model_gen_seq.shape_list[0][0],
-            model_gen_seq.shape_list[0][1],
-            int(
-                model_gen_seq.shape_list[0][2]
-                * image_size_times
-                / math.sqrt(spatial_part_size)
-            ),
-            int(
-                model_gen_seq.shape_list[0][3]
-                * image_size_times
-                / math.sqrt(spatial_part_size)
-            ),
-        ),
-        model_gen_seq.shape_list[1],
-    ]
+    resnet_shapes_list = []
+    for output_shape in model_gen_seq.shape_list:
+        if isinstance(output_shape, list):
+            temp_shape = []
+            for shape_tuple in output_shape:
+                if temp_count < spatial_size:
+                    # reduce shape only when it is smaller than spatial size
+                    x = (
+                        int(shape_tuple[0]),
+                        shape_tuple[1],
+                        int(shape_tuple[2] * image_size_times / 2),
+                        int(shape_tuple[3] * image_size_times / 2),
+                    )
+                    temp_shape.append(x)
+                else:
+                    x = (
+                        int(shape_tuple[0]),
+                        shape_tuple[1],
+                        int(shape_tuple[2] * image_size_times),
+                        int(shape_tuple[3] * image_size_times),
+                    )
+                    temp_shape.append(x)
+            resnet_shapes_list.append(temp_shape)
+        else:
+            if len(output_shape) == 2:
+                x = (int(output_shape[0]), output_shape[1])
+                resnet_shapes_list.append(x)
+            else:
+                if temp_count < spatial_size:
+                    x = (
+                        int(output_shape[0]),
+                        output_shape[1],
+                        int(output_shape[2] * image_size_times / 2),
+                        int(output_shape[3] * image_size_times / 2),
+                    )
+                    resnet_shapes_list.append(x)
+                else:
+                    x = (
+                        int(output_shape[0]),
+                        output_shape[1],
+                        int(output_shape[2] * image_size_times),
+                        int(output_shape[3] * image_size_times),
+                    )
+                    resnet_shapes_list.append(x)
+        temp_count += 1
 
 elif args.slice_method == "vertical":
-    resnet_shapes_list = [
-        (
-            model_gen_seq.shape_list[0][0],
-            model_gen_seq.shape_list[0][1],
-            int(model_gen_seq.shape_list[0][2] * image_size_times / 1),
-            int(model_gen_seq.shape_list[0][3] * image_size_times / spatial_part_size),
-        ),
-        model_gen_seq.shape_list[1],
-    ]
+    resnet_shapes_list = []
+    for output_shape in model_gen_seq.shape_list:
+        if isinstance(output_shape, list):
+            temp_shape = []
+            for shape_tuple in output_shape:
+                if temp_count < spatial_size:
+                    x = (
+                        int(shape_tuple[0]),
+                        shape_tuple[1],
+                        int(shape_tuple[2] * image_size_times / 1),
+                        int(
+                            shape_tuple[3]
+                            * image_size_times
+                            / num_spatial_parts_list[temp_count]
+                        ),
+                    )
+                    temp_shape.append(x)
+                else:
+                    x = (
+                        int(shape_tuple[0]),
+                        shape_tuple[1],
+                        int(shape_tuple[2] * image_size_times),
+                        int(shape_tuple[3] * image_size_times),
+                    )
+                    temp_shape.append(x)
+            resnet_shapes_list.append(temp_shape)
+        else:
+            if len(output_shape) == 2:
+                x = (int(output_shape[0]), output_shape[1])
+                resnet_shapes_list.append(x)
+            else:
+                if temp_count < spatial_size:
+                    x = (
+                        int(output_shape[0]),
+                        output_shape[1],
+                        int(output_shape[2] * image_size_times / 1),
+                        int(
+                            output_shape[3]
+                            * image_size_times
+                            / num_spatial_parts_list[temp_count]
+                        ),
+                    )
+                    resnet_shapes_list.append(x)
+                else:
+                    x = (
+                        int(output_shape[0]),
+                        output_shape[1],
+                        int(output_shape[2] * image_size_times),
+                        int(output_shape[3] * image_size_times),
+                    )
+                    resnet_shapes_list.append(x)
+        temp_count += 1
+
 
 elif args.slice_method == "horizontal":
-    resnet_shapes_list = [
-        (
-            model_gen_seq.shape_list[0][0],
-            model_gen_seq.shape_list[0][1],
-            int(model_gen_seq.shape_list[0][2] * image_size_times / spatial_part_size),
-            int(model_gen_seq.shape_list[0][3] * image_size_times / 1),
-        ),
-        model_gen_seq.shape_list[1],
-    ]
+    resnet_shapes_list = []
+    for output_shape in model_gen_seq.shape_list:
+        if isinstance(output_shape, list):
+            temp_shape = []
+            for shape_tuple in output_shape:
+                if temp_count < spatial_size:
+                    x = (
+                        int(shape_tuple[0]),
+                        shape_tuple[1],
+                        int(
+                            shape_tuple[2]
+                            * image_size_times
+                            / num_spatial_parts_list[temp_count]
+                        ),
+                        int(shape_tuple[3] * image_size_times / 1),
+                    )
+                    temp_shape.append(x)
+                else:
+                    x = (
+                        int(shape_tuple[0]),
+                        shape_tuple[1],
+                        int(shape_tuple[2] * image_size_times),
+                        int(shape_tuple[3] * image_size_times),
+                    )
+                    temp_shape.append(x)
+            resnet_shapes_list.append(temp_shape)
+        else:
+            if len(output_shape) == 2:
+                x = (int(output_shape[0]), output_shape[1])
+                resnet_shapes_list.append(x)
+            else:
+                if temp_count < spatial_size:
+                    x = (
+                        int(output_shape[0]),
+                        output_shape[1],
+                        int(
+                            output_shape[2]
+                            * image_size_times
+                            / num_spatial_parts_list[temp_count]
+                        ),
+                        int(output_shape[3] * image_size_times / 1),
+                    )
+                    resnet_shapes_list.append(x)
+                else:
+                    x = (
+                        int(output_shape[0]),
+                        output_shape[1],
+                        int(output_shape[2] * image_size_times),
+                        int(output_shape[3] * image_size_times),
+                    )
+                    resnet_shapes_list.append(x)
+        temp_count += 1
 
 
 del model_seq
