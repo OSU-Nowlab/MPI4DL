@@ -61,7 +61,7 @@ OMB performs common MPI operations like allreduce, bcast, send/recv, etc. OMB is
 
 following output is expected 
 
-```bash
+```
 [gulhane.2@a100-01 libexec]$ $MV2_HOME/bin/mpirun_rsh --export-all -np 2 a100-01 a100-01 MV2_USE_CUDA=1 osu-micro-benchmarks/mpi/collective/osu_allreduce -d
  cuda
 [a100-01.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.

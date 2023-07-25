@@ -10,6 +10,7 @@ There are several approaches that have been proposed to address some of the limi
 
 <br>
 </div>
+<br>
 
 Figure 1. shows capabilities of each parallelism scheme with respective to diferent image sizes. Data parallelism has a memory limitation and cannot be performed for out-of-core models. Layer parallelism overcomes the limitation of data parallelism by distributing the model across different GPUs. However, it causes GPU underutilization as only one GPU is utilized. Pipeline parallelism accelerates the performance of layer parallelism by training the model in a pipeline fashion. However, pipeline parallelism is only possible when the model is trainable with a batch size > 1, which is typically impossible with high-resolution images due to memory constraints. To train high-resolution images, spatial parallelism can be used, which distributes images across multiple GPUs. On the other hand, it has performance issues due to high communication overhead and the inability to accelerate low-resolution images that are common in the latter half of DNNs.
 
@@ -31,11 +32,12 @@ In spatial parallelism, the convolution layer is replicated across multiple GPUs
 # Spatial Parallelism + Layer Parallelism
 <div align="center">
  <img src="docs/assets/images/SpatialParallelism.png" width="600px">
- <br>
- <figcaption>Figure 2. Illustrates the combination of spatial and layer parallelism. In this approach, the model is divided into 4 partitions, and spatial parallelism is used for the first partition to perform convolution operations on the input image. The second layer aggregates the output from the first layer and then sends it, while lateral layers use layer parallelism..</figcaption>
-<br>
+ </br>
+ <figcaption>Figure 2. Combination of spatial and layer parallelism. </figcaption>
+    </br>
 </div>
-
+<br>
+Above figure shows combination of spatial and layer parallelism. In this approach, the model is divided into 4 partitions, and spatial parallelism is used for the first partition to perform convolution operations on the input image. The second layer aggregates the output from the first layer and then sends it, while lateral layers use layer parallelism.
 
 Due to the increased communication overhead, spatial parallelism is more suitable for large images, which makes this approach inappropriate for the latter half of CNNs where the image input size usually consists of few pixels. Layer parallelism can be used to compute this latter half. Figure 2 shows a combination of spatial parallelism and layer parallelism for a CNN partitioned into four partitions at the layer granularity. Spatial parallelism is applied to the first model partition, and layer parallelism is applied to the other three model partitions.
 
