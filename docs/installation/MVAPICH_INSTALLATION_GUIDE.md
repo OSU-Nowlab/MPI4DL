@@ -27,33 +27,42 @@ rpm2cpio mvapich2-gdr-cuda11.6.mofed5.5.gnu8.5.0-2.3.7-1.el8.x86_64.rpm | cpio -
 
 ### Add the rpm to your path (this needs to be run every time you start a new job)
 
+```bash
 export RPM_HOME=<directory>/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0
 export PATH=$RPM_HOME/bin:$PATH
 export LD_LIBRARY_PATH=$RPM_HOME/lib64:$LD_LIBRARY_PATH
 export CPATH=$RPM_HOME/include:$CPATH
+```
 
 ### Load the gcc and cuda versions for our rpm
+```bash
 module load cuda/11.6 gcc/8.5.0
+```
 
 ### Update the compiler paths to be absolute instead of relative 
+```bash
 vi $RPM_HOME/bin/mpicc
+```
 
 #### Incorrect paths look like:
+```
 prefix=/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0
 exec_prefix=/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0
 sysconfdir=/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/etc
 includedir=/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/include
 libdir=/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/lib64
-
+```
 #### Change these with the value of $RPM_HOME prepended like:
+```
 prefix=<directory>/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0
 exec_prefix=<directory>/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0
 sysconfdir=<directory>/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/etc
 includedir=<directory>/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/include
 libdir=<directory>/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/opt/mvapich2/gdr/2.3.7/no-mpittool/no-openacc/cuda11.6/mofed5.5/mpirun/gnu8.5.0/lib64
+```
 
 
-### Check installation by running "osu micro benchmarks (OMB)" benchmark. 
+### Check installation by running "osu micro benchmarks (OMB)" benchmark
 
 OMB performs common MPI operations like allreduce, bcast, send/recv, etc. OMB is located in **$RPM_HOME/libexec**
 

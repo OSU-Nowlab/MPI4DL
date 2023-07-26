@@ -16,7 +16,7 @@ Figure 1. shows capabilities of each parallelism scheme with respective to difer
 
 
 
-Integrating spatial and layer parallelism can solve the aforementioned limitations of spatial parallelism and layer parallelism. Spatial parallelism enables training high-resolution images efficiently even when the model size is large, and layer parallelism accelerates low-resolution images in the latter half of DNNs. This schema enables training high-resolution images efficiently. This project is a PyTorch implementation of this technique and is based on [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6).
+**Our objective is efficiently utilizing distributed training for very high-resolution images that appear in real-world applications. Integrating spatial and layer parallelism can solve the aforementioned limitations of spatial parallelism and layer parallelism. Spatial parallelism enables training high-resolution images efficiently even when the model size is large, and layer parallelism accelerates low-resolution images in the latter half of DNNs. This schema enables training high-resolution images efficiently. This project is a PyTorch implementation of this technique and is based on [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6).**
 
 # Background
 
@@ -31,12 +31,12 @@ In spatial parallelism, the convolution layer is replicated across multiple GPUs
 
 # Spatial Parallelism + Layer Parallelism
 <div align="center">
- <img src="docs/assets/images/SpatialParallelism.png" width="600px">
+ <img src="docs/assets/images/Spatial_Parallelism.jpg" width="600px">
  </br>
  <figcaption>Figure 2. Combination of spatial and layer parallelism. </figcaption>
     </br>
 </div>
-<br>
+
 Above figure shows combination of spatial and layer parallelism. In this approach, the model is divided into 4 partitions, and spatial parallelism is used for the first partition to perform convolution operations on the input image. The second layer aggregates the output from the first layer and then sends it, while lateral layers use layer parallelism.
 
 Due to the increased communication overhead, spatial parallelism is more suitable for large images, which makes this approach inappropriate for the latter half of CNNs where the image input size usually consists of few pixels. Layer parallelism can be used to compute this latter half. Figure 2 shows a combination of spatial parallelism and layer parallelism for a CNN partitioned into four partitions at the layer granularity. Spatial parallelism is applied to the first model partition, and layer parallelism is applied to the other three model partitions.
@@ -57,17 +57,17 @@ We used the following versions during implementation and testing.
 Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.0a0+git35202d2, MVAPICH2-GDR=2.3.7*
 
 ### Install now-dl:
-- Load Required model:
 ```bash
 cd now-dl
 python setup.py develop
 ```
+### Run model benchmark:
 Example to run AmoebaNet model with partition size for model as two, spatial partition as four and spatial size (i.e. number of model partition which will use spatial partition) as 1
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
 ```
 
-Refer [Spatial Parallelism](benchmarks/spatial_parallelism) for more spatial benchmarks.
+Refer [Spatial Parallelism](benchmarks/spatial_parallelism) and [Halo Exchange](benchmarks/communication/halo) for more spatial benchmarks.
 
 ## Experimental Results:
 

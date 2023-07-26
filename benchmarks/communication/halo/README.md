@@ -1,18 +1,25 @@
-##  Halo exchnage benchmark:
-- While performing convolutional operations on each partition of the image, halo exchange will be performed to receive input from neighboring partitions.
-- Halo exchange can also be performed in parallel, while convolution operations on available input are done in parallel while performing halo exchange.
-- spatial_halo_exchange_bench.py and spatial_halo_exchange_with_compute_bench.py are used to test the proper functioning of send and receive operations for halo regions.
-- spatial_halo_exchange_with_compute_val_bench.py is utilized to validate the received inputs, in addition to testing the halo region send and receive operations.
+#  Halo exchnage:
+In spatial parallelism, Convolution and Pooling layers can be distributed across multiple GPUs to work on the different regions of the image. Thus, spatial parallelism requires a halo exchange (shown in Figure. 1.) at every convolution and pooling layer to compute the result for the pixels present on the boundary of image parts. Halo exchange can also be performed in parallel with convolution operations on available input pixels.
+<div align="center">
+ <img src="../../../docs/assets/images/Halo_Exchange.jpg" width="600px">
+ </br>
+  <figcaption>Figure 1. Halo exchange in spatial parallelism. The input image is partitioned into four regions, and each region is given to the different processes. To calculate the convolution operation at X location, the value of nearby pixels is required. 
+  </figcaption>
+    </br>
+</div>
 
 
-**Run halo-exchange benchmarks:**
+## halo-exchange benchmarks:
+- *benchmark_sp_halo_exchange.py* and *benchmark_sp_halo_exchange_with_compute.py* are used to test the proper functioning of send and receive operations for halo regions.
+- *benchmark_sp_halo_exchange_with_compute_val.py* is utilized to validate the received inputs, in addition to testing the halo region send and receive operations.
 
-- Load Required model:
+### Install now-dl:
 ```bash
 cd now-dl
 python setup.py install
 ```
 
+### Run halo-exchange benchmark
 - Example to run halo exchange benchmark for four vertical partition : 
 ```bash
 cd benchmarks/spatial/model/
