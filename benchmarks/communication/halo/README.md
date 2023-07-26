@@ -20,12 +20,34 @@ python setup.py install
 ```
 
 ### Run halo-exchange benchmark
-- Example to run halo exchange benchmark for four vertical partition : 
+
+#### Generic command:
 ```bash
-cd benchmarks/spatial/model/
-$MV2_HOME/bin/mpirun_rsh --export-all -np 4 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python spatial_halo_exchange_bench.py --image-size 32 --batch-size 32 --num-spatial-parts 4 --slice-method "vertical"
+
+$MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile  {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python ${halo_benchmark} --image-size ${image_size} --batch-size ${batch_size} --num-spatial-parts ${num_spatial_parts} --slice-method ${partition}
+
+```
+#### Example:
+Example to run halo exchange benchmark for 4 vertical partition of 1024 * 1024 image with halo-len and batch size of 3 and 1 respectively: 
+```bash
+$MV2_HOME/bin/mpirun_rsh --export-all -np 4 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/communication/halo/benchmark_sp_halo_exchange.py --image-size 1024 --batch-size 1 --halo-len 3 --num-spatial-parts 4 --slice-method "vertical"
 ```
 
+Expected output:
+```
+rank : 0 size:  4
+Rank:0 Time taken (ms):0.3337113571166992
+Validation passed Rank:0
+rank : 3 size:  4
+Rank:3 Time taken (ms):0.3339980697631836
+Validation passed Rank:3
+rank : 2 size:  4
+Rank:2 Time taken (ms):0.33376255035400393
+Validation passed Rank:2
+rank : 1 size:  4
+Rank:1 Time taken (ms):0.33356800079345705
+Validation passed Rank:1
+```
 Halo exchange benchmarks can also be configured for different num-spatial-parts, slice-method, etc. Find all available options below:
 <pre>
 usage: spatial_halo_exchange_bench.py [-h] [--fp16-allreduce] [--image-size IMAGE_SIZE] [--batch-size BATCH_SIZE] [--halo-len HALO_LEN] [--in-channels IN_CHANNELS]
@@ -49,3 +71,14 @@ optional arguments:
   --out-channels OUT_CHANNELS
                         number of output channels (default: 256)
 </pre>
+
+## Experimental Results:
+
+#### Halo exchange with and without computation with different halo len for 1024 * 1024 image size
+
+- AmeobaNet Model 
+
+<div align="center">
+<img src=".../../../../../docs/assets/images/halo-exchange_with_compute.png" width="400"> 
+<img src=".../../../../../docs/assets/images/halo-exchange.png" width="400"> 
+</div>
