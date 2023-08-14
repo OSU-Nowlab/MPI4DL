@@ -23,13 +23,13 @@ Figure 1. shows capabilities of each parallelism scheme with respective to difer
 ## Layer Parallelism: 
 Layer parallelism distributes the DNN model on separate GPUs before applying distributed forward and backward passes. These distributed forward and backward passes are implemented with simple Send and Recv operations. Thus, layer parallelism suffers from under-utilization of resources and scalability, as only a single GPU can operate at once.
 
-### Pipeline Parallelism
+## Pipeline Parallelism
 Pipelining divides the input batch into smaller batches called micro-batches, the number of which we call parts. The goal of pipeline parallelism is to reduce underutilization by overlapping micro-batches, which allows multiple GPUs to proceed with computation within the forward and backward passes.
 ## Spatial Parallelism:
 
 In spatial parallelism, the convolution layer is replicated across multiple GPUs, and image parts are partitioned across replicas. Convolution and Pooling layers can be distributed across multiple GPUs to work on different regions of the image. Hence, unlike layer parallelism, this approach enables simultaneous computation on multiple GPUs while facilitating the training of the out-of-core convolution layer, but it requires extra communication to receive border pixels from neighboring partitions, also called halo-exchange. Refer [Halo exchnage](benchmarks/communication/halo) for more information.
 
-# Spatial Parallelism + Layer Parallelism
+## Spatial Parallelism + Layer Parallelism
 <div align="center">
  <img src="docs/assets/images/Spatial_Parallelism.jpg" width="600px">
  </br>
@@ -49,44 +49,25 @@ Refer [Spatial Parallelism](benchmarks/spatial_parallelism) for more details.
 - Python 3.8 or later (for Linux, Python 3.8.1+ is needed).
 - MVAPICH2
 Refer [MVAPICH2 installation guide](docs/installation/MVAPICH_INSTALLATION_GUIDE.md) to install MVAPICH2.
-- PyTorch :  1.12.0a0+git35202d2.  
+- PyTorch :  1.12.1 or 1.13.1
 Refer [PyTorch installation guide](/docs/installation/PYTORCH_INSTALLATION_GUIDE.md) to install PyTorch from source and configure MVAPICH2 support. 
 
 *Note:
 We used the following versions during implementation and testing.
-Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.0a0+git35202d2, MVAPICH2-GDR=2.3.7*
+Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.1, MVAPICH2-GDR=2.3.7*
 
 ### Install now-dl:
 ```bash
 cd now-dl
-python setup.py develop
+python setup.py install
 ```
 ### Run model benchmark:
 Example to run AmoebaNet model with partition size for model as two, spatial partition as four and spatial size (i.e. number of model partition which will use spatial partition) as 1
 ```bash
-$MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
+$MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
 ```
 
 Refer [Spatial Parallelism](benchmarks/spatial_parallelism) and [Halo Exchange](benchmarks/communication/halo) for more spatial benchmarks.
-
-## Experimental Results:
-
-#### Using Spatial, Model and Pipeline Parallelism, where the model is split into two parts and utilizes spatial parallelism by dividing the image into four parts
-
-- AmeobaNet Model 
-
-<div align="center">
-<img src="docs/assets/images/AmeobaNet_img_size_1024.png" width="400"> 
-<img src="docs/assets/images/AmeobaNet_img_size_2048.png" width="400"> 
-</div>
-
-- ResNet Model 
-
-<div align="center">
-<img src="docs/assets/images/ResNet_img_size_1024.png" width="400"> 
-<img src="docs/assets/images/ResNet_img_size_2048.png" width="400"> 
-</div>
-
 
 ## References:
 1. Arpan Jain, Ammar Ahmad Awan, Asmaa M. Aljuhani, Jahanzeb Maqbool Hashmi, Quentin G. Anthony, Hari Subramoni, Dhableswar K. Panda, Raghu Machiraju, and Anil Parwani. 2020. GEMS: <u>G</u>PU-<u>e</u>nabled <u>m</u>emory-aware model-parallelism <u>s</u>ystem for distributed DNN training. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC '20). IEEE Press, Article 45, 1–15.

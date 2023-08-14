@@ -84,9 +84,6 @@ class MPIComm:
                 self.total_spatial_processes = num_spatial_parts
         if ENABLE_SPATIAL == True:
             self.spatial_allreduce_grp = self.create_allreduce_comm_spatial()
-            print("success:", self.total_spatial_processes)
-            # if(self.local_rank < self.total_spatial_processes):
-            # 	self.test_allreduce_comm(self.spatial_allreduce_grp)
         else:
             self.spatial_allreduce_grp = None
 
@@ -97,7 +94,6 @@ class MPIComm:
                     num_spatial_parts, self.local_rank
                 )
             else:
-                # self.split_rank = self.local_rank - self.total_spatial_processes + spatial_size
                 self.split_rank = (
                     math.floor(
                         (self.local_rank - self.total_spatial_processes)
@@ -120,8 +116,6 @@ class MPIComm:
             self.LOCAL_DP_MP_Comm = None
 
         self.allreduce_grp = self.create_allreduce_comm()
-
-        # BUG: if allreduce is called after send and recv it results in unexpected behaviour
         self.test_allreduce_comm(self.allreduce_grp)
 
     def get_split_rank(self, num_spatial_parts_list, local_rank):
@@ -166,8 +160,6 @@ class MPIComm:
                 ranks = [temp_first_rank, temp_second_rank]
                 temp_allreduce_grp = torch.distributed.new_group(ranks=ranks)
 
-                print("This is good!!!!!!!!!!!!!!!!!!!!!!")
-
                 if self.first_local_rank in ranks:
                     self.first_LP_master_group = temp_allreduce_grp
                 if self.second_local_rank in ranks:
@@ -185,14 +177,11 @@ class MPIComm:
         return allreduce_grp
 
     def create_allreduce_comm_spatial(self):
-        # if(self.local_rank < self.num_spatial_parts * self.spatial_size):
         if self.ENABLE_MASTER:
             first_local_rank = self.mp_size - 1 - self.local_rank
             second_local_rank = self.local_rank
         spatial_allreduce_grp = None
         for j in range(self.spatial_size):
-            # multiplier = math.floor(self.local_rank / self.num_spatial_parts)
-
             if self.spatial_size == 1:
                 ranks = [
                     (self.num_spatial_parts * j) + i
@@ -203,11 +192,9 @@ class MPIComm:
                     (sum(self.num_spatial_parts_list[:j])) + i
                     for i in range(self.num_spatial_parts_list[j])
                 ]
-            print(ranks)
 
             if self.ENABLE_MASTER:
                 for i in range(len(ranks)):
-                    # ranks[i] = self.mp_size - 1 - ranks[i]
                     ranks.append(self.mp_size - 1 - ranks[i])
 
             temp_spatial_allreduce_grp = torch.distributed.new_group(ranks=ranks)
@@ -243,7 +230,6 @@ class MPIComm:
         return spatial_allreduce_grp
 
     def create_scatter_gather_spatial_MP_comm(self):
-        # if(self.local_rank < self.num_spatial_parts * self.spatial_size):
         if self.spatial_size == 1:
             prev_num_spatial_parts = self.num_spatial_parts
         else:
@@ -258,15 +244,11 @@ class MPIComm:
         SP_LP_group = None
 
         for j in range(prev_num_spatial_parts):
-            # multiplier = math.floor(self.local_rank / self.num_spatial_parts)
             temp_ranks = [start_last_spatial_rank + j] + LP_ranks
 
             if self.ENABLE_MASTER:
                 for i in range(len(temp_ranks)):
                     temp_ranks[i] = self.mp_size - 1 - temp_ranks[i]
-
-            print(temp_ranks)
-
             temp_LP_SP_grp = torch.distributed.new_group(ranks=temp_ranks)
             LP_SP_Groups.append(temp_LP_SP_grp)
 
@@ -280,12 +262,8 @@ class MPIComm:
         LOCAL_DP_MP_Comm = None
 
         for j in range(int(num_mp_ranks / self.LOCAL_DP_LP)):
-            # multiplier = math.floor(self.local_rank / self.num_spatial_parts)
-
             start_rank = self.total_spatial_processes + (j * self.LOCAL_DP_LP)
             temp_ranks = [start_rank + i for i in range(self.LOCAL_DP_LP)]
-            print(temp_ranks)
-
             if self.ENABLE_MASTER:
                 for i in range(len(temp_ranks)):
                     temp_ranks[i] = self.mp_size - 1 - temp_ranks[i]
@@ -444,11 +422,9 @@ class SyncAllreduce:
     def modify_grads(self, model, flat_grad, grad_num_element_list, grad_shape_list):
         temp_count_elements = 0
         temp_count_index = 0
-        # print("flat_grad",flat_grad)
 
         for param in model.parameters():
             if param.grad is not None:
-                # print(temp_count_elements,grad_num_element_list[temp_count_index])
                 param.grad.data = (
                     flat_grad[
                         temp_count_elements : temp_count_elements
@@ -513,11 +489,7 @@ class SyncAllreduce:
         torch.cuda.synchronize()
         models1 = model_gen.models
         flat_grad1 = self.get_grad_flatten(models1, back=False)
-        # torch.cuda.synchronize()
-        # print("Before allreduce local_rank:",self.local_rank,flat_grad1.abs().sum())
         dist.all_reduce(flat_grad1.data, op=dist.reduce_op.SUM, group=allreduce_grp)
-        # print("After allreduce local_rank:",self.local_rank,flat_grad1.abs().sum())
-        # torch.cuda.synchronize()
         self.modify_grads(
             models1, flat_grad1, self.grad_num_element_list1, self.grad_shape_list1
         )

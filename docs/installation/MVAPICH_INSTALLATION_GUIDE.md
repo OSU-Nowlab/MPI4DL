@@ -1,20 +1,21 @@
-# Installation Guide for MVAPICH2
+# Installation Guide for MVAPICH2-GDR
 
-**To install MVAPICH2, follow instructions mentioned on MVAPICH download http://mvapich.cse.ohio-state.edu/downloads/#mv2.3.7**
+**To install MVAPICH2-GDR, refer https://mvapich.cse.ohio-state.edu/userguide/gdr/**
 
 
 <div align="center">
   <b>OR</b> 
 </div>
 
-**You can follow below instructions to install MVAPICH2 from rpms**
+**You can follow below instructions to install MVAPICH2-GDR from RPMs**
 
 
-### Get the RPM for MRI's OFED (5.5)
+### Get the approriate RPMs for your system
+
+In this case, we used MOFED 5.5 RPMs
 ```bash
 wget https://mvapich.cse.ohio-state.edu/download/mvapich/gdr/2.3.7/mofed5.5/mvapich2-gdr-cuda11.6.mofed5.5.gnu8.5.0-2.3.7-1.el8.x86_64.rpm
 ```
-
 ### Unpack the rpm
 ```bash
 rpm2cpio mvapich2-gdr-cuda11.6.mofed5.5.gnu8.5.0-2.3.7-1.el8.x86_64.rpm | cpio -id

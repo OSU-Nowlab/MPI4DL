@@ -12,25 +12,18 @@ In spatial parallelism, Convolution and Pooling layers can be distributed across
 ## halo-exchange benchmarks:
 - *benchmark_sp_halo_exchange.py* and *benchmark_sp_halo_exchange_with_compute.py* are used to test the proper functioning of send and receive operations for halo regions.
 - *benchmark_sp_halo_exchange_with_compute_val.py* is utilized to validate the received inputs, in addition to testing the halo region send and receive operations.
-
-### Install now-dl:
-```bash
-cd now-dl
-python setup.py install
-```
-
 ### Run halo-exchange benchmark
 
 #### Generic command:
 ```bash
 
-$MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile  {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python ${halo_benchmark} --image-size ${image_size} --batch-size ${batch_size} --num-spatial-parts ${num_spatial_parts} --slice-method ${partition}
+$MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile  {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python ${halo_benchmark} --image-size ${image_size} --batch-size ${batch_size} --num-spatial-parts ${num_spatial_parts} --slice-method ${partition}
 
 ```
 #### Example:
 Example to run halo exchange benchmark for 4 vertical partition of 1024 * 1024 image with halo-len and batch size of 3 and 1 respectively: 
 ```bash
-$MV2_HOME/bin/mpirun_rsh --export-all -np 4 --hostfile {$HOSTFILE} MV2_USE_GDRCOPY=0 MV2_ENABLE_AFFINITY=0 MV2_USE_CUDA=1 LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/communication/halo/benchmark_sp_halo_exchange.py --image-size 1024 --batch-size 1 --halo-len 3 --num-spatial-parts 4 --slice-method "vertical"
+$MV2_HOME/bin/mpirun_rsh --export-all -np 4 --hostfile {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/communication/halo/benchmark_sp_halo_exchange.py --image-size 1024 --batch-size 1 --halo-len 3 --num-spatial-parts 4 --slice-method "vertical"
 ```
 
 Expected output:
@@ -71,14 +64,3 @@ optional arguments:
   --out-channels OUT_CHANNELS
                         number of output channels (default: 256)
 </pre>
-
-## Experimental Results:
-
-#### Halo exchange with and without computation with different halo len for 1024 * 1024 image size
-
-- AmeobaNet Model 
-
-<div align="center">
-<img src=".../../../../../docs/assets/images/halo-exchange_with_compute.png" width="400"> 
-<img src=".../../../../../docs/assets/images/halo-exchange.png" width="400"> 
-</div>

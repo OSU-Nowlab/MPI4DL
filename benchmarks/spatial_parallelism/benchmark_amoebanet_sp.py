@@ -52,13 +52,6 @@ def init_processes(backend="tcp"):
     return size, rank
 
 
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
-
 sys.stdout = Unbuffered(sys.stdout)
 
 ENABLE_ASYNC = True
@@ -175,7 +168,7 @@ image_size_seq = 512
 model_seq = amoebanet.amoebanetd(
     num_layers=num_layers, num_filters=num_filters, num_classes=num_classes
 )
-print("length", len(model_seq), balance)
+
 model_gen_seq = model_generator(
     model=model_seq,
     split_size=split_size,
@@ -465,8 +458,6 @@ else:
     )
     size_dataset = 10 * batch_size
 
-
-# sync_allreduce.sync_model_spatial(model_gen)
 perf = []
 
 

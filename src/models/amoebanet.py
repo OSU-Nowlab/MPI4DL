@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from collections import OrderedDict
-from torchgems.spatial_new import conv_spatial, Pool
+from torchgems.spatial import conv_spatial, Pool
 from typing import Any, TYPE_CHECKING, Iterator, List, Tuple, Union, cast
 from torch import Tensor
 

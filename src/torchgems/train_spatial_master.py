@@ -288,17 +288,8 @@ class train_spatial_model_master:
                 loss += temp_y.item()
                 corrects += temp_correct.item()
 
-        # start_event = torch.cuda.Event(enable_timing=True, blocking=True)
-        # end_event = torch.cuda.Event(enable_timing=True, blocking=True)
-        # start_event.record()
-
         if tm1.local_rank != self.mp_size - 1:
             self.send_recv_params(odd_iteration)
-
-        # end_event.record()
-        # torch.cuda.synchronize()
-        # t = start_event.elapsed_time(end_event) / 1000
-        # print("LocalRank {} Param send time:{}".format(self.local_rank,t))
 
         for i in range(self.parts):
             None

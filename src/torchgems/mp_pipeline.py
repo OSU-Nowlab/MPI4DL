@@ -80,8 +80,6 @@ class model_generator:
             local_rank = mpi_comm.local_rank
 
         if local_rank < mpi_comm.total_spatial_processes:
-            print("Allreduce spatial grp", mpi_comm.spatial_allreduce_grp)
-
             self.models = DDP(
                 self.models,
                 device_ids=[0],
@@ -337,7 +335,6 @@ class train_model:
         if self.MULTIPLE_OUTPUT:
             reqs = []
             for one_output in y:
-                # print("To send, Local Rank:",self.local_rank, " dst:",self.to_send_forward)
                 req = dist.isend(
                     tensor=one_output, dst=self.to_send_forward, tag=tag_forward
                 )
@@ -347,8 +344,6 @@ class train_model:
             for req in reqs:
                 req.wait()
         else:
-            # print("------------------------------------------------------------------")
-            # print("LOCAL RANK:",self.local_rank, "Sending to:",self.to_send_forward)
             dist.send(tensor=y, dst=self.to_send_forward, tag=tag_forward)
 
     def receive_grad_sync(self):
@@ -440,7 +435,6 @@ class train_model:
                 input_x = self.input_x_list[part_number]
 
         # Apply forward pass
-        # BUG: without cuda synchronize incorrect values are sent and recv
         torch.cuda.synchronize()
 
         y = self.models(input_x)
@@ -482,7 +476,6 @@ class train_model:
             else:
                 self.send_grad_sync(self.input_x_list[part_number])
 
-        # BUG: using persistant buffer results in NAN value after some steps. Below is the fix
         if self.split_rank != 0:
             if self.MULTIPLE_INPUT:
                 self.input_x_list[part_number] = list(self.input_x_list[part_number])

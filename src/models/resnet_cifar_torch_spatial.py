@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
-from torchgems.spatial_new import conv_spatial
+from torchgems.spatial import conv_spatial
 
 
 class resnet_layer(nn.Module):

@@ -164,68 +164,6 @@ def get_shapes_spatial(
     return spatial_shapes_list
 
 
-def split_input_2(inputs, image_size, slice_method, local_rank):
-    image_height_local = int(image_size / 2)
-    image_width_local = int(image_size / 2)
-
-    # square == vertical
-
-    if slice_method == "square" or slice_method == "vertical":
-        if local_rank == 0:
-            return inputs[:, :, :, :image_width_local]
-        elif local_rank == 1:
-            return inputs[:, :, :, image_width_local : 2 * image_width_local]
-
-    elif slice_method == "horizontal":
-        if local_rank == 0:
-            return inputs[:, :, :image_height_local, :]
-        elif local_rank == 1:
-            return inputs[:, :, image_height_local : 2 * image_height_local, :]
-
-
-def split_input_4(inputs, image_size, slice_method, local_rank):
-    image_height_local = int(image_size / 4)
-    image_width_local = int(image_size / 4)
-
-    if slice_method == "square":
-        if local_rank == 0:
-            return inputs[:, :, : int(image_size / 2), : int(image_size / 2)]
-        elif local_rank == 1:
-            return inputs[:, :, : int(image_size / 2), int(image_size / 2) :]
-        elif local_rank == 2:
-            return inputs[:, :, int(image_size / 2) :, : int(image_size / 2)]
-        elif local_rank == 3:
-            return inputs[:, :, int(image_size / 2) :, int(image_size / 2) :]
-
-    elif slice_method == "vertical":
-        if local_rank == 0:
-            return inputs[:, :, :, :image_width_local]
-        elif local_rank == 1:
-            return inputs[:, :, :, image_width_local : 2 * image_width_local]
-        elif local_rank == 2:
-            return inputs[:, :, :, 2 * image_width_local : 3 * image_width_local]
-        elif local_rank == 3:
-            return inputs[:, :, :, 3 * image_width_local : 4 * image_width_local]
-
-    elif slice_method == "horizontal":
-        if local_rank == 0:
-            return inputs[:, :, :image_height_local, :]
-        elif local_rank == 1:
-            return inputs[:, :, image_height_local : 2 * image_height_local, :]
-        elif local_rank == 2:
-            return inputs[:, :, 2 * image_height_local : 3 * image_height_local, :]
-        elif local_rank == 3:
-            return inputs[:, :, 3 * image_height_local : 4 * image_height_local, :]
-
-
-def split_input(inputs, image_size, slice_method, local_rank, num_spatial_parts_list):
-    if num_spatial_parts_list[0] == 2:
-        return split_input_2(inputs, image_size, slice_method, local_rank)
-
-    elif num_spatial_parts_list[0] == 4:
-        return split_input_4(inputs, image_size, slice_method, local_rank)
-
-
 class train_model_spatial(train_model):
     def __init__(
         self,
@@ -666,39 +604,6 @@ class train_model_spatial(train_model):
         for req in reqs:
             req.wait()
 
-    # def send_grad_async_joint(self,input_x_list):
-    # 	# No need for writing modification for slide_methods as input_list are used and there is no slicing of image
-
-    # 	ranks = [self.local_rank -1 - i for i in range(self.num_spatial_parts-1,-1,-1)]
-
-    # 	reqs = []
-
-    # 	for partition_i in range(int(math.sqrt(self.num_spatial_parts))):
-    # 		for partition_j in range(int(math.sqrt(self.num_spatial_parts))):
-    # 			tag_forward = 0
-
-    # 			if (self.MULTIPLE_INPUT):
-
-    # 				for i in range(len(self.shape_list[self.split_rank-1])):
-    # 					shape = self.shape_list[self.split_rank-1][i]
-    # 					# to_send =input_x_list[:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
-    # 					to_send = input_x_list[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j][i].grad.data.clone().detach()
-    # 					req = dist.isend(tensor=to_send, dst=ranks[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j], tag = tag_forward)
-    # 					tag_forward+=1
-    # 					reqs.append(req)
-
-    # 			else:
-    # 				shape = self.shape_list[self.split_rank-1]
-    # 				#to_send = joint_input[i][:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
-    # 				to_send = input_x_list[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j].grad.data.clone().detach()
-    # 				#print("to send dst:",ranks[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j],to_send.abs().sum() )
-    # 				torch.cuda.synchronize()
-    # 				req= dist.isend(tensor=to_send, dst=ranks[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j], tag = tag_forward)
-    # 				reqs.append(req)
-
-    # 	for req in reqs:
-    # 		req.wait()
-
     def send_grad_async_joint(self, input_x_list):
         # No need for writing modification for slide_methods as input_list are used and there is no slicing of image
 
@@ -718,7 +623,6 @@ class train_model_spatial(train_model):
             if self.MULTIPLE_INPUT:
                 for i in range(len(self.shape_list[self.split_rank - 1])):
                     shape = self.shape_list[self.split_rank - 1][i]
-                    # to_send =input_x_list[:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
                     to_send = input_x_list[partition][i].grad.data.clone().detach()
                     req = dist.isend(
                         tensor=to_send, dst=ranks[partition], tag=tag_forward
@@ -728,9 +632,7 @@ class train_model_spatial(train_model):
 
             else:
                 shape = self.shape_list[self.split_rank - 1]
-                # to_send = joint_input[i][:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
                 to_send = input_x_list[partition].grad.data.clone().detach()
-                # print("to send dst:",ranks[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j],to_send.abs().sum() )
                 torch.cuda.synchronize()
                 req = dist.isend(tensor=to_send, dst=ranks[partition], tag=tag_forward)
                 reqs.append(req)
@@ -769,7 +671,6 @@ class train_model_spatial(train_model):
             if self.MULTIPLE_INPUT:
                 for i in range(len(self.shape_list[self.split_rank - 1])):
                     shape = self.shape_list[self.split_rank - 1][i]
-                    # to_send =input_x_list[:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
                     to_send = input_x_list[partition][i].grad.data.clone().detach()
                     req = dist.isend(
                         tensor=to_send, dst=recv_ranks[partition], tag=tag_forward
@@ -779,9 +680,7 @@ class train_model_spatial(train_model):
 
             else:
                 shape = self.shape_list[self.split_rank - 1]
-                # to_send = joint_input[i][:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
                 to_send = input_x_list[partition].grad.data.clone().detach()
-                # print("to send dst:",ranks[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j],to_send.abs().sum() )
                 torch.cuda.synchronize()
                 req = dist.isend(
                     tensor=to_send, dst=recv_ranks[partition], tag=tag_forward
@@ -927,9 +826,7 @@ class train_model_spatial(train_model):
 
             else:
                 shape = self.shape_list[self.split_rank - 1]
-                # to_send = joint_input[i][:,:,partition_i*shape[2]:(partition_i+1)*shape[2],  partition_j*shape[3]:(partition_j+1)*shape[3]].grad.data.clone().detach()
                 to_send = input_x_list[rank].grad.data.clone().detach()
-                # print("to send dst:",ranks[partition_i * int(math.sqrt(self.num_spatial_parts)) + partition_j],to_send.abs().sum() )
                 torch.cuda.synchronize()
 
                 dst = start_rank_last_spatial + rank
@@ -1246,7 +1143,6 @@ class train_model_spatial(train_model):
         # part_number: part number between 0 and self.parts-1 used to find right input recv buffer
 
         # Receive inputs if local is not 0
-        # print("LOCAL RANK:", self.local_rank, " Forward Start")
         if self.split_rank == 0:
             input_x = data_x
         else:
@@ -1280,7 +1176,6 @@ class train_model_spatial(train_model):
                     input_x = self.input_x_list[part_number]
 
         # Apply forward pass
-        # BUG: without cuda synchronize incorrect values are sent and recv
 
         torch.cuda.synchronize()
 
@@ -1296,10 +1191,7 @@ class train_model_spatial(train_model):
         else:
             y = self.models(input_x)
 
-        # print("LOCAL RANK:", self.local_rank, " Forward comp complete")
-
         torch.cuda.synchronize()
-        # print("LOCAL RANK:", self.local_rank, " Forward comp complete")
 
         if self.split_rank != self.split_size - 1:
             if self.ENABLE_ASYNC == True:
@@ -1331,8 +1223,6 @@ class train_model_spatial(train_model):
             else:
                 loss = self.criterion(y, data_y)
 
-        # print("LOCAL RANK:", self.local_rank, " Forward complete finally ")
-
         if self.split_rank == self.split_size - 1:
             corrects = (data_y.eq(torch.argmax(y, dim=-1).long())).sum().float()
             return loss, corrects / self.batch_size
@@ -1352,7 +1242,6 @@ class train_model_spatial(train_model):
                 else:
                     self.receive_grad_sync()
 
-        # print("LOCAL RANK:", self.local_rank, " Backward comp started")
         torch.cuda.synchronize()
         if (
             isinstance(
@@ -1372,8 +1261,6 @@ class train_model_spatial(train_model):
                 torch.autograd.backward(y, self.grad_overhead)
         torch.cuda.synchronize()
 
-        # print("LOCAL RANK:", self.local_rank, " Backward comp complete")
-
         if self.split_rank != 0:
             if self.split_rank == self.spatial_size:
                 if self.ENABLE_LOCAL_DP_LP:
@@ -1388,7 +1275,6 @@ class train_model_spatial(train_model):
                 else:
                     self.send_input_sync(self.input_x_list[part_number])
 
-        # BUG: using persistant buffer results in NAN value after some steps. Below is the fix
         if self.split_rank != 0:
             if self.split_rank == self.spatial_size:
                 if self.MULTIPLE_INPUT:
@@ -1454,5 +1340,3 @@ class train_model_spatial(train_model):
                     self.input_x_list[part_number] = (
                         self.input_x_list[part_number].detach().requires_grad_()
                     )
-
-        # print("LOCAL RANK:", self.local_rank, " BACKWARD COMPLETE")

@@ -320,7 +320,6 @@ class conv_spatial(nn.Conv2d):
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
-                # print("Local rank:",self.local_rank, " to:",self.local_rank + self.rank_neighbours[i], " I:",i)
                 temp = (
                     halo_input[
                         :,
@@ -719,10 +718,8 @@ class conv_spatial(nn.Conv2d):
         return res_horizontal, res_vertical
 
     def compute_halo_exchange_one(self, horizontal_tensor, vertical_tensor, halo_input):
-        # print("LOCAL RANK:",self.local_rank, " Sucess")
         if self.spatial_local_rank == 0:
             None
-            # print(horizontal_tensor,vertical_tensor)
 
         if self.spatial_local_rank == 0:
             halo_input[:, :, 5:6, :] = horizontal_tensor[:, :, 2:3, :]
@@ -1014,41 +1011,6 @@ class conv_spatial(nn.Conv2d):
 
         return res_final
 
-    """
-
-	def forward(self,input):
-		#print("Awesome",self.neighbours, self.rank_neighbours)
-		s = torch.cuda.Stream()
-		halo_input = self.padding_layer(input)
-
-		#self.weight = torch.nn.Parameter(self.weight.int())
-
-		#self.bias= torch.nn.Parameter(self.bias.int())
-		torch.cuda.synchronize()
-
-		if(self.halo_len>0):
-
-			with torch.cuda.stream(s):
-				torch.cuda.synchronize()
-				reqs = self.start_halo_exchange(halo_input)
-				self.end_halo_exchange(reqs)
-				s.synchronize()
-				#self.copy_halo_exchange_values(halo_input)
-
-				horizontal_tensor, vertical_tensor = self.make_tensor_halo_compute(halo_input)
-				s.synchronize()
-				res_final = self.compute_halo_exchange_one(horizontal_tensor,vertical_tensor,halo_input)
-
-
-			s.synchronize()
-			torch.cuda.synchronize()
-			
-			return res_final
-		else:
-			res_final = super(conv_spatial,self).forward(halo_input)
-			return res_final
-	"""
-
 
 class halo_exchange_layer(nn.Module):
     def __init__(
@@ -1229,7 +1191,6 @@ class halo_exchange_layer(nn.Module):
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
-                # print("Local rank:",self.local_rank, " to:",self.local_rank + self.rank_neighbours[i], " I:",i)
                 temp = (
                     halo_input[
                         :,
