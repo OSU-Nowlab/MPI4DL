@@ -583,8 +583,6 @@ def amoebanetd(
     )
     layers["cell2_reduction"] = reduction_cell(ENABLE_SPATIAL)
 
-    print("Layers:", len(layers))
-
     layers.update(
         (f"cell3_normal{i+1}", cell) for i, cell in normal_cells(ENABLE_SPATIAL)
     )
@@ -596,7 +594,6 @@ def amoebanetd(
     # Finally, classifier
     layers["classify"] = Classify(channels_prev, num_classes)
 
-    print("Layers:", len(layers))
     return nn.Sequential(layers)
 
 
@@ -685,7 +682,6 @@ def amoebanetd_spatial(
     layers.update((f"cell1_normal{i+1}", cell) for i, cell in normal_cells())
     layers["cell2_reduction"] = reduction_cell()
 
-    print("Layers")
     layers.update((f"cell3_normal{i+1}", cell) for i, cell in normal_cells())
     layers["cell4_reduction"] = reduction_cell()
     layers.update((f"cell5_normal{i+1}", cell) for i, cell in normal_cells())

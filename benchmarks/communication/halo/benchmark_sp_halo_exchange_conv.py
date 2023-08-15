@@ -448,7 +448,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
-                # print("Local rank:",self.local_rank, " to:",self.local_rank + self.rank_neighbours[i], " I:",i)
                 temp = (
                     halo_input[
                         :,
@@ -701,7 +700,7 @@ def create_input_square(kernel_size, halo_len, image_size, comm_size, rank):
 
     expected_output = np.pad(np_x, pad_width=pad_width, mode="constant")
 
-    print("Overall Expected output shape", expected_output.shape)
+    print(f"Overall Expected output shape {expected_output.shape}")
 
     expected_out_width = image_width_local + 2 * halo_len_width
     expected_out_height = image_height_local + 2 * halo_len_height
@@ -758,15 +757,6 @@ def test_output_square(image_size, output, expected_output, rank, size, mode="CO
     e_top_idx = row * expected_out_height
     e_bottom_idx = (row + 1) * expected_out_height
 
-    # if(rank==0):
-    # 	expected_output = expected_output[:,:,:expected_out_width, :expected_out_height]
-    # elif(rank==1):
-    # 	expected_output = expected_output[:,:,:expected_out_width, -expected_out_height:]
-    # elif(rank==2):
-    # 	expected_output = expected_output[:,:,-expected_out_width:, :expected_out_height]
-    # elif(rank==3):
-    # 	expected_output = expected_output[:,:,-expected_out_width:, -expected_out_height:]
-
     expected_output = expected_output[
         :, :, e_top_idx:e_bottom_idx, e_left_idx:e_right_idx
     ]
@@ -775,19 +765,9 @@ def test_output_square(image_size, output, expected_output, rank, size, mode="CO
     output = output.detach().cpu().numpy()
 
     if np.equal(output, expected_output).all():
-        print(mode + " Validation passed Rank:" + str(rank))
+        print(f"{mode} : Validation passed for rank: {rank}")
     else:
-        if rank == 0:
-            # debug statements
-            # uneq = np.not_equal(output,expected_output)
-            # print("Rank:"+str(rank), output[uneq].size , expected_output[uneq].size)
-            None
-
-        print(
-            mode
-            + " Validation failed Rank.............................................................................:"
-            + str(rank)
-        )
+        print(f"{mode} : Validation failed for rank: {rank}")
 
 
 def test_output_vertical(image_size, output, expected_output, rank, size, mode="CONV"):
@@ -811,19 +791,9 @@ def test_output_vertical(image_size, output, expected_output, rank, size, mode="
     output = output.detach().cpu().numpy()
 
     if np.equal(output, expected_output).all():
-        print(mode + " Validation passed Rank:" + str(rank))
+        print(f"{mode} : Validation passed for rank: {rank}")
     else:
-        if rank == 0:
-            # debug statements
-            # uneq = np.not_equal(output,expected_output)
-            # print("Rank:"+str(rank), output[uneq].size , expected_output[uneq].size)
-            None
-
-        print(
-            mode
-            + " Validation failed Rank.............................................................................:"
-            + str(rank)
-        )
+        print(f"{mode} : Validation failed for rank: {rank}")
 
 
 def test_output_horizontal(
@@ -847,39 +817,21 @@ def test_output_horizontal(
     output = output.detach().cpu().numpy()
 
     if np.equal(output, expected_output).all():
-        print(mode + " Validation passed Rank:" + str(rank))
+        print(f"{mode} : Validation passed for rank: {rank}")
     else:
-        if rank == 0:
-            # debug statements
-            # uneq = np.not_equal(output,expected_output)
-            # print("Rank:"+str(rank), output[uneq].size , expected_output[uneq].size)
-            None
-
-        print(
-            mode
-            + " Validation failed Rank.............................................................................:"
-            + str(rank)
-        )
+        print(f"{mode} : Validation failed for rank: {rank}")
 
 
 def test_output_recv(output, expected_output, rank):
-    # only padding ==  halo_len case is supported
-
-    # np_out = output.data.cpu().numpy()
     np_out = output.to("cpu").numpy()
-
-    # time.sleep(rank*10)
-
     if np.equal(np_out, expected_output).all():
-        print("Recv Tensor Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
         uneq = np.not_equal(np_out.astype("int"), expected_output.astype("int"))
         print(
-            "Recv Tensor Rank:" + str(rank),
-            np_out.astype("int")[uneq],
-            expected_output.astype("int")[uneq],
+            f"Rank : {rank} => Received : {np_out[uneq]} Expected : {expected_output[uneq]}"
         )
-        print("Recv Tensor Validation failed Rank:" + str(rank))
+        print(f"Validation failed for rank: {rank}")
 
 
 halo_len = args.halo_len
@@ -927,11 +879,8 @@ elif args.slice_method == "square":
     )
 
 print(
-    "Size of input:{} Size of Output:{}".format(
-        input_tensor_local.shape, expected_output_recv.shape
-    )
+    f"Size of input:{input_tensor_local.shape} Size of Output:{expected_output_recv.shape}"
 )
-
 
 b_pt2pt = halo_bench_pt2pt(
     local_rank=rank,
@@ -979,10 +928,9 @@ if dev == "cuda":
     torch.cuda.synchronize()
     t = start_event.elapsed_time(end_event)
 else:
-    # time module gives time in secs
     t = (time.time() - start_time) * 1000
 
-print("Rank:" + str(rank) + " Time taken (ms):" + str(t / iterations))
+print(f"Rank: {rank} Time taken (ms): {(t / iterations)}")
 
 if ENABLE_VAL_RECV_TENSORS:
     test_output_recv(recv, expected_output_recv, rank)
@@ -1047,7 +995,7 @@ if dev == "cuda":
 else:
     t = (time.time() - start_time) * 1000
 
-print("Rank:" + str(rank) + " Time taken Seq (ms):" + str(t / iterations))
+print(f"Rank: {rank} Time taken Seq (ms): {(t / iterations)}")
 
 if ENABLE_VAL_CONV:
     if args.slice_method == "vertical":
@@ -1124,9 +1072,3 @@ if ENABLE_VAL_SMALL_CONV:
         test_output_square(
             image_size, output, expected_output, rank, size, mode="SMALL CONV"
         )
-
-# time.sleep(rank*10)
-
-
-# if(rank==0):
-# 	print(np_x)

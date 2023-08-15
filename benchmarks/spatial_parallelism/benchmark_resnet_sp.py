@@ -51,13 +51,6 @@ def init_processes(backend="mpi"):
     return size, rank
 
 
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
-
 sys.stdout = Unbuffered(sys.stdout)
 
 np.random.seed(seed=1405)
@@ -78,11 +71,6 @@ datapath = args.datapath
 # 2: Cifar
 # 3: synthetic
 APP = args.app
-
-resnet_n = 12
-num_classes = 10
-steps = 100
-
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
 if len(temp_num_spatial_parts) == 1:
@@ -93,6 +81,28 @@ else:
     num_spatial_parts_list = num_spatial_parts
 
 spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
+steps = 100
+
+################## ResNet model specific parameters/functions ##################
+
+"""
+"image_size_seq" is required to determine the output shape after spatial partitioning of images. 
+The shape of the output will be determined for each model partition based on the values in "image_size_seq."
+These values will then be used to calculate the output shape for a given input size and spatial partition.
+"""
+image_size_seq = 32
+resnet_n = 12
+num_classes = 10
+
+
+def get_depth(version, n):
+    if version == 1:
+        return n * 6 + 2
+    elif version == 2:
+        return n * 9 + 2
+
+
+###############################################################################
 
 
 def isPowerTwo(num):
@@ -151,33 +161,32 @@ local_rank = rank
 split_rank = mpi_comm.split_rank
 
 
-if args.balance != None:
-    balance = args.balance.split(",")
+if balance != None:
+    balance = balance.split(",")
     balance = [int(j) for j in balance]
 else:
     balance = None
 
-"""
-"image_size_seq" is required to determine the output shape after spatial partitioning of images. 
-The shape of the output will be determined for each model partition based on the values in "image_size_seq."
-These values will then be used to calculate the output shape for a given input size and spatial partition.
-"""
-image_size_seq = 32
-
+# Initialize ResNet model
 model_seq = resnet_cifar_torch.get_resnet_v2(
     (int(batch_size / parts), 3, image_size_seq, image_size_seq), depth=get_depth(2, 12)
 )
-print("length", len(model_seq), balance)
+
 model_gen_seq = model_generator(
     model=model_seq,
     split_size=split_size,
     input_size=(int(batch_size / parts), 3, image_size_seq, image_size_seq),
     balance=balance,
 )
+
+# Get the shape of model on each split rank for image_size_seq and move it to device
+# Note : we take shape w.r.t image_size_seq as model w.r.t image_size may not be
+# able to fit in memory
 model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 
-image_size_times = int(image_size / image_size_seq)
 
+# Get the shape of model on each split rank for image_size and number of spatial parts
+image_size_times = int(image_size / image_size_seq)
 temp_count = 0
 if args.slice_method == "square":
     resnet_shapes_list = []
@@ -340,6 +349,7 @@ del model_seq
 del model_gen_seq
 torch.cuda.ipc_collect()
 
+# Initialize ResNet model with Spatial and Model Parallelism support
 if args.halo_d2:
     model, balance = resnet_cifar_torch_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
@@ -349,7 +359,7 @@ if args.halo_d2:
         balance=balance,
         spatial_size=spatial_size,
         num_spatial_parts=num_spatial_parts,
-        num_classes=10,
+        num_classes=num_classes,
         fused_layers=args.fused_layers,
         slice_method=args.slice_method,
     )
@@ -362,7 +372,7 @@ else:
         balance=balance,
         spatial_size=spatial_size,
         num_spatial_parts=num_spatial_parts,
-        num_classes=10,
+        num_classes=num_classes,
         fused_layers=args.fused_layers,
         slice_method=args.slice_method,
     )
@@ -376,15 +386,13 @@ model_gen = model_generator(
     shape_list=resnet_shapes_list,
 )
 
-
+# Move model it it's repective devices
 model_gen.ready_model(split_rank=split_rank)
 
-print("Shape list", resnet_shapes_list)
+logging.info(f"Shape of model on local_rank {local_rank} : {model_gen.shape_list}")
 
-if local_rank == spatial_part_size:
-    print(model_gen.models)
-
-
+# Initialize parameters require for training the model with Spatial and Model
+# Parallelism support
 t_s = train_model_spatial(
     model_gen,
     local_rank,
@@ -407,6 +415,7 @@ x = torch.zeros(
 y = torch.zeros((batch_size,), dtype=torch.long, device="cuda")
 
 
+############################## Dataset Definition ##############################
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
@@ -426,7 +435,7 @@ if APP == 1:
     size_dataset = 1030
 elif APP == 2:
     trainset = torchvision.datasets.CIFAR10(
-        root="./data", train=True, download=True, transform=transform
+        root=datapath, train=True, download=True, transform=transform
     )
     my_dataloader = torch.utils.data.DataLoader(
         trainset,
@@ -454,9 +463,9 @@ else:
     )
     size_dataset = 10 * batch_size
 
+################################################################################
 
 sync_allreduce.sync_model_spatial(model_gen)
-perf = []
 
 
 def split_input(inputs):
@@ -508,6 +517,11 @@ def split_input(inputs):
             return inputs[:, :, start_top:end_bottom, :]
 
 
+################################# Train Model ##################################
+
+perf = []
+
+
 def run_epoch():
     for i_e in range(epoch):
         loss = 0
@@ -545,17 +559,19 @@ def run_epoch():
             torch.cuda.synchronize()
             t = start_event.elapsed_time(end_event) / 1000
             if local_rank == 0:
-                print("images per sec:", batch_size / t)
+                print(f"Epoch: {i_e} images per sec:{batch_size / t}")
                 perf.append(batch_size / t)
 
             t = time.time()
         if local_rank == comm_size - 1:
-            print("epoch", i_e, " Global loss:", loss, " acc", correct / i)
+            print(f"Epoch {i_e} Global loss: {loss} Acc {correct / i}")
 
 
 run_epoch()
 
 if local_rank == 0:
-    print("Mean {} Median {}".format(sum(perf) / len(perf), np.median(perf)))
+    print(f"Mean {sum(perf) / len(perf)} Median {np.median(perf)}")
+
+################################################################################
 
 exit()

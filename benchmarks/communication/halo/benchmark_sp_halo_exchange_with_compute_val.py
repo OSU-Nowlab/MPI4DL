@@ -290,7 +290,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
-                # print("Local rank:",self.local_rank, " to:",self.local_rank + self.rank_neighbours[i], " I:",i)
                 temp = (
                     halo_input[
                         :,
@@ -373,7 +372,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         res_final = super(halo_bench_pt2pt, self).forward(tensor)
 
         return tensor, res_final
-        print("Rank:", self.local_rank, "\n", tensor)
 
 
 def env2int(env_list, default=-1):
@@ -580,18 +578,9 @@ def test_output_square(image_size, output, expected_output, rank, size):
     output = output.detach().cpu().numpy()
 
     if np.equal(output, expected_output).all():
-        print(" Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
-        if rank == 0:
-            # debug statements
-            # uneq = np.not_equal(output,expected_output)
-            # print("Rank:"+str(rank), output[uneq].size , expected_output[uneq].size)
-            None
-
-        print(
-            " Validation failed Rank.............................................................................:"
-            + str(rank)
-        )
+        print(f"Validation failed for rank: {rank}")
 
 
 def test_output_vertical(image_size, output, expected_output, rank, size):
@@ -615,18 +604,9 @@ def test_output_vertical(image_size, output, expected_output, rank, size):
     output = output.detach().cpu().numpy()
 
     if np.equal(output, expected_output).all():
-        print(" Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
-        if rank == 0:
-            # debug statements
-            # uneq = np.not_equal(output,expected_output)
-            # print("Rank:"+str(rank), output[uneq].size , expected_output[uneq].size)
-            None
-
-        print(
-            " Validation failed Rank.............................................................................:"
-            + str(rank)
-        )
+        print(f"Validation failed for rank: {rank}")
 
 
 def test_output_horizontal(image_size, output, expected_output, rank, size):
@@ -648,18 +628,9 @@ def test_output_horizontal(image_size, output, expected_output, rank, size):
     output = output.detach().cpu().numpy()
 
     if np.equal(output, expected_output).all():
-        print(" Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
-        if rank == 0:
-            # debug statements
-            # uneq = np.not_equal(output,expected_output)
-            # print("Rank:"+str(rank), output[uneq].size , expected_output[uneq].size)
-            None
-
-        print(
-            " Validation failed Rank.............................................................................:"
-            + str(rank)
-        )
+        print(f"Validation failed for rank: {rank}")
 
 
 def test_output(image_size, output, expected_output, rank, size):
@@ -677,15 +648,13 @@ def test_output_recv(output, expected_output, rank):
     np_out = output.to("cpu").numpy()
 
     if np.equal(np_out, expected_output).all():
-        print("Recv Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
         uneq = np.not_equal(np_out.astype("int"), expected_output.astype("int"))
         print(
-            "Recv Rank:" + str(rank),
-            np_out.astype("int")[uneq],
-            expected_output.astype("int")[uneq],
+            f"Rank : {rank} => Received : {np_out[uneq]} Expected : {expected_output[uneq]}"
         )
-        print("Recv Validation failed Rank:" + str(rank))
+        print(f"Validation failed for rank: {rank}")
 
 
 halo_len = args.halo_len
@@ -735,7 +704,7 @@ torch.cuda.synchronize()
 
 t = start_event.elapsed_time(end_event)
 
-print("Rank:" + str(rank) + " Time taken (ms):" + str(t / iterations))
+print(f"Rank: {rank} Time taken (ms): {(t / iterations)}")
 
 test_output_recv(recv, expected_output_recv, rank)
 
@@ -786,7 +755,6 @@ torch.cuda.synchronize()
 
 t = start_event_seq.elapsed_time(end_event_seq)
 
-print("Rank:" + str(rank) + " Time taken Seq (ms):" + str(t / iterations))
-
+print(f"Rank: {rank} Time taken Seq (ms): {(t / iterations)}")
 
 test_output(image_size, output, expected_output, rank, size)

@@ -255,7 +255,6 @@ class end_part_v1(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        # print("flatten_size",self.flatten_size,image_size,kernel_size,num_filters, int(image_size/(4*kernel_size)))
         self.fc1 = nn.Linear(self.flatten_size, 10)
 
     def forward(self, x):
@@ -326,7 +325,6 @@ def get_resnet_v1(
     _, end_layer = get_start_end_layer_index(
         num_layers, balance, mp_size, local_rank=spatial_size - 1
     )
-    print("end_layer:", end_layer)
 
     # inputs = Input(shape=input_shape)
     layers[str(name)] = resnet_layer_spatial(
@@ -334,10 +332,9 @@ def get_resnet_v1(
     )
 
     name += 1
-    # in_filters = num_filters
 
     in_filters = num_filters
-    # return nn.Sequential(layers)
+
     for stack in range(3):
         for res_block in range(num_res_blocks):
             strides = 1
@@ -454,9 +451,6 @@ class make_cell_v2_spatial(nn.Module):
         if self.resblock == 0:
             temp = self.r4(temp)
 
-        # print(y.shape, )
-        # print("Rank {} Y {} temp {} Filters {}".format(self.local_rank,y.shape, temp.shape, self.in_filters))
-
         temp = temp + y
         # x = F.relu(x)
         return temp
@@ -509,7 +503,7 @@ class make_cell_v2(nn.Module):
         # Check for vertical and horzontal slicing
         shapes = y.shape
         if shapes[2] != shapes[3]:
-            print("ERROR: YOU ARE IN TROUBLE (SHAPES ARE UNEQUAL)")
+            print(f"ERROR: SHAPES ARE UNEQUAL")
 
         y = self.r2(y)
         y = self.r3(y)
@@ -586,10 +580,7 @@ def get_resnet_v2(
     _, end_layer = get_start_end_layer_index(
         num_layers, balance, mp_size, local_rank=spatial_size - 1
     )
-    print("end_layer:", end_layer)
 
-    # inputs = Input(shape=input_shape)
-    # layers[str(name)] = resnet_layer(in_num_filters=in_filters,conv_first=True)
     layers[str(name)] = resnet_layer_spatial(
         local_rank,
         spatial_size,
@@ -598,7 +589,6 @@ def get_resnet_v2(
         slice_method=slice_method,
     )
     name += 1
-    # in_filters = num_filters
 
     in_filters = num_filters_in
 

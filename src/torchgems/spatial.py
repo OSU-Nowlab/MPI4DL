@@ -130,7 +130,6 @@ class conv_spatial(nn.Conv2d):
             self.get_neighbours_rank()
             self.get_index_locations()
 
-            print(self.neighbours)
         self.shapes_recv = None
         self.recv_tensors = []
         self.send_tensors = []

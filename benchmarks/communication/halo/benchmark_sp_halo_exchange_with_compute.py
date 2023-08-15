@@ -377,7 +377,6 @@ class halo_bench_pt2pt(nn.Conv2d):
         res_final = super(halo_bench_pt2pt, self).forward(tensor)
 
         return res_final
-        print("Rank:", self.local_rank, "\n", tensor)
 
 
 def env2int(env_list, default=-1):
@@ -403,7 +402,6 @@ def init_comm(backend="mpi"):
     dist.init_process_group(backend)
     size = dist.get_world_size()
     rank = dist.get_rank()
-    print("rank :", rank, "size: ", size)
     return size, rank
 
 
@@ -562,17 +560,10 @@ def create_input(halo_len, image_size, comm_size, rank, slice_method):
 def test_output(output, expected_output, rank):
     # only padding ==  halo_len case is supported
     np_out = output.data.cpu().numpy()
-
-    # time.sleep(rank*10)
-
     if np.equal(np_out.astype("int"), expected_output.astype("int")).all():
-        print("Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
-        # uneq = np.not_equal(np_out.astype('int'),expected_output.astype('int'))
-        # print("Rank:"+str(rank), np_out.astype('int')[uneq],  expected_output.astype('int')[uneq])
-        print("Validation failed Rank:" + str(rank))
-    # print(np.equal(np_out.astype('int'),expected_output.astype('int')))
-    # print("Rank:",rank,"\n", np_out.astype('int'),"\n",expected_output.astype('int'))
+        print(f"Validation failed for rank: {rank}")
 
 
 def run_benchmark(rank, size, hostname):
@@ -611,9 +602,7 @@ def run_benchmark(rank, size, hostname):
 
     t = start_event.elapsed_time(end_event)
 
-    print("Rank:" + str(rank) + " Time taken (ms):" + str(t / iterations))
-
-    # test_output(y, expected_output, rank)
+    print(f"Rank: {rank} Time taken (ms): {(t / iterations)}")
 
     """
 	Sequential processing 
@@ -656,7 +645,7 @@ def run_benchmark(rank, size, hostname):
 
     t = start_event_seq.elapsed_time(end_event_seq)
 
-    print("Rank:" + str(rank) + " Time taken Seq (ms):" + str(t / iterations))
+    print(f"Rank: {rank} Time taken Seq (ms): {(t / iterations)}")
 
 
 def init_processes(hostname, fn, backend="mpi"):

@@ -71,7 +71,6 @@ class model_generator:
         temp_model = self.get_model(split_rank=split_rank)
         t = time.time()
         self.models = temp_model.to("cuda:0")
-        print("time to move model", time.time() - t)
 
     def DDP_model(
         self, mpi_comm, num_spatial_parts, spatial_size, bucket_size=25, local_rank=None

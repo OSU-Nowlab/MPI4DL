@@ -277,7 +277,6 @@ class halo_bench_pt2pt:
         req = []
         for i in range(9):
             if self.neighbours[i] == 1:
-                # print("Local rank:",self.local_rank, " to:",self.local_rank + self.rank_neighbours[i], " I:",i)
                 temp = (
                     halo_input[
                         :,
@@ -394,7 +393,6 @@ def init_comm(backend="mpi"):
     dist.init_process_group(backend)
     size = dist.get_world_size()
     rank = dist.get_rank()
-    print("rank :", rank, "size: ", size)
     return size, rank
 
 
@@ -553,15 +551,13 @@ def test_output(output, expected_output, rank):
     np_out = output.to("cpu").numpy()
 
     if np.equal(np_out.astype("int"), expected_output.astype("int")).all():
-        print("Validation passed Rank:" + str(rank))
+        print(f"Validation passed for rank: {rank}")
     else:
         uneq = np.not_equal(np_out.astype("int"), expected_output.astype("int"))
         print(
-            "Rank:" + str(rank),
-            np_out.astype("int")[uneq],
-            expected_output.astype("int")[uneq],
+            f"Rank : {rank} => Received : {np_out[uneq]} Expected : {expected_output[uneq]}"
         )
-        print("Validation failed Rank:" + str(rank))
+        print(f"Validation failed for rank: {rank}")
 
 
 def run_benchmark(rank, size, hostname):
@@ -596,7 +592,7 @@ def run_benchmark(rank, size, hostname):
 
     t = start_event.elapsed_time(end_event)
 
-    print("Rank:" + str(rank) + " Time taken (ms):" + str(t / iterations))
+    print(f"Rank: {rank} Time taken (ms): {(t / iterations)}")
 
     test_output(y, expected_output, rank)
 

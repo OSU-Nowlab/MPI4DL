@@ -113,7 +113,6 @@ class end_part_v1(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        # print("flatten_size",self.flatten_size,image_size,kernel_size,num_filters, int(image_size/(4*kernel_size)))
         self.fc1 = nn.Linear(self.flatten_size, 10)
 
     def forward(self, x):
@@ -135,13 +134,10 @@ def get_resnet_v1(input_shape, depth, num_classes=10):
     num_filters = 16
     num_res_blocks = int((depth - 2) / 6)
 
-    # inputs = Input(shape=input_shape)
     layers[str(name)] = resnet_layer(in_num_filters=in_filters)
     name += 1
-    # in_filters = num_filters
 
     in_filters = num_filters
-    # return nn.Sequential(layers)
     for stack in range(3):
         for res_block in range(num_res_blocks):
             strides = 1

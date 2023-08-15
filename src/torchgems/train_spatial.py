@@ -295,7 +295,6 @@ class train_model_spatial(train_model):
 
                 temp_tuple[0] = int(temp_tuple[0] / self.LOCAL_DP_LP)
                 self.shape_list[i] = tuple(temp_tuple)
-        print("Updated shape list", self.shape_list)
 
     def get_split_rank(self, num_spatial_parts_list, local_rank):
         if isinstance(num_spatial_parts_list, list):
@@ -394,11 +393,6 @@ class train_model_spatial(train_model):
                 input_x = []
                 if self.split_rank != 0:
                     # multiple inputs
-                    print(
-                        "Initialize recv buffer shape",
-                        self.shape_list[self.split_rank - 1],
-                        list,
-                    )
                     if isinstance(self.shape_list[self.split_rank - 1], list):
                         for i in range(len(self.shape_list[self.split_rank - 1])):
                             one_input = torch.zeros(
@@ -502,15 +496,11 @@ class train_model_spatial(train_model):
             self.decrease_rank = self.LOCAL_DP_LP
 
         if self.GEMS_INVERSE == False:
-            print("initialize_send_recv_ranks Local rank", self.local_rank)
             self.to_send_forward = self.local_rank + self.increase_rank
             self.to_recv_forward = self.local_rank - self.decrease_rank
             self.to_send_backward = self.local_rank - self.decrease_rank
             self.to_recv_backward = self.local_rank + self.increase_rank
         else:
-            print(
-                "initialize_send_recv_ranks Local rank(GEMS_INVERSE)", self.local_rank
-            )
             self.to_send_forward = (
                 self.mp_size - 1 - self.local_rank - self.increase_rank
             )

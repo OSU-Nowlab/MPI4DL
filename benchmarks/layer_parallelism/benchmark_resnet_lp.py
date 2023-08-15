@@ -46,25 +46,17 @@ parts = args.parts
 batch_size = args.batch_size
 epoch = args.num_epochs
 image_size = int(args.image_size)
-num_layers = args.num_layers
-num_filters = args.num_filters
 balance = args.balance
 mp_size = args.split_size
 times = args.times
 datapath = args.datapath
+steps = 100
+
+################## ResNet model specific parameters/functions ##################
 
 image_size_seq = 32
 num_classes = 10
 resnet_n = 12
-steps = 100
-
-mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False)
-rank = mpi_comm.rank
-
-local_rank = rank % mp_size
-
-if balance is not None:
-    balance = [int(i) for i in balance.split(",")]
 
 
 def get_depth(version, n):
@@ -74,6 +66,17 @@ def get_depth(version, n):
         return n * 9 + 2
 
 
+###############################################################################
+
+mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False)
+rank = mpi_comm.rank
+
+local_rank = rank % mp_size
+
+if balance is not None:
+    balance = [int(i) for i in balance.split(",")]
+
+# Initialize ResNet model
 model = resnet_cifar_torch.get_resnet_v2(
     (int(batch_size / parts), 3, image_size_seq, image_size_seq),
     depth=get_depth(2, resnet_n),
@@ -81,15 +84,20 @@ model = resnet_cifar_torch.get_resnet_v2(
 
 mul_shape = int(args.image_size / image_size_seq)
 
+# Initialize parameters for Model Parallelism
 model_gen = model_generator(
     model=model,
     split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size_seq, image_size_seq),
     balance=balance,
 )
+
+# Get the shape of model on each split rank for image_size_seq and move it to device
+# Note : we take shape w.r.t image_size_seq as model w.r.t image_size may not be
+# able to fit in memory
 model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
 
-
+# Get the shape of model on each split rank for image_size
 image_size_times = int(image_size / image_size_seq)
 resnet_shapes_list = []
 for output_shape in model_gen.shape_list:
@@ -117,7 +125,7 @@ for output_shape in model_gen.shape_list:
             resnet_shapes_list.append(x)
 
 model_gen.shape_list = resnet_shapes_list
-print("local_ran:", local_rank, " Shapes:", model_gen.shape_list)
+logging.info(f"Shape of model on local_rank {local_rank} : {model_gen.shape_list}")
 
 
 del model_gen
@@ -135,6 +143,8 @@ model_gen = model_generator(
     balance=balance,
     shape_list=resnet_shapes_list,
 )
+
+# Move model it it's repective devices
 model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
 
 tm = train_model(
@@ -148,7 +158,8 @@ tm = train_model(
     ASYNC=ENABLE_ASYNC,
 )
 
-# Dataset
+############################## Dataset Definition ##############################
+
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
@@ -180,6 +191,10 @@ else:
     )
     size_dataset = 10 * batch_size
 
+################################################################################
+
+################################# Train Model ##################################
+
 perf = []
 
 
@@ -209,7 +224,7 @@ def run_epoch():
                 logging.info(f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)}")
 
             if local_rank == 0:
-                print("Epoch: {} images per sec:{}".format(i_e, batch_size / t))
+                print(f"Epoch: {i_e} images per sec:{batch_size / t}")
                 perf.append(batch_size / t)
 
             t = time.time()
@@ -218,4 +233,6 @@ def run_epoch():
 run_epoch()
 
 if local_rank == 0:
-    print("Mean {} Median {}".format(sum(perf) / len(perf), np.median(perf)))
+    print(f"Mean {sum(perf) / len(perf)} Median {np.median(perf)}")
+
+################################################################################
