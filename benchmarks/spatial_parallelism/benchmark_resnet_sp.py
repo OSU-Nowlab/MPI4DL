@@ -146,7 +146,7 @@ mpi_comm = gems_comm.MPIComm(
 )
 sync_allreduce = gems_comm.SyncAllreduce(mpi_comm)
 rank = mpi_comm.rank
-
+comm_size = mpi_comm.size
 local_rank = rank
 split_rank = mpi_comm.split_rank
 
@@ -549,7 +549,7 @@ def run_epoch():
                 perf.append(batch_size / t)
 
             t = time.time()
-        if local_rank == spatial_part_size:
+        if local_rank == comm_size - 1:
             print("epoch", i_e, " Global loss:", loss, " acc", correct / i)
 
 

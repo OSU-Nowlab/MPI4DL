@@ -90,7 +90,7 @@ git clone https://github.com/pytorch/vision
 *Note : torchvision versioin should be compatible with PyTorch version. Refer https://github.com/pytorch/vision#installation to get torchvision version corresponding to PyTorch version*
 ```bash
 cd pytorch
-git checkout v1.12.1
+git checkout v0.13.0
 ```
 
 ### Install Torchvisioin
