@@ -1,4 +1,4 @@
-# now-dl
+# MPI4DL
 
 There are several approaches that have been proposed to address some of the limitations of layer parallelism. However, most studies are performed for low-resolution images that exhibit different characteristics. Compared to low-resolution images, high-resolution images (e.g. Digital pathology images) result in higher activation memory and larger tensors, which in turn lead to a larger communication overhead.
 
@@ -56,9 +56,9 @@ Refer [PyTorch installation guide](/docs/installation/PYTORCH_INSTALLATION_GUIDE
 We used the following versions during implementation and testing.
 Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.1, MVAPICH2-GDR=2.3.7*
 
-### Install now-dl:
+### Install mpi4dl
 ```bash
-cd now-dl
+cd mpi4dl
 python setup.py install
 ```
 ### Run model benchmark:
