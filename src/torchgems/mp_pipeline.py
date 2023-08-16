@@ -35,7 +35,6 @@ class model_generator:
                 end_layer = len(self.model)
         else:
             num_layers = len(self.model)
-
             assert sum(self.balance) == len(
                 self.model
             ), "balance and number of layers differs"

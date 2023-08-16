@@ -41,11 +41,10 @@ sys.stdout = Unbuffered(sys.stdout)
 
 np.random.seed(seed=1405)
 ENABLE_ASYNC = True
-ENABLE_APP = False
 
 parts = args.parts
 batch_size = args.batch_size
-epoch = args.num_epochs
+epochs = args.num_epochs
 image_size = int(args.image_size)
 num_layers = args.num_layers
 num_filters = args.num_filters
@@ -53,7 +52,11 @@ balance = args.balance
 mp_size = args.split_size
 times = args.times
 datapath = args.datapath
-steps = 100
+# APP
+# 1: Medical
+# 2: Cifar
+# 3: synthetic
+APP = args.app
 
 ##################### AmoebaNet model specific parameters #####################
 
@@ -141,7 +144,7 @@ tm = train_model(
     model_gen,
     local_rank,
     batch_size,
-    epoch,
+    epochs,
     criterion=None,
     optimizer=None,
     parts=parts,
@@ -154,13 +157,33 @@ transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
 )
 torch.manual_seed(0)
-if ENABLE_APP == True:
+
+if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        datapath, transform=transform, target_transform=None
+        datapath,
+        transform=transform,
+        target_transform=None,
     )
     my_dataloader = torch.utils.data.DataLoader(
-        trainset, batch_size=batch_size, shuffle=True, num_workers=0, pin_memory=True
+        trainset,
+        batch_size=times * batch_size,
+        shuffle=True,
+        num_workers=0,
+        pin_memory=True,
     )
+    size_dataset = len(my_dataloader.dataset)
+elif APP == 2:
+    trainset = torchvision.datasets.CIFAR10(
+        root=datapath, train=True, download=True, transform=transform
+    )
+    my_dataloader = torch.utils.data.DataLoader(
+        trainset,
+        batch_size=times * batch_size,
+        shuffle=False,
+        num_workers=0,
+        pin_memory=True,
+    )
+    size_dataset = 50000
 else:
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
@@ -179,6 +202,7 @@ else:
     )
     size_dataset = 10 * batch_size
 
+
 ################################################################################
 
 
@@ -188,20 +212,23 @@ perf = []
 
 
 def run_epoch():
-    for i_e in range(epoch):
+    for i_e in range(epochs):
         loss = 0
+        correct = 0
         t = time.time()
-        for i, data in enumerate(my_dataloader, 0):
+        for batch, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
 
-            if i > math.floor(size_dataset / (times * batch_size)) - 1:
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
             inputs, labels = data
 
-            temp_loss = tm.run_step(inputs, labels)
-            loss += temp_loss
+            local_loss, local_correct = tm.run_step(inputs, labels)
+            loss += local_loss
+            correct += local_correct
+
             tm.update()
 
             end_event.record()
@@ -209,13 +236,17 @@ def run_epoch():
             t = start_event.elapsed_time(end_event) / 1000
 
             if local_rank == mp_size - 1:
-                logging.info(f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)}")
+                logging.info(
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct}"
+                )
 
             if local_rank == 0:
                 print(f"Epoch: {i_e} images per sec:{batch_size / t}")
                 perf.append(batch_size / t)
 
             t = time.time()
+    if local_rank == mp_size - 1:
+        print(f"Epoch {i_e} Global loss: {loss} Acc {correct / batch}")
 
 
 run_epoch()

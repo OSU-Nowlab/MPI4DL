@@ -173,6 +173,7 @@ class make_cell_v1_spatial(nn.Module):
         strides,
         in_filters,
         out_filters,
+        slice_method="square",
     ):
         super(make_cell_v1_spatial, self).__init__()
         self.r1 = resnet_layer_spatial(
@@ -182,6 +183,7 @@ class make_cell_v1_spatial(nn.Module):
             in_num_filters=in_filters,
             num_filters=out_filters,
             strides=strides,
+            slice_method=slice_method,
         )
         self.r2 = resnet_layer_spatial(
             local_rank,
@@ -191,6 +193,7 @@ class make_cell_v1_spatial(nn.Module):
             num_filters=out_filters,
             strides=1,
             activation=None,
+            slice_method=slice_method,
         )
         self.resblock = resblock
         self.stack = stack
@@ -205,6 +208,7 @@ class make_cell_v1_spatial(nn.Module):
                 activation=None,
                 batch_normalization=False,
                 kernel_size=1,
+                slice_method=slice_method,
             )
 
     def forward(self, x):
@@ -220,7 +224,7 @@ class make_cell_v1_spatial(nn.Module):
 
 
 class end_part_v1(nn.Module):
-    def __init__(self, kernel_size, batch_size, num_filters, image_size):
+    def __init__(self, kernel_size, batch_size, num_filters, image_size, num_classes):
         super(end_part_v1, self).__init__()
         self.batch_size = batch_size
         self.pool = nn.AvgPool2d(
@@ -236,7 +240,7 @@ class end_part_v1(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        self.fc1 = nn.Linear(self.flatten_size, 10)
+        self.fc1 = nn.Linear(self.flatten_size, num_classes)
 
     def forward(self, x):
         x = self.pool(x)
@@ -283,6 +287,7 @@ def get_resnet_v1(
     num_spatial_parts=4,
     balance=None,
     num_classes=10,
+    slice_method="square",
 ):
     if (depth - 2) % 6 != 0:
         raise ValueError("depth should be 6n+2 (eg 20, 32, 44 in [a])")
@@ -301,7 +306,11 @@ def get_resnet_v1(
 
     # inputs = Input(shape=input_shape)
     layers[str(name)] = resnet_layer_spatial(
-        local_rank, spatial_size, num_spatial_parts, in_num_filters=in_filters
+        local_rank,
+        spatial_size,
+        num_spatial_parts,
+        in_num_filters=in_filters,
+        slice_method=slice_method,
     )
 
     name += 1
@@ -329,6 +338,7 @@ def get_resnet_v1(
                     strides,
                     in_filters,
                     num_filters,
+                    slice_method=slice_method,
                 )
             name += 1
             in_filters = num_filters
@@ -339,6 +349,7 @@ def get_resnet_v1(
         batch_size=input_shape[0],
         num_filters=int(num_filters / 2),
         image_size=input_shape[2],
+        num_classes=num_classes,
     )
     return nn.Sequential(layers)
 
@@ -478,7 +489,7 @@ class make_cell_v2(nn.Module):
 
 
 class end_part_v2(nn.Module):
-    def __init__(self, kernel_size, batch_size, num_filters, image_size):
+    def __init__(self, kernel_size, batch_size, num_filters, image_size, num_classes):
         super(end_part_v2, self).__init__()
         self.batch_size = batch_size
         self.batch_last = nn.BatchNorm2d(
@@ -501,7 +512,7 @@ class end_part_v2(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        self.fc1 = nn.Linear(self.flatten_size, 10)
+        self.fc1 = nn.Linear(self.flatten_size, num_classes)
 
     def forward(self, x):
         x = F.relu(self.batch_last(x))
@@ -599,6 +610,7 @@ def get_resnet_v2(
         batch_size=input_shape[0],
         num_filters=int(num_filters_in),
         image_size=input_shape[2],
+        num_classes=num_classes,
     )
     return nn.Sequential(layers)
 

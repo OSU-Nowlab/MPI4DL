@@ -59,7 +59,7 @@ ENABLE_ASYNC = True
 np.random.seed(seed=1405)
 parts = args.parts
 batch_size = args.batch_size
-epoch = args.num_epochs
+epochs = args.num_epochs
 image_size = int(args.image_size)
 num_layers = args.num_layers
 num_filters = args.num_filters
@@ -68,14 +68,12 @@ split_size = args.split_size
 spatial_size = args.spatial_size
 times = args.times
 datapath = args.datapath
-
 LOCAL_DP_LP = args.local_DP
 # APP
 # 1: Medical
 # 2: Cifar
 # 3: synthetic
 APP = args.app
-steps = 100
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
@@ -200,8 +198,16 @@ if args.slice_method == "square":
                     x = (
                         int(shape_tuple[0]),
                         shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times / 2),
-                        int(shape_tuple[3] * image_size_times / 2),
+                        int(
+                            shape_tuple[2]
+                            * image_size_times
+                            / int(math.sqrt(spatial_part_size))
+                        ),
+                        int(
+                            shape_tuple[3]
+                            * image_size_times
+                            / int(math.sqrt(spatial_part_size))
+                        ),
                     )
                     temp_shape.append(x)
                 else:
@@ -222,8 +228,16 @@ if args.slice_method == "square":
                     x = (
                         int(output_shape[0]),
                         output_shape[1],
-                        int(output_shape[2] * image_size_times / 2),
-                        int(output_shape[3] * image_size_times / 2),
+                        int(
+                            output_shape[2]
+                            * image_size_times
+                            / int(math.sqrt(spatial_part_size))
+                        ),
+                        int(
+                            output_shape[3]
+                            * image_size_times
+                            / int(math.sqrt(spatial_part_size))
+                        ),
                     )
                     amoebanet_shapes_list.append(x)
                 else:
@@ -411,7 +425,13 @@ t_s = train_model_spatial(
 )
 
 x = torch.zeros(
-    (batch_size, 3, int(image_size / 2), int(image_size / 2)), device="cuda"
+    (
+        batch_size,
+        3,
+        int(image_size / math.sqrt(spatial_part_size)),
+        int(image_size / math.sqrt(spatial_part_size)),
+    ),
+    device="cuda",
 )
 y = torch.zeros((batch_size,), dtype=torch.long, device="cuda")
 
@@ -435,7 +455,7 @@ if APP == 1:
         num_workers=0,
         pin_memory=True,
     )
-    size_dataset = 1030
+    size_dataset = len(my_dataloader.dataset)
 elif APP == 2:
     trainset = torchvision.datasets.CIFAR10(
         root=datapath, train=True, download=True, transform=transform
@@ -524,15 +544,15 @@ perf = []
 
 
 def run_epoch():
-    for i_e in range(epoch):
+    for i_e in range(epochs):
         loss = 0
         correct = 0
         t = time.time()
-        for i, data in enumerate(my_dataloader, 0):
+        for batch, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
-            if i > math.floor(size_dataset / (times * batch_size)) - 1:
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
             inputs, labels = data
 
@@ -541,16 +561,16 @@ def run_epoch():
             else:
                 x = inputs
 
-            temp_loss, temp_correct = t_s.run_step(x, labels)
-            loss += temp_loss
-            correct += temp_correct
+            local_loss, local_correct = t_s.run_step(x, labels)
+            loss += local_loss
+            correct += local_correct
 
             torch.cuda.synchronize()
 
             t_s.update()
             if local_rank == comm_size - 1:
                 logging.info(
-                    f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)} Acc: {temp_correct}"
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct}"
                 )
 
             end_event.record()
@@ -562,7 +582,7 @@ def run_epoch():
 
             t = time.time()
         if local_rank == comm_size - 1:
-            print(f"Epoch {i_e} Global loss: {loss} Acc {correct / i}")
+            print(f"Epoch {i_e} Global loss: {loss} Acc {correct / batch}")
 
 
 run_epoch()

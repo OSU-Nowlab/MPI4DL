@@ -16,7 +16,7 @@ Figure 1. shows capabilities of each parallelism scheme with respective to difer
 
 
 
-**Our objective is efficiently utilizing distributed training for very high-resolution images that appear in real-world applications. Integrating spatial and layer parallelism can solve the aforementioned limitations of spatial parallelism and layer parallelism. Spatial parallelism enables training high-resolution images efficiently even when the model size is large, and layer parallelism accelerates low-resolution images in the latter half of DNNs. This schema enables training high-resolution images efficiently. This project is a PyTorch implementation of this technique and is based on [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6).**
+**Our objective is efficiently utilizing distributed training for dense convolutional neural networks and very high-resolution images that appear in real-world applications such as medical images. Integrating spatial and layer parallelism can solve the aforementioned limitations of spatial parallelism and layer parallelism. Spatial parallelism enables training high-resolution images efficiently even when the model size is large, and layer parallelism accelerates low-resolution images in the latter half of DNNs. This schema enables training high-resolution images efficiently. This project is a PyTorch implementation of mentioned approach and is based on [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6).**
 
 # Background
 
@@ -47,9 +47,9 @@ Refer [Spatial Parallelism](benchmarks/spatial_parallelism) for more details.
 
 ### Prerequisite:
 - Python 3.8 or later (for Linux, Python 3.8.1+ is needed).
-- MVAPICH2
-Refer [MVAPICH2 installation guide](docs/installation/MVAPICH_INSTALLATION_GUIDE.md) to install MVAPICH2.
-- PyTorch :  1.12.1 or 1.13.1
+- MVAPICH2-GDR </br>
+Refer [MVAPICH2-GDR user guide](https://mvapich.cse.ohio-state.edu/userguide/gdr/) to install MVAPICH2-GDR.
+- PyTorch :  1.12.1 or 1.13.1 </br>
 Refer [PyTorch installation guide](/docs/installation/PYTORCH_INSTALLATION_GUIDE.md) to install PyTorch from source and configure MVAPICH2 support. 
 
 *Note:
