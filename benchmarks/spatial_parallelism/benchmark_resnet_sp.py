@@ -1,5 +1,5 @@
 # Copyright 2023, The Ohio State University. All rights reserved.
-# The MVAPICH software package is developed by the team members of
+# The MPI4DL software package is developed by the team members of
 # The Ohio State University's Network-Based Computing Laboratory (NBCL),
 # headed by Professor Dhabaleswar K. (DK) Panda.
 #
@@ -90,6 +90,8 @@ datapath = args.datapath
 # 2: Cifar
 # 3: synthetic
 APP = args.app
+num_classes = args.num_classes
+
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
 if len(temp_num_spatial_parts) == 1:
@@ -110,7 +112,6 @@ These values will then be used to calculate the output shape for a given input s
 """
 image_size_seq = 32
 resnet_n = 12
-num_classes = 10
 
 
 def get_depth(version, n):

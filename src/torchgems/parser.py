@@ -1,5 +1,5 @@
 # Copyright 2023, The Ohio State University. All rights reserved.
-# The MVAPICH software package is developed by the team members of
+# The MPI4DL software package is developed by the team members of
 # The Ohio State University's Network-Based Computing Laboratory (NBCL),
 # headed by Professor Dhabaleswar K. (DK) Panda.
 #
@@ -73,6 +73,8 @@ def get_parser():
     parser.add_argument(
         "--num-filters", type=int, default=416, help="Number of layers in amoebanet"
     )
+
+    parser.add_argument("--num-classes", type=int, default=10, help="Number of classes")
 
     parser.add_argument(
         "--balance",

@@ -1,5 +1,5 @@
 # Copyright 2023, The Ohio State University. All rights reserved.
-# The MVAPICH software package is developed by the team members of
+# The MPI4DL software package is developed by the team members of
 # The Ohio State University's Network-Based Computing Laboratory (NBCL),
 # headed by Professor Dhabaleswar K. (DK) Panda.
 #
@@ -75,11 +75,11 @@ datapath = args.datapath
 # 2: Cifar
 # 3: synthetic
 APP = args.app
+num_classes = args.num_classes
 
 ##################### AmoebaNet model specific parameters #####################
 
 image_size_seq = 512
-num_classes = 1000
 
 ###############################################################################
 
