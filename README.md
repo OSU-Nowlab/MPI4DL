@@ -24,19 +24,20 @@ Figure 1 shows capabilities of each parallelism scheme with respect to diferent 
 Data parallelism instantiates a replica of the model weights on each set of GPUs, then sends distinct batches of data to each model replica at each training step. Each replica independently calculates the gradient updates using its data batch, then averages the gradient updates with all other replicas to update the global copy of weights.
 
 <div align="center">
- <img src="docs/assets/images/Data_Parallelism.jpg" width="600px">
+ <img src="docs/assets/images/data-parallelism.png" width="600px">
  </br>
- <figcaption>Figure 2. Data parallelism. </figcaption>
+ <figcaption>Figure 2. Data parallelism (Courtesy: https://xiandong79.github.io/Intro-Distributed-Deep-Learning) </figcaption>
     </br>
 </div>
+
 
 ## Layer Parallelism
 Layer parallelism distributes the DNN model on separate GPUs before applying distributed forward and backward passes. These distributed forward and backward passes are implemented with simple Send and Recv operations. Thus, layer parallelism suffers from under-utilization of resources and scalability, as only a single GPU can operate at once.
 
 <div align="center">
- <img src="docs/assets/images/Layer_Parallelism.jpg" width="600px">
+ <img src="docs/assets/images/layer-parallelism.png" width="600px">
  </br>
- <figcaption>Figure 3. Layer parallelism. </figcaption>
+ <figcaption>Figure 3. Layer parallelism (Courtesy: https://doi.org/10.1109/SC41405.2020.00049) </figcaption>
     </br>
 </div>
 
@@ -44,24 +45,18 @@ Layer parallelism distributes the DNN model on separate GPUs before applying dis
 Pipelining divides the input batch into smaller batches called micro-batches, the number of which we call parts. The goal of pipeline parallelism is to reduce underutilization by overlapping micro-batches, which allows multiple GPUs to proceed with computation within the forward and backward passes.
 
 <div align="center">
- <img src="docs/assets/images/Pipeline_Parallelism.png" width="600px">
+ <img src="docs/assets/images/pipeline-parallelism.png" width="600px">
  </br>
- <figcaption>Figure 4. Combination of spatial and layer parallelism. </figcaption>
+ <figcaption>Figure 4. Pipeline parallelism (Courtesy: https://doi.org/10.1109/SC41405.2020.00049) </figcaption>
     </br>
 </div>
 
 ## Spatial Parallelism
 
-<div align="center">
- <img src="docs/assets/images/Spatial_Parallelism.jpg" width="600px">
- </br>
- <figcaption>Figure 5. Combination of spatial and layer parallelism. </figcaption>
-    </br>
-</div>
-
 In spatial parallelism, the convolution layer is replicated across multiple GPUs, and image parts are partitioned across replicas. Convolution and Pooling layers can be distributed across multiple GPUs to work on different regions of the image. Hence, unlike layer parallelism, this approach enables simultaneous computation on multiple GPUs while facilitating the training of the out-of-core convolution layer, but it requires extra communication to receive border pixels from neighboring partitions, also called halo-exchange. Refer [Halo exchange](benchmarks/communication/halo) for more information.
 
 ## Spatial Parallelism + Layer Parallelism
+
 <div align="center">
  <img src="docs/assets/images/Spatial_Layer_Parallelism.jpg" width="600px">
  </br>
@@ -80,15 +75,15 @@ Refer [Spatial Parallelism](benchmarks/spatial_parallelism) for more details.
 Putting this all together, we can exploit each dimension of parallelism to achieve the best throughput on a given hardware and model architecture.
 
 <div align="center">
- <img src="docs/assets/images/5d_parallelism.png" width="600px">
+ <img src="docs/assets/images/5d-parallelism.png" width="600px">
  </br>
  <figcaption>Figure 7. Combination of spatial, bidirectional, data, pipeline, and layer parallelism. </figcaption>
     </br>
 </div>
 
-## Installation:
+## Installation
 
-### Prerequisite:
+### Prerequisites
 - Python 3.8 or later (for Linux, Python 3.8.1+ is needed).
 - MVAPICH2
 Refer [MVAPICH2 installation guide](docs/installation/MVAPICH_INSTALLATION_GUIDE.md) to install MVAPICH2.
@@ -104,7 +99,7 @@ Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.1, MVAPICH2-GDR
 cd mpi4dl
 python setup.py install
 ```
-### Run model benchmark:
+### Run model benchmarks
 Example to run AmoebaNet model with partition size for model as two, spatial partition as four and spatial size (i.e. number of model partition which will use spatial partition) as 1
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
@@ -112,7 +107,7 @@ $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_CUDA=
 
 Refer [Spatial Parallelism](benchmarks/spatial_parallelism) and [Halo Exchange](benchmarks/communication/halo) for more spatial benchmarks.
 
-## References:
+## References
 1. Arpan Jain, Ammar Ahmad Awan, Asmaa M. Aljuhani, Jahanzeb Maqbool Hashmi, Quentin G. Anthony, Hari Subramoni, Dhableswar K. Panda, Raghu Machiraju, and Anil Parwani. 2020. GEMS: <u>G</u>PU-<u>e</u>nabled <u>m</u>emory-aware model-parallelism <u>s</u>ystem for distributed DNN training. In Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC '20). IEEE Press, Article 45, 1–15.
 2. Arpan Jain, Aamir Shafi, Quentin Anthony, Pouya Kousha, Hari Subramoni, and Dhableswar K. Panda. 2022. Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters. In High Performance Computing: 37th International Conference, ISC High Performance 2022, Hamburg, Germany, May 29 – June 2, 2022, Proceedings. Springer-Verlag, Berlin, Heidelberg, 109–130. https://doi.org/10.1007/978-3-031-07312-0_6
 
