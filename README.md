@@ -5,12 +5,14 @@ The size of image-based DL models regularly grows beyond the memory available on
 <div align="center">
  <img src="docs/assets/images/DP_MP_SP_Vs_Memory.png" width="600px">
  <br>
- <figcaption>Figure 1. Capabilities of each parallelism scheme for low-resolution, high-resoution and very high resolutioin images. 
+ <figcaption>Figure 1. Capabilities of each parallelism scheme for low-resolution, high-resolution and very high resolution images.
 </figcaption>
 
 <br>
 </div>
 <br>
+
+([Figure Source](https://doi.org/10.1007/978-3-031-07312-0_6))
 
 Figure 1 shows capabilities of each parallelism scheme with respect to diferent image sizes. Data parallelism has a memory limitation and cannot be performed for out-of-core models. [Layer parallelism](#layer-parallelism) overcomes the limitation of data parallelism by distributing the model across different GPUs. However, it causes GPU underutilization as only one GPU is utilized. Pipeline parallelism accelerates the performance of layer parallelism by training the model in a pipeline fashion. However, pipeline parallelism is only possible when the model is trainable with a batch size > 1, which is typically impossible with high-resolution images due to memory constraints. To train high-resolution images, spatial parallelism can be used, which distributes images across multiple GPUs. On the other hand, it has performance issues due to high communication overhead and the inability to accelerate low-resolution images that are common in the latter half of DNNs.
 
@@ -26,9 +28,11 @@ Data parallelism instantiates a replica of the model weights on each set of GPUs
 <div align="center">
  <img src="docs/assets/images/data-parallelism.png" width="600px">
  </br>
- <figcaption>Figure 2. Data parallelism (Courtesy: https://xiandong79.github.io/Intro-Distributed-Deep-Learning) </figcaption>
+ <figcaption>Figure 2. Data parallelism </figcaption>
     </br>
 </div>
+
+([Figure Source](https://xiandong79.github.io/Intro-Distributed-Deep-Learning))
 
 
 ## Layer Parallelism
@@ -37,9 +41,11 @@ Layer parallelism distributes the DNN model on separate GPUs before applying dis
 <div align="center">
  <img src="docs/assets/images/layer-parallelism.png" width="600px">
  </br>
- <figcaption>Figure 3. Layer parallelism (Courtesy: https://doi.org/10.1109/SC41405.2020.00049) </figcaption>
+ <figcaption>Figure 3. Layer parallelism </figcaption>
     </br>
 </div>
+
+([Figure Source](https://doi.org/10.1109/SC41405.2020.00049))
 
 ## Pipeline Parallelism
 Pipelining divides the input batch into smaller batches called micro-batches, the number of which we call parts. The goal of pipeline parallelism is to reduce underutilization by overlapping micro-batches, which allows multiple GPUs to proceed with computation within the forward and backward passes.
@@ -51,6 +57,8 @@ Pipelining divides the input batch into smaller batches called micro-batches, th
     </br>
 </div>
 
+([Figure Source](https://doi.org/10.1109/SC41405.2020.00049))
+
 ## Spatial Parallelism
 
 In spatial parallelism, the convolution layer is replicated across multiple GPUs, and image parts are partitioned across replicas. Convolution and Pooling layers can be distributed across multiple GPUs to work on different regions of the image. Hence, unlike layer parallelism, this approach enables simultaneous computation on multiple GPUs while facilitating the training of the out-of-core convolution layer, but it requires extra communication to receive border pixels from neighboring partitions, also called halo-exchange. Refer [Halo exchange](benchmarks/communication/halo) for more information.
@@ -58,11 +66,13 @@ In spatial parallelism, the convolution layer is replicated across multiple GPUs
 ## Spatial Parallelism + Layer Parallelism
 
 <div align="center">
- <img src="docs/assets/images/Spatial_Layer_Parallelism.jpg" width="600px">
+ <img src="docs/assets/images/Spatial_Parallelism.jpg" width="600px">
  </br>
  <figcaption>Figure 6. Combination of spatial and layer parallelism. </figcaption>
     </br>
 </div>
+
+([Figure Source](https://doi.org/10.1007/978-3-031-07312-0_6))
 
 Above figure shows combination of spatial and layer parallelism. In this approach, the model is divided into 4 partitions, and spatial parallelism is used for the first partition to perform convolution operations on the input image. The second layer aggregates the output from the first layer and then sends it, while lateral layers use layer parallelism.
 
@@ -80,6 +90,8 @@ Putting this all together, we can exploit each dimension of parallelism to achie
  <figcaption>Figure 7. Combination of spatial, bidirectional, data, pipeline, and layer parallelism. </figcaption>
     </br>
 </div>
+
+([Figure Source](https://doi.org/10.1007/978-3-031-07312-0_6))
 
 ## Installation
 
