@@ -115,7 +115,7 @@ class make_cell_v1(nn.Module):
 
 
 class end_part_v1(nn.Module):
-    def __init__(self, kernel_size, batch_size, num_filters, image_size):
+    def __init__(self, kernel_size, batch_size, num_filters, image_size, num_classes):
         super(end_part_v1, self).__init__()
         self.batch_size = batch_size
         self.pool = nn.AvgPool2d(
@@ -131,7 +131,7 @@ class end_part_v1(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        self.fc1 = nn.Linear(self.flatten_size, 10)
+        self.fc1 = nn.Linear(self.flatten_size, num_classes)
 
     def forward(self, x):
         x = self.pool(x)
@@ -173,6 +173,7 @@ def get_resnet_v1(input_shape, depth, num_classes=10):
         batch_size=input_shape[0],
         num_filters=int(num_filters / 2),
         image_size=input_shape[2],
+        num_classes=num_classes,
     )
     return nn.Sequential(layers)
 
@@ -231,7 +232,7 @@ class make_cell_v2(nn.Module):
 
 
 class end_part_v2(nn.Module):
-    def __init__(self, kernel_size, batch_size, num_filters, image_size):
+    def __init__(self, kernel_size, batch_size, num_filters, image_size, num_classes):
         super(end_part_v2, self).__init__()
         self.batch_size = batch_size
         self.batch_last = nn.BatchNorm2d(
@@ -254,7 +255,7 @@ class end_part_v2(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        self.fc1 = nn.Linear(self.flatten_size, 10)
+        self.fc1 = nn.Linear(self.flatten_size, num_classes)
 
     def forward(self, x):
         x = F.relu(self.batch_last(x))
@@ -317,6 +318,7 @@ def get_resnet_v2(input_shape, depth, num_classes=10):
         batch_size=input_shape[0],
         num_filters=int(num_filters_in),
         image_size=input_shape[2],
+        num_classes=num_classes,
     )
     return nn.Sequential(layers)
 
