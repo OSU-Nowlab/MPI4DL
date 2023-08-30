@@ -1,6 +1,22 @@
-                                 Apache License
+                                Apache License
                            Version 2.0, January 2004
                         http://www.apache.org/licenses/
+
+Copyright (c) 2023, The Ohio State University. All rights
+reserved.
+
+The MPI4DL software package is developed by the team members of The
+Ohio State University's Network-Based Computing Laboratory (NBCL),
+headed by Professor Dhabaleswar K. (DK) Panda.
+
+Contact:
+Prof. Dhabaleswar K. (DK) Panda
+Dept. of Computer Science and Engineering
+The Ohio State University
+2015 Neil Avenue
+Columbus, OH - 43210-1277
+Tel: (614)-292-5199; Fax: (614)-292-2911
+E-mail:panda@cse.ohio-state.edu
 
    TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
 
@@ -186,7 +202,6 @@
       same "printed page" as the copyright notice for easier
       identification within third-party archives.
 
-   Copyright [yyyy] [name of copyright owner]
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

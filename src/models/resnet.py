@@ -1,3 +1,21 @@
+# Copyright 2023, The Ohio State University. All rights reserved.
+# The MPI4DL software package is developed by the team members of
+# The Ohio State University's Network-Based Computing Laboratory (NBCL),
+# headed by Professor Dhabaleswar K. (DK) Panda.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch.nn as nn
 import torch.nn.functional as F
 from collections import OrderedDict
@@ -97,7 +115,7 @@ class make_cell_v1(nn.Module):
 
 
 class end_part_v1(nn.Module):
-    def __init__(self, kernel_size, batch_size, num_filters, image_size):
+    def __init__(self, kernel_size, batch_size, num_filters, image_size, num_classes):
         super(end_part_v1, self).__init__()
         self.batch_size = batch_size
         self.pool = nn.AvgPool2d(
@@ -113,7 +131,7 @@ class end_part_v1(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        self.fc1 = nn.Linear(self.flatten_size, 10)
+        self.fc1 = nn.Linear(self.flatten_size, num_classes)
 
     def forward(self, x):
         x = self.pool(x)
@@ -155,6 +173,7 @@ def get_resnet_v1(input_shape, depth, num_classes=10):
         batch_size=input_shape[0],
         num_filters=int(num_filters / 2),
         image_size=input_shape[2],
+        num_classes=num_classes,
     )
     return nn.Sequential(layers)
 
@@ -213,7 +232,7 @@ class make_cell_v2(nn.Module):
 
 
 class end_part_v2(nn.Module):
-    def __init__(self, kernel_size, batch_size, num_filters, image_size):
+    def __init__(self, kernel_size, batch_size, num_filters, image_size, num_classes):
         super(end_part_v2, self).__init__()
         self.batch_size = batch_size
         self.batch_last = nn.BatchNorm2d(
@@ -236,7 +255,7 @@ class end_part_v2(nn.Module):
             * int(image_size / (4 * kernel_size))
             * int(image_size / (4 * kernel_size))
         )
-        self.fc1 = nn.Linear(self.flatten_size, 10)
+        self.fc1 = nn.Linear(self.flatten_size, num_classes)
 
     def forward(self, x):
         x = F.relu(self.batch_last(x))
@@ -299,6 +318,7 @@ def get_resnet_v2(input_shape, depth, num_classes=10):
         batch_size=input_shape[0],
         num_filters=int(num_filters_in),
         image_size=input_shape[2],
+        num_classes=num_classes,
     )
     return nn.Sequential(layers)
 

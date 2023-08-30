@@ -1,3 +1,22 @@
+# Copyright 2023, The Ohio State University. All rights reserved.
+# The MPI4DL software package is developed by the team members of
+# The Ohio State University's Network-Based Computing Laboratory (NBCL),
+# headed by Professor Dhabaleswar K. (DK) Panda.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from models import resnet
 import torch
 import torch.distributed as dist
 import torchvision.transforms as transforms
@@ -19,10 +38,10 @@ if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
 if args.halo_d2:
-    from models import resnet_cifar_torch
-    from models import resnet_cifar_torch_spatial_d2 as resnet_cifar_torch_spatial
+    # from models import resnet
+    from models import resnet_spatial_d2 as resnet_spatial
 else:
-    from models import resnet_cifar_torch, resnet_cifar_torch_spatial
+    from models import resnet_spatial
 
 gems_comm.initialize_cuda()
 
@@ -58,7 +77,7 @@ np.random.seed(seed=1405)
 ENABLE_ASYNC = True
 parts = args.parts
 batch_size = args.batch_size
-epoch = args.num_epochs
+epochs = args.num_epochs
 image_size = int(args.image_size)
 balance = args.balance
 split_size = args.split_size
@@ -71,6 +90,8 @@ datapath = args.datapath
 # 2: Cifar
 # 3: synthetic
 APP = args.app
+num_classes = args.num_classes
+
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
 if len(temp_num_spatial_parts) == 1:
@@ -81,7 +102,6 @@ else:
     num_spatial_parts_list = num_spatial_parts
 
 spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
-steps = 100
 
 ################## ResNet model specific parameters/functions ##################
 
@@ -92,7 +112,6 @@ These values will then be used to calculate the output shape for a given input s
 """
 image_size_seq = 32
 resnet_n = 12
-num_classes = 10
 
 
 def get_depth(version, n):
@@ -168,7 +187,7 @@ else:
     balance = None
 
 # Initialize ResNet model
-model_seq = resnet_cifar_torch.get_resnet_v2(
+model_seq = resnet.get_resnet_v2(
     (int(batch_size / parts), 3, image_size_seq, image_size_seq), depth=get_depth(2, 12)
 )
 
@@ -199,8 +218,16 @@ if args.slice_method == "square":
                     x = (
                         int(shape_tuple[0]),
                         shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times / 2),
-                        int(shape_tuple[3] * image_size_times / 2),
+                        int(
+                            shape_tuple[2]
+                            * image_size_times
+                            / math.sqrt(spatial_part_size)
+                        ),
+                        int(
+                            shape_tuple[3]
+                            * image_size_times
+                            / math.sqrt(spatial_part_size)
+                        ),
                     )
                     temp_shape.append(x)
                 else:
@@ -221,8 +248,16 @@ if args.slice_method == "square":
                     x = (
                         int(output_shape[0]),
                         output_shape[1],
-                        int(output_shape[2] * image_size_times / 2),
-                        int(output_shape[3] * image_size_times / 2),
+                        int(
+                            output_shape[2]
+                            * image_size_times
+                            / math.sqrt(spatial_part_size)
+                        ),
+                        int(
+                            output_shape[3]
+                            * image_size_times
+                            / math.sqrt(spatial_part_size)
+                        ),
                     )
                     resnet_shapes_list.append(x)
                 else:
@@ -351,7 +386,7 @@ torch.cuda.ipc_collect()
 
 # Initialize ResNet model with Spatial and Model Parallelism support
 if args.halo_d2:
-    model, balance = resnet_cifar_torch_spatial.get_resnet_v2(
+    model, balance = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
         depth=get_depth(2, 12),
         local_rank=local_rank % spatial_part_size,
@@ -364,7 +399,7 @@ if args.halo_d2:
         slice_method=args.slice_method,
     )
 else:
-    model = resnet_cifar_torch_spatial.get_resnet_v2(
+    model = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
         depth=get_depth(2, 12),
         local_rank=local_rank % spatial_part_size,
@@ -410,7 +445,13 @@ t_s = train_model_spatial(
 )
 
 x = torch.zeros(
-    (batch_size, 3, int(image_size / 2), int(image_size / 2)), device="cuda"
+    (
+        batch_size,
+        3,
+        int(image_size / math.sqrt(spatial_part_size)),
+        int(image_size / math.sqrt(spatial_part_size)),
+    ),
+    device="cuda",
 )
 y = torch.zeros((batch_size,), dtype=torch.long, device="cuda")
 
@@ -432,7 +473,7 @@ if APP == 1:
         num_workers=0,
         pin_memory=True,
     )
-    size_dataset = 1030
+    size_dataset = len(my_dataloader.dataset)
 elif APP == 2:
     trainset = torchvision.datasets.CIFAR10(
         root=datapath, train=True, download=True, transform=transform
@@ -523,15 +564,16 @@ perf = []
 
 
 def run_epoch():
-    for i_e in range(epoch):
+    for i_e in range(epochs):
         loss = 0
         correct = 0
+        size = len(my_dataloader.dataset)
         t = time.time()
-        for i, data in enumerate(my_dataloader, 0):
+        for batch, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
-            if i > math.floor(size_dataset / (times * batch_size)) - 1:
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
             inputs, labels = data
 
@@ -540,9 +582,9 @@ def run_epoch():
             else:
                 x = inputs
 
-            temp_loss, temp_correct = t_s.run_step(x, labels)
-            loss += temp_loss
-            correct += temp_correct
+            local_loss, local_correct = t_s.run_step(x, labels)
+            loss += local_loss
+            correct += local_correct
             if local_rank < spatial_size * spatial_part_size:
                 sync_allreduce.apply_allreduce(
                     model_gen, mpi_comm.spatial_allreduce_grp
@@ -552,7 +594,7 @@ def run_epoch():
             t_s.update()
             if local_rank == spatial_part_size:
                 logging.info(
-                    f"Step :{i}, LOSS: {temp_loss}, Global loss: {loss/(i+1)} Acc: {temp_correct}"
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
                 )
 
             end_event.record()
@@ -564,7 +606,7 @@ def run_epoch():
 
             t = time.time()
         if local_rank == comm_size - 1:
-            print(f"Epoch {i_e} Global loss: {loss} Acc {correct / i}")
+            print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
 
 
 run_epoch()

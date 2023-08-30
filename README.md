@@ -1,4 +1,4 @@
-# MPI4DL
+# MPI4DL v0.5
 
 The size of image-based DL models regularly grows beyond the memory available on a single processor (we call such models **out-of-core**), and require advanced parallelism schemes to fit within device memory. Further, the massive image sizes required in specialized applications such as medical and satellite imaging can themselves place significant device memory pressure, and require parallelism schemes to process efficiently during training. Finally, the simplest parallelism scheme, [layer parallelism](#layer-parallelism), is highly inefficient. While there are several approaches that have been proposed to address some of the limitations of layer parallelism. However, most studies are performed for low-resolution images that exhibit different characteristics. Compared to low-resolution images, high-resolution images (e.g. digital pathology, satellite imaging) result in higher activation memory and larger tensors, which in turn lead to a larger communication overhead.    
 
@@ -18,7 +18,7 @@ Figure 1 shows capabilities of each parallelism scheme with respect to diferent 
 
 
 
-**Our objective is efficiently utilizing distributed training for very high-resolution images that appear in real-world applications. Integrating spatial and layer parallelism can solve the aforementioned limitations of spatial parallelism and layer parallelism. Spatial parallelism enables training high-resolution images efficiently even when the model size is large, and layer parallelism accelerates low-resolution images in the latter half of DNNs. This schema enables training high-resolution images efficiently. This project is a PyTorch implementation of this technique and is based on [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6).**
+**Our objective is efficiently utilizing distributed training for dense convolutional neural networks and very high-resolution images that appear in real-world applications such as medical images. Integrating spatial and layer parallelism can solve the aforementioned limitations of spatial parallelism and layer parallelism. Spatial parallelism enables training high-resolution images efficiently even when the model size is large, and layer parallelism accelerates low-resolution images in the latter half of DNNs. This schema enables training high-resolution images efficiently. This project is a PyTorch implementation of mentioned approach and is based on [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6).**
 
 # Background
 
@@ -97,16 +97,16 @@ Putting this all together, we can exploit each dimension of parallelism to achie
 
 ### Prerequisites
 - Python 3.8 or later (for Linux, Python 3.8.1+ is needed).
-- MVAPICH2
-Refer [MVAPICH2 installation guide](docs/installation/MVAPICH_INSTALLATION_GUIDE.md) to install MVAPICH2.
-- PyTorch :  1.12.1 or 1.13.1
+- MVAPICH2-GDR </br>
+Refer [MVAPICH2-GDR user guide](https://mvapich.cse.ohio-state.edu/userguide/gdr/) to install MVAPICH2-GDR.
+- PyTorch :  1.12.1 or 1.13.1 </br>
 Refer [PyTorch installation guide](/docs/installation/PYTORCH_INSTALLATION_GUIDE.md) to install PyTorch from source and configure MVAPICH2 support. 
 
 *Note:
 We used the following versions during implementation and testing.
 Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.12.1, MVAPICH2-GDR=2.3.7*
 
-### Install mpi4dl
+### Install MPI4DL
 ```bash
 cd mpi4dl
 python setup.py install
