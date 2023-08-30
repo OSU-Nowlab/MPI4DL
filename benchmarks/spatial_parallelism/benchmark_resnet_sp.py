@@ -567,6 +567,7 @@ def run_epoch():
     for i_e in range(epochs):
         loss = 0
         correct = 0
+        size = len(my_dataloader.dataset)
         t = time.time()
         for batch, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
@@ -593,7 +594,7 @@ def run_epoch():
             t_s.update()
             if local_rank == spatial_part_size:
                 logging.info(
-                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct}"
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
                 )
 
             end_event.record()
@@ -605,7 +606,7 @@ def run_epoch():
 
             t = time.time()
         if local_rank == comm_size - 1:
-            print(f"Epoch {i_e} Global loss: {loss} Acc {correct / batch}")
+            print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
 
 
 run_epoch()
