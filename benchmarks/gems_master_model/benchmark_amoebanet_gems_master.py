@@ -7,7 +7,7 @@ import time
 import sys
 import math
 import logging
-from models import resnet
+from models import amoebanet
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
 from torchgems.gems_master import train_model_master
@@ -52,12 +52,12 @@ np.random.seed(seed=1405)
 parts = args.parts
 batch_size = args.batch_size
 epoch = args.num_epochs
-
 # APP
 # 1: Medical
 # 2: Cifar
 # 3: synthetic
 APP = args.app
+times = args.times
 image_size = int(args.image_size)
 num_layers = args.num_layers
 num_filters = args.num_filters
@@ -66,34 +66,21 @@ mp_size = args.split_size
 datapath = args.datapath
 num_classes = args.num_classes
 
-################## ResNet model specific parameters/functions ##################
+##################### AmoebaNet GEMS model specific parameters #####################
 
-image_size_seq = 32
+image_size_seq = 512
 ENABLE_ASYNC = True
-resnet_n = 12
-times = 2
-
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
 
 ###############################################################################
 mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=True)
 rank = mpi_comm.rank
-
 local_rank = rank % mp_size
 if balance is not None:
     balance = [int(i) for i in balance.split(",")]
 
-# Initialize ResNet model
-model = resnet.get_resnet_v2(
-    (int(batch_size / parts), 3, image_size_seq, image_size_seq),
-    depth=get_depth(2, resnet_n),
-    num_classes=num_classes,
+# Initialize AmoebaNet model
+model = amoebanet.amoebanetd(
+    num_classes=num_classes, num_layers=args.num_layers, num_filters=args.num_filters
 )
 
 mul_shape = int(args.image_size / image_size_seq)
@@ -113,7 +100,7 @@ model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
 
 # Get the shape of model on each split rank for image_size
 image_size_times = int(image_size / image_size_seq)
-resnet_shapes_list = []
+amoebanet_shapes_list = []
 for output_shape in model_gen.shape_list:
     if isinstance(output_shape, list):
         temp_shape = []
@@ -125,10 +112,10 @@ for output_shape in model_gen.shape_list:
                 int(shape_tuple[3] * image_size_times),
             )
             temp_shape.append(x)
-        resnet_shapes_list.append(temp_shape)
+        amoebanet_shapes_list.append(temp_shape)
     else:
         if len(output_shape) == 2:
-            resnet_shapes_list.append(output_shape)
+            amoebanet_shapes_list.append(output_shape)
         else:
             x = (
                 output_shape[0],
@@ -136,45 +123,43 @@ for output_shape in model_gen.shape_list:
                 int(output_shape[2] * image_size_times),
                 int(output_shape[3] * image_size_times),
             )
-            resnet_shapes_list.append(x)
+            amoebanet_shapes_list.append(x)
 
-model_gen.shape_list = resnet_shapes_list
+model_gen.shape_list = amoebanet_shapes_list
+
 logging.info(f"Shape of model on local_rank {local_rank} : {model_gen.shape_list}")
-
 
 del model_gen
 del model
 torch.cuda.ipc_collect()
 
-model = resnet.get_resnet_v2(
-    (int(batch_size / parts), 3, image_size, image_size), get_depth(2, resnet_n)
+model = amoebanet.amoebanetd(
+    num_classes=num_classes, num_layers=args.num_layers, num_filters=args.num_filters
 )
 
 # GEMS Model 1
-model_gen1 = model_generator(
+model_gen1 = model_gen = model_generator(
     model=model,
     split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size, image_size),
-    balance=None,
-    shape_list=resnet_shapes_list,
+    balance=balance,
+    shape_list=amoebanet_shapes_list,
 )
 model_gen1.ready_model(split_rank=local_rank)
 
-
-model = resnet.get_resnet_v2(
-    (int(batch_size / parts), 3, image_size, image_size), get_depth(2, resnet_n)
+model = amoebanet.amoebanetd(
+    num_classes=num_classes, num_layers=args.num_layers, num_filters=args.num_filters
 )
 
 # GEMS Model 2
-model_gen2 = model_generator(
+model_gen2 = model_gen = model_generator(
     model=model,
     split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size, image_size),
-    balance=None,
-    shape_list=model_gen1.shape_list,
+    balance=balance,
+    shape_list=amoebanet_shapes_list,
 )
 model_gen2.ready_model(split_rank=mp_size - local_rank - 1)
-
 
 tm_master = train_model_master(
     model_gen1,
@@ -187,7 +172,6 @@ tm_master = train_model_master(
     parts=parts,
     ASYNC=ENABLE_ASYNC,
 )
-
 
 sync_allreduce = gems_comm.SyncAllreduce(mpi_comm)
 
@@ -213,6 +197,14 @@ if APP == 1:
     )
     size_dataset = len(my_dataloader.dataset)
 elif APP == 2:
+    transform = transforms.Compose(
+        [
+            transforms.Resize((512, 512)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
+    torch.manual_seed(0)
     trainset = torchvision.datasets.CIFAR10(
         root=datapath, train=True, download=True, transform=transform
     )
@@ -223,7 +215,7 @@ elif APP == 2:
         num_workers=0,
         pin_memory=True,
     )
-    size_dataset = len(my_dataloader.dataset)
+    size_dataset = 50000
 else:
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
@@ -269,6 +261,7 @@ def run_epoch():
             local_loss, local_correct = tm_master.run_step(inputs, labels)
             loss += local_loss
             correct += local_correct
+
             sync_allreduce.apply_allreduce_master_and_update(
                 tm_master, model_gen1, model_gen2
             )
