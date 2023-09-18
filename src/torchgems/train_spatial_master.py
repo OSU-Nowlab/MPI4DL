@@ -395,23 +395,25 @@ class train_spatial_model_master:
     def run_step(self, inputs, labels):
         loss, correct = 0, 0
         # torch.cuda.empty_cache()
+        print("START RUN_STEP MODEL1")
 
         # self.train_model1.models = self.train_model1.models.to('cuda')
         temp_loss, temp_correct = self.train_model1.run_step(
             inputs[: self.batch_size], labels[: self.batch_size]
         )
+        print("END RUN_STEP MODEL1")
         loss += temp_loss
         correct += temp_correct
 
         # torch.cuda.empty_cache()
-
+        print("START RUN_STEP MODEL2")
         # self.train_model1.models = self.train_model1.models.to('cpu')
         # self.train_model2.models = self.train_model2.models.to('cuda')
         temp_loss, temp_correct = self.train_model2.run_step(
             inputs[self.batch_size : 2 * self.batch_size],
             labels[self.batch_size : 2 * self.batch_size],
         )
-
+        print("END RUN_STEP MODEL2")
         # self.train_model2.models = self.train_model2.models.to('cpu')
 
         # torch.cuda.empty_cache()
@@ -422,17 +424,21 @@ class train_spatial_model_master:
         torch.cuda.synchronize()
         for times in range(self.replications - 1):
             index = (2 * times) + 2
+            print("Times :", times)
+            print("START RUN_STEP MODEL1")
             temp_loss, temp_correct = self.train_model1.run_step(
                 inputs[index * self.batch_size : (index + 1) * self.batch_size],
                 labels[index * self.batch_size : (index + 1) * self.batch_size],
             )
+            print("END RUN_STEP MODEL1")
             loss += temp_loss
             correct += temp_correct
-
+            print("START RUN_STEP MODEL2")
             temp_loss, temp_correct = self.train_model2.run_step(
                 inputs[(index + 1) * self.batch_size : (index + 2) * self.batch_size],
                 labels[(index + 1) * self.batch_size : (index + 2) * self.batch_size],
             )
+            print("END RUN_STEP MODEL2")
 
             loss += temp_loss
             correct += temp_correct

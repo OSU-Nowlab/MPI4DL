@@ -125,5 +125,12 @@ def get_parser():
         default="./train",
         help="local Dataset path",
     )
+    parser.add_argument(
+        "--enable-master-comm-opt",
+        dest="enable_master_comm_opt",
+        action="store_true",
+        default=False,
+        help="Enable communication optimization for MASTER in Spatial",
+    )
 
     return parser

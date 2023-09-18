@@ -182,6 +182,68 @@ def get_shapes_spatial(
     return spatial_shapes_list
 
 
+def split_input_2(inputs, image_size, slice_method, local_rank):
+    image_height_local = int(image_size / 2)
+    image_width_local = int(image_size / 2)
+
+    # square == vertical
+
+    if slice_method == "square" or slice_method == "vertical":
+        if local_rank == 0:
+            return inputs[:, :, :, :image_width_local]
+        elif local_rank == 1:
+            return inputs[:, :, :, image_width_local : 2 * image_width_local]
+
+    elif slice_method == "horizontal":
+        if local_rank == 0:
+            return inputs[:, :, :image_height_local, :]
+        elif local_rank == 1:
+            return inputs[:, :, image_height_local : 2 * image_height_local, :]
+
+
+def split_input_4(inputs, image_size, slice_method, local_rank):
+    image_height_local = int(image_size / 4)
+    image_width_local = int(image_size / 4)
+
+    if slice_method == "square":
+        if local_rank == 0:
+            return inputs[:, :, : int(image_size / 2), : int(image_size / 2)]
+        elif local_rank == 1:
+            return inputs[:, :, : int(image_size / 2), int(image_size / 2) :]
+        elif local_rank == 2:
+            return inputs[:, :, int(image_size / 2) :, : int(image_size / 2)]
+        elif local_rank == 3:
+            return inputs[:, :, int(image_size / 2) :, int(image_size / 2) :]
+
+    elif slice_method == "vertical":
+        if local_rank == 0:
+            return inputs[:, :, :, :image_width_local]
+        elif local_rank == 1:
+            return inputs[:, :, :, image_width_local : 2 * image_width_local]
+        elif local_rank == 2:
+            return inputs[:, :, :, 2 * image_width_local : 3 * image_width_local]
+        elif local_rank == 3:
+            return inputs[:, :, :, 3 * image_width_local : 4 * image_width_local]
+
+    elif slice_method == "horizontal":
+        if local_rank == 0:
+            return inputs[:, :, :image_height_local, :]
+        elif local_rank == 1:
+            return inputs[:, :, image_height_local : 2 * image_height_local, :]
+        elif local_rank == 2:
+            return inputs[:, :, 2 * image_height_local : 3 * image_height_local, :]
+        elif local_rank == 3:
+            return inputs[:, :, 3 * image_height_local : 4 * image_height_local, :]
+
+
+def split_input(inputs, image_size, slice_method, local_rank, num_spatial_parts_list):
+    if num_spatial_parts_list[0] == 2:
+        return split_input_2(inputs, image_size, slice_method, local_rank)
+
+    elif num_spatial_parts_list[0] == 4:
+        return split_input_4(inputs, image_size, slice_method, local_rank)
+
+
 class train_model_spatial(train_model):
     def __init__(
         self,
@@ -1149,7 +1211,12 @@ class train_model_spatial(train_model):
         # data_x: input data
         # data_y: labels
         # part_number: part number between 0 and self.parts-1 used to find right input recv buffer
-
+        print(
+            "train_spatial:forward_pass: START",
+            data_x.size(),
+            data_y.size(),
+            self.local_rank,
+        )
         # Receive inputs if local is not 0
         if self.split_rank == 0:
             input_x = data_x
@@ -1183,6 +1250,7 @@ class train_model_spatial(train_model):
                 else:
                     input_x = self.input_x_list[part_number]
 
+        print("train_spatial:forward_pass: RECEIVED INPUTS", self.local_rank)
         # Apply forward pass
 
         torch.cuda.synchronize()
@@ -1200,7 +1268,7 @@ class train_model_spatial(train_model):
             y = self.models(input_x)
 
         torch.cuda.synchronize()
-
+        print("train_spatial:forward_pass: CALCULATED_Y", self.local_rank)
         if self.split_rank != self.split_size - 1:
             if self.ENABLE_ASYNC == True:
                 if self.split_rank == self.spatial_size - 1 and self.ENABLE_LOCAL_DP_LP:
@@ -1212,6 +1280,7 @@ class train_model_spatial(train_model):
                     self.send_input_spatial_MP_joint_LP_DP(y)
                 else:
                     self.send_input_sync(y)
+            print("train_spatial:forward_pass: SENT_Y", self.local_rank)
 
         else:
             pos = self.local_rank - (self.mp_size - self.LOCAL_DP_LP)
@@ -1230,6 +1299,10 @@ class train_model_spatial(train_model):
                     loss = self.criterion(y, data_y)
             else:
                 loss = self.criterion(y, data_y)
+
+            print("train_spatial:forward_pass: CALCULATED_LOSS", self.local_rank)
+
+        print("train_spatial:forward_pass: END", self.local_rank)
 
         if self.split_rank == self.split_size - 1:
             corrects = (data_y.eq(torch.argmax(y, dim=-1).long())).sum().float()
