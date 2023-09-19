@@ -38,7 +38,7 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
-def init_processes(backend="tcp"):
+def init_processes(backend="mpi"):
     """Initialize the distributed environment."""
     dist.init_process_group(backend)
     size = dist.get_world_size()
@@ -192,7 +192,6 @@ if APP == 1:
         trainset,
         batch_size=times * batch_size,
         shuffle=True,
-        num_workers=0,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -212,10 +211,9 @@ elif APP == 2:
         trainset,
         batch_size=times * batch_size,
         shuffle=False,
-        num_workers=0,
         pin_memory=True,
     )
-    size_dataset = 50000
+    size_dataset = len(my_dataloader.dataset)
 else:
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
@@ -229,7 +227,6 @@ else:
         my_dataset,
         batch_size=batch_size * times,
         shuffle=False,
-        num_workers=0,
         pin_memory=True,
     )
     size_dataset = 10 * batch_size
