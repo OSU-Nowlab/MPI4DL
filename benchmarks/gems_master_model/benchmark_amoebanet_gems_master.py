@@ -64,6 +64,7 @@ num_filters = args.num_filters
 balance = args.balance
 mp_size = args.split_size
 datapath = args.datapath
+num_workers = args.num_workers
 num_classes = args.num_classes
 
 ##################### AmoebaNet GEMS model specific parameters #####################
@@ -192,6 +193,7 @@ if APP == 1:
         trainset,
         batch_size=times * batch_size,
         shuffle=True,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -211,6 +213,7 @@ elif APP == 2:
         trainset,
         batch_size=times * batch_size,
         shuffle=False,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -227,6 +230,7 @@ else:
         my_dataset,
         batch_size=batch_size * times,
         shuffle=False,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 10 * batch_size

@@ -70,6 +70,7 @@ balance = args.balance
 mp_size = args.split_size
 times = args.times
 datapath = args.datapath
+num_workers = args.num_workers
 # APP
 # 1: Medical
 # 2: Cifar
@@ -186,7 +187,7 @@ if APP == 1:
         trainset,
         batch_size=times * batch_size,
         shuffle=True,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -198,7 +199,7 @@ elif APP == 2:
         trainset,
         batch_size=times * batch_size,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 50000
@@ -215,7 +216,7 @@ else:
         my_dataset,
         batch_size=batch_size * times,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 10 * batch_size

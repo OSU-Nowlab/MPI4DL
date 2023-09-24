@@ -84,6 +84,7 @@ split_size = args.split_size
 spatial_size = args.spatial_size
 times = args.times
 datapath = args.datapath
+num_workers = args.num_workers
 
 # APP
 # 1: Medical
@@ -106,7 +107,7 @@ spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial para
 ################## ResNet model specific parameters/functions ##################
 
 """
-"image_size_seq" is required to determine the output shape after spatial partitioning of images. 
+"image_size_seq" is required to determine the output shape after spatial partitioning of images.
 The shape of the output will be determined for each model partition based on the values in "image_size_seq."
 These values will then be used to calculate the output shape for a given input size and spatial partition.
 """
@@ -129,7 +130,7 @@ def isPowerTwo(num):
 
 
 """
-For ResNet model, image size and image size after partitioning should be power of two. 
+For ResNet model, image size and image size after partitioning should be power of two.
 As, ResNet performs convolution operations at different layers, odd input size
 (i.e. image size which is not power of 2) will lead to truncation of input. Thus,
 other GPU devices will receive truncated input with unexpected input size.
@@ -470,7 +471,7 @@ if APP == 1:
         trainset,
         batch_size=times * batch_size,
         shuffle=True,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -482,7 +483,7 @@ elif APP == 2:
         trainset,
         batch_size=times * batch_size,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 50000
@@ -499,7 +500,7 @@ else:
         my_dataset,
         batch_size=batch_size * times,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 10 * batch_size

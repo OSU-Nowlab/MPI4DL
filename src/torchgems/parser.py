@@ -126,4 +126,11 @@ def get_parser():
         help="local Dataset path",
     )
 
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=0,
+        help="Slice method (square, vertical, and horizontal) in Spatial parallelism",
+    )
+
     return parser
