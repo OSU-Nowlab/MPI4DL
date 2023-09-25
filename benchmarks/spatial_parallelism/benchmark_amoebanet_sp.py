@@ -86,6 +86,7 @@ split_size = args.split_size
 spatial_size = args.spatial_size
 times = args.times
 datapath = args.datapath
+num_workers = args.num_workers
 LOCAL_DP_LP = args.local_DP
 # APP
 # 1: Medical
@@ -111,11 +112,11 @@ def isPowerTwo(num):
 
 
 """
-For Amoebanet model, image size and image size after partitioning should be power of two. 
-As, Amoebanet performs summation of results of two convolution layers during training, 
-odd input size(i.e. image size which is not power of 2) will give different output sizes 
-for convolution operations present at same layer, thus it will throw error as addition 
-operation can not be performed with diffent size outputs. 
+For Amoebanet model, image size and image size after partitioning should be power of two.
+As, Amoebanet performs summation of results of two convolution layers during training,
+odd input size(i.e. image size which is not power of 2) will give different output sizes
+for convolution operations present at same layer, thus it will throw error as addition
+operation can not be performed with diffent size outputs.
 """
 
 
@@ -152,7 +153,7 @@ verify_config()
 ##################### AmoebaNet model specific parameters #####################
 
 """
-"image_size_seq" is required to determine the output shape after spatial partitioning of images. 
+"image_size_seq" is required to determine the output shape after spatial partitioning of images.
 The shape of the output will be determined for each model partition based on the values in "image_size_seq."
 These values will then be used to calculate the output shape for a given input size and spatial partition.
 """
@@ -470,7 +471,7 @@ if APP == 1:
         trainset,
         batch_size=times * batch_size,
         shuffle=True,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -482,7 +483,7 @@ elif APP == 2:
         trainset,
         batch_size=times * batch_size,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 50000
@@ -499,7 +500,7 @@ else:
         my_dataset,
         batch_size=batch_size * times,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 10 * batch_size
