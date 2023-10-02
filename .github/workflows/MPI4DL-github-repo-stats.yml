@@ -1,4 +1,4 @@
-name: github-repo-stats
+name: MPI4DL-github-repo-stats.yml
 
 on:
   schedule:
@@ -9,7 +9,7 @@ on:
 
 jobs:
   j1:
-    name: github-repo-stats
+    name: MPI4DL-github-repo-stats.yml
     runs-on: ubuntu-latest
     steps:
       - name: run-ghrs
