@@ -1,0 +1,11 @@
+url_path,views_total,views_unique
+/OSU-Nowlab/MPI4DL,29,7
+/OSU-Nowlab/MPI4DL/pulse,8,2
+/OSU-Nowlab/MPI4DL/pulls,8,1
+/OSU-Nowlab/MPI4DL/graphs/traffic,7,3
+/OSU-Nowlab/MPI4DL/actions,5,2
+/OSU-Nowlab/MPI4DL/actions/workflows/pre-commit.yml,4,2
+/OSU-Nowlab/MPI4DL/pull/11,4,1
+/OSU-Nowlab/MPI4DL/community,3,2
+/OSU-Nowlab/MPI4DL/graphs/code-frequency,3,2
+/OSU-Nowlab/MPI4DL/graphs/commit-activity,3,2
