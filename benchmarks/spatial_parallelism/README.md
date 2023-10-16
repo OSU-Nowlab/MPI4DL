@@ -14,13 +14,13 @@ $MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile  {$HOSTFILE} MV2_USE_CU
 
 - With 5 GPUs [split size: 2, num_spatial_parts: 4, spatial_size: 1]
 
-Example to run AmoebaNet model with 2 model split size(i.e. # of partitions for MP), spatial partition (# of image partitions) as 4 and 1 as spatial size (i.e. number of model partition which will use spatial partition). In this configuration, we split model into two parts where first part will use spatial parallelism. 
+Example to run AmoebaNet model with 2 model split size(i.e. # of partitions for MP), spatial partition (# of image partitions) as 4 and 1 as spatial size (i.e. number of model partition which will use spatial partition). In this configuration, we split model into two parts where first part will use spatial parallelism.
 
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 2 --spatial-size 1
 ```
 - With 9 GPUs [split size: 3, num_spatial_parts: 4, spatial_size: 2]
-In this configuration, we split model int three parts where first two part will use spatial parallelism. 
+In this configuration, we split model int three parts where first two part will use spatial parallelism.
 
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 9 --hostfile {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --image-size 512 --num-spatial-parts 4 --slice-method "vertical" --split-size 3 --spatial-size 2
@@ -30,7 +30,19 @@ $MV2_HOME/bin/mpirun_rsh --export-all -np 9 --hostfile {$HOSTFILE} MV2_USE_CUDA=
 Find the example to run ResNet with halo-D2 enabled to reduce communication opertaions. To learn more about halo-D2, refer [Hy-Fi: Hybrid Five-Dimensional Parallel DNN Training on High-Performance GPU Clusters](https://dl.acm.org/doi/abs/10.1007/978-3-031-07312-0_6)
 ```bash
 $MV2_HOME/bin/mpirun_rsh --export-all -np 5 --hostfile {$HOSTFILE} MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so benchmarks/spatial_parallelism/benchmark_resnet_sp.py --halo-D2 --num-spatial-parts 4 --image-size 1024 --batch-size 2 --slice-method "square"
-``` 
+```
+
+## Run spatial + data parallelism:
+Currently SP + DP has been supported for AmoebaNet.
+
+- Enable Data Parallelism using <i>"local-DP"</i> argument.
+- Example to run AmoebaNet model with 2 data partition, 2 model split size(i.e. # of partitions for MP), spatial partition (# of image partitions) as 4 and 1 as spatial size (i.e. number of model partition which will use spatial partition). In this configuration, we have 2 data partition and for each part, model will split into two parts where first part will use spatial parallelism.
+
+
+```bash
+$MV2_HOME/bin/mpirun_rsh --export-all -np $np --hostfile ${hostfile}  MV2_USE_CUDA=1 MV2_HYBRID_BINDING_POLICY=spread MV2_CPU_BINDING_POLICY=hybrid MV2_USE_GDRCOPY=0 PYTHONNOUSERSITE=true LD_PRELOAD=$MV2_HOME/lib/libmpi.so python benchmarks/spatial_parallelism/benchmark_amoebanet_sp.py --local-DP 2 --image-size ${image_size} --batch-size ${batch_size} --slice-method ${partition}
+```
+
 
 Below are the available configuration options :
 
