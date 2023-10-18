@@ -645,10 +645,16 @@ class train_model_spatial(train_model):
         ranks = [
             self.local_rank - 1 - i for i in range(self.num_spatial_parts - 1, -1, -1)
         ]
-
+        print("receive_input_async_joint", " rank : ", self.local_rank, ranks)
         if self.GEMS_INVERSE:
             for i in range(len(ranks)):
                 ranks[i] = self.mp_size - 1 - ranks[i]
+            print(
+                "receive_input_async_joint if self.GEMS_INVERSE",
+                " rank : ",
+                self.local_rank,
+                ranks,
+            )
 
         reqs = []
 
@@ -1216,27 +1222,49 @@ class train_model_spatial(train_model):
             data_x.size(),
             data_y.size(),
             self.local_rank,
+            self.GEMS_INVERSE,
+            "self.ENABLE_ASYNC",
+            self.ENABLE_ASYNC,
+            "self.split_rank",
+            self.split_rank,
+            "self.spatial_size",
+            self.spatial_size,
+            " self.total_spatial_processes",
+            self.total_spatial_processes,
         )
         # Receive inputs if local is not 0
         if self.split_rank == 0:
             input_x = data_x
         else:
             if self.ENABLE_ASYNC == True:
+                print("self.ENABLE_ASYNC  == True")
                 if self.split_rank == self.spatial_size:
                     if self.ENABLE_LOCAL_DP_LP:
+                        print(
+                            "Calling recv_input_MP_joint_LP_DP",
+                            " rank : ",
+                            self.local_rank,
+                        )
                         self.recv_input_MP_joint_LP_DP(part_number)
                     else:
+                        print("Calling recv_inputs_joint", " rank : ", self.local_rank)
                         self.recv_inputs_joint(part_number)
                 elif self.SKEWED_RECV_SPATIAL:
+                    print("Calling recv_input_spatial", " rank : ", self.local_rank)
                     self.recv_input_spatial(part_number)
                 else:
+                    print("Calling receive_input_async", " rank : ", self.local_rank)
                     self.receive_input_async(part_number)
             else:
+                print("self.ENABLE_ASYNC  == False")
                 if self.local_rank == self.total_spatial_processes:
+                    print("Calling recv_inputs_joint", " rank : ", self.local_rank)
                     self.recv_inputs_joint(part_number)
                 elif self.SKEWED_RECV_SPATIAL:
+                    print("Calling recv_input_spatial", " rank : ", self.local_rank)
                     self.recv_input_spatial(part_number)
                 else:
+                    print("Calling receive_input_sync", " rank : ", self.local_rank)
                     self.receive_input_sync(part_number)
 
             # join spatial inputs
@@ -1250,7 +1278,13 @@ class train_model_spatial(train_model):
                 else:
                     input_x = self.input_x_list[part_number]
 
-        print("train_spatial:forward_pass: RECEIVED INPUTS", self.local_rank)
+        print(
+            "train_spatial:forward_pass: RECEIVED INPUTS",
+            " rank :",
+            self.local_rank,
+            self.GEMS_INVERSE,
+        )
+
         # Apply forward pass
 
         torch.cuda.synchronize()
@@ -1262,25 +1296,83 @@ class train_model_spatial(train_model):
             )
             and part_number != self.parts - 1
         ):
+            print(
+                "train_spatial:forward_pass: DP",
+                " rank :",
+                self.local_rank,
+                self.GEMS_INVERSE,
+                part_number,
+                self.parts,
+            )
             with self.models.no_sync():
+                # print("MODEL :", " rank ", self.local_rank, self.models)
                 y = self.models(input_x)
         else:
+            print(
+                "train_spatial:forward_pass: no_DP",
+                " rank :",
+                self.local_rank,
+                self.GEMS_INVERSE,
+                part_number,
+                self.parts,
+            )
+            # print("MODEL :", " rank ", self.local_rank, self.models)
             y = self.models(input_x)
 
+        print(
+            "train_spatial:forward_pass: DONE_MODEL_TRAIN",
+            " rank :",
+            self.local_rank,
+            self.GEMS_INVERSE,
+        )
         torch.cuda.synchronize()
-        print("train_spatial:forward_pass: CALCULATED_Y", self.local_rank)
+        print(
+            "train_spatial:forward_pass: CALCULATED_Y",
+            " rank :",
+            self.local_rank,
+            self.GEMS_INVERSE,
+        )
         if self.split_rank != self.split_size - 1:
             if self.ENABLE_ASYNC == True:
                 if self.split_rank == self.spatial_size - 1 and self.ENABLE_LOCAL_DP_LP:
+                    print(
+                        "train_spatial:forward_pass: calling self.ENABLE_ASYNC send_input_spatial_MP_joint_LP_DP",
+                        " rank :",
+                        self.local_rank,
+                        self.GEMS_INVERSE,
+                    )
                     self.send_input_spatial_MP_joint_LP_DP(y)
                 else:
+                    print(
+                        "train_spatial:forward_pass: calling self.ENABLE_ASYNC send_input_async",
+                        " rank :",
+                        self.local_rank,
+                        self.GEMS_INVERSE,
+                    )
                     self.send_input_async(y)
             else:
                 if self.split_rank == self.spatial_size - 1 and self.ENABLE_LOCAL_DP_LP:
+                    print(
+                        "train_spatial:forward_pass: calling send_input_spatial_MP_joint_LP_DP",
+                        " rank :",
+                        self.local_rank,
+                        self.GEMS_INVERSE,
+                    )
                     self.send_input_spatial_MP_joint_LP_DP(y)
                 else:
+                    print(
+                        "train_spatial:forward_pass: calling send_input_sync",
+                        " rank :",
+                        self.local_rank,
+                        self.GEMS_INVERSE,
+                    )
                     self.send_input_sync(y)
-            print("train_spatial:forward_pass: SENT_Y", self.local_rank)
+            print(
+                "train_spatial:forward_pass: SENT_Y",
+                " rank :",
+                self.local_rank,
+                self.GEMS_INVERSE,
+            )
 
         else:
             pos = self.local_rank - (self.mp_size - self.LOCAL_DP_LP)
@@ -1300,9 +1392,19 @@ class train_model_spatial(train_model):
             else:
                 loss = self.criterion(y, data_y)
 
-            print("train_spatial:forward_pass: CALCULATED_LOSS", self.local_rank)
+            print(
+                "train_spatial:forward_pass: CALCULATED_LOSS",
+                " rank :",
+                self.local_rank,
+                self.GEMS_INVERSE,
+            )
 
-        print("train_spatial:forward_pass: END", self.local_rank)
+        print(
+            "train_spatial:forward_pass: END",
+            " rank :",
+            self.local_rank,
+            self.GEMS_INVERSE,
+        )
 
         if self.split_rank == self.split_size - 1:
             corrects = (data_y.eq(torch.argmax(y, dim=-1).long())).sum().float()

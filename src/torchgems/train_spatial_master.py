@@ -395,31 +395,33 @@ class train_spatial_model_master:
     def run_step(self, inputs, labels):
         loss, correct = 0, 0
         # torch.cuda.empty_cache()
-        print("START RUN_STEP MODEL1")
+        print("START RUN_STEP MODEL1", "rank ", self.local_rank)
 
         # self.train_model1.models = self.train_model1.models.to('cuda')
         temp_loss, temp_correct = self.train_model1.run_step(
             inputs[: self.batch_size], labels[: self.batch_size]
         )
-        print("END RUN_STEP MODEL1")
+        print("END RUN_STEP MODEL1", "rank ", self.local_rank)
         loss += temp_loss
         correct += temp_correct
 
         # torch.cuda.empty_cache()
-        print("START RUN_STEP MODEL2")
+        print("START RUN_STEP MODEL2", "rank ", self.local_rank)
         # self.train_model1.models = self.train_model1.models.to('cpu')
         # self.train_model2.models = self.train_model2.models.to('cuda')
         temp_loss, temp_correct = self.train_model2.run_step(
             inputs[self.batch_size : 2 * self.batch_size],
             labels[self.batch_size : 2 * self.batch_size],
         )
-        print("END RUN_STEP MODEL2")
+        print("END RUN_STEP MODEL2", "rank ", self.local_rank)
         # self.train_model2.models = self.train_model2.models.to('cpu')
 
         # torch.cuda.empty_cache()
 
         loss += temp_loss
         correct += temp_correct
+
+        print("Calculated loss and accuracy for MODEL1 AND MODEL2")
 
         torch.cuda.synchronize()
         for times in range(self.replications - 1):

@@ -58,6 +58,25 @@ def get_depth(version, n):
 
 sys.stdout = Unbuffered(sys.stdout)
 
+# Example of GEMS + SPATIAL split_size = 2, spatial_size = 1, num_spatial_parts = 4
+#
+#  Model 1:
+# _______________             ____
+# |   0(0)|  1(1) |           |    |
+# |-------|-------| --------->|4(4)|
+# |  2(2) |  3(3) |           |    |
+# |_______|_______|           |____|
+#
+# Model 2 (INVERSE GEMS):
+# _______________             ____
+# |  0(4) |  1(3) |           |    |
+# |-------|-------| --------->|4(0)|
+# |  2(2) |  3(1) |           |    |
+# |_______|_______|           |____|
+#
+# Numbers inside the brackets () refer to World Rank
+# whereas outside numbers refer to local rank for each model
+
 # torch.set_num_threads(1)
 np.random.seed(seed=1405)
 parts = args.parts

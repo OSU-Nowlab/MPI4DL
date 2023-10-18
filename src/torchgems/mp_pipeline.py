@@ -526,7 +526,10 @@ class train_model:
             end = (i + 1) * parts_size
             print(
                 "mp_pipeline:train_model:run_step : START FORWARD PASS",
+                " rank :",
                 self.local_rank,
+                " inverse : ",
+                self.GEMS_INVERSE,
                 self.parts,
                 start,
                 end,
@@ -537,7 +540,10 @@ class train_model:
 
             print(
                 "mp_pipeline:train_model:run_step : END FORWARD PASS",
+                " rank :",
                 self.local_rank,
+                " inverse : ",
+                self.GEMS_INVERSE,
                 self.parts,
                 start,
                 end,
@@ -551,7 +557,10 @@ class train_model:
 
         print(
             "mp_pipeline:train_model:run_step : START BACKWARD PASS",
+            " rank :",
             self.local_rank,
+            " inverse : ",
+            self.GEMS_INVERSE,
             self.parts,
             start,
             end,
@@ -562,7 +571,10 @@ class train_model:
 
         print(
             "mp_pipeline:train_model:run_step : END BACKWARD PASS",
+            " rank :",
             self.local_rank,
+            " inverse : ",
+            self.GEMS_INVERSE,
             self.parts,
             start,
             end,
