@@ -6,21 +6,22 @@ import numpy as np
 import time
 import sys
 import math
+import logging
+from models import resnet
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
-from torchgems.train_spatial import get_shapes_spatial, split_input
+
+# from torchgems.gems_master import train_model_master
+# from torchgems.train_spatial import get_shapes_spatial
+from torchgems.train_spatial import split_input
 from torchgems.train_spatial_master import train_spatial_model_master
 import torchgems.comm as gems_comm
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
 
-if args.halo_d2:
-    from models import amoebanet
-    from models import amoebanet_d2
-
-else:
-    from models import amoebanet
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
 
 gems_comm.initialize_cuda()
 
@@ -49,54 +50,25 @@ def init_processes(backend="tcp"):
     return size, rank
 
 
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
-
 sys.stdout = Unbuffered(sys.stdout)
 
-# Example of GEMS + SPATIAL split_size = 2, spatial_size = 1, num_spatial_parts = 4
-#
-#  Model 1:
-#  _______________             ____
-# |   0(0)|  1(1) |           |    |
-# |-------|-------| --------->|4(4)|
-# |  2(2) |  3(3) |           |    |
-# |_______|_______|           |____|
-#
-# Model 2 (INVERSE GEMS):
-#  _______________             ____
-# |  0(4) |  1(3) |           |    |
-# |-------|-------| --------->|4(0)|
-# |  2(2) |  3(1) |           |    |
-# |_______|_______|           |____|
-#
-# Numbers inside the brackets () refer to World Rank
-# whereas outside numbers refer to local rank for each model
-
-# torch.set_num_threads(1)
 np.random.seed(seed=1405)
 parts = args.parts
 batch_size = args.batch_size
-resnet_n = 12
 epoch = args.num_epochs
-ENABLE_ASYNC = True
 
 # APP
 # 1: Medical
 # 2: Cifar
 # 3: synthetic
-APP = 3
-amoebanet_test = False
+APP = args.app
 image_size = int(args.image_size)
-print("image size", image_size)
-steps = 100
 num_layers = args.num_layers
 num_filters = args.num_filters
 balance = args.balance
+mp_size = args.split_size
+datapath = args.datapath
+num_classes = args.num_classes
 split_size = args.split_size
 spatial_size = args.spatial_size
 ENABLE_MASTER_OPT = args.enable_master_comm_opt
@@ -110,10 +82,26 @@ else:
     num_spatial_parts = [int(i) for i in temp_num_spatial_parts]
     num_spatial_parts_list = num_spatial_parts
 
+
 times = args.times
 num_classes = 1000
 LOCAL_DP_LP = args.local_DP
 
+################## ResNet model specific parameters/functions ##################
+
+image_size_seq = 32
+ENABLE_ASYNC = True
+resnet_n = 12
+
+
+def get_depth(version, n):
+    if version == 1:
+        return n * 6 + 2
+    elif version == 2:
+        return n * 9 + 2
+
+
+###############################################################################
 
 mpi_comm_first = gems_comm.MPIComm(
     split_size=split_size,
@@ -135,138 +123,112 @@ mpi_comm_second = gems_comm.MPIComm(
 
 gems_comm.sync_comms_for_master(mpi_comm_first, mpi_comm_second)
 comm_size = mpi_comm_first.size
-# rank = mpi_comm.local_rank
-# comm_size = mpi_comm.size
-# local_rank = rank
-
-# split_rank = mpi_comm.split_rank
-
 
 if args.balance != None:
     balance = args.balance.split(",")
     balance = [int(j) for j in balance]
 else:
     balance = None
+# local_rank = rank % mp_size
 
-
-image_size_seq = 512
-
-model_seq = amoebanet.amoebanetd(
-    num_layers=num_layers, num_filters=num_filters, num_classes=num_classes
+# Initialize ResNet model
+model = resnet.get_resnet_v2(
+    (int(batch_size / parts), 3, image_size_seq, image_size_seq),
+    depth=get_depth(2, resnet_n),
+    num_classes=num_classes,
 )
-print("length", len(model_seq), balance)
-model_gen_seq = model_generator(
-    model=model_seq,
-    split_size=split_size,
+
+mul_shape = int(args.image_size / image_size_seq)
+
+# Initialize parameters for Model Parallelism
+model_gen = model_generator(
+    model=model,
+    split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size_seq, image_size_seq),
     balance=balance,
 )
-model_gen_seq.ready_model(
-    split_rank=mpi_comm_second.split_rank, GET_SHAPES_ON_CUDA=True
-)
 
+# Get the shape of model on each split rank for image_size_seq and move it to device
+# Note : we take shape w.r.t image_size_seq as model w.r.t image_size may not be
+# able to fit in memory
+model_gen.ready_model(split_rank=mpi_comm_second.split_rank, GET_SHAPES_ON_CUDA=True)
+
+# Get the shape of model on each split rank for image_size
 image_size_times = int(image_size / image_size_seq)
+resnet_shapes_list = []
+for output_shape in model_gen.shape_list:
+    if isinstance(output_shape, list):
+        temp_shape = []
+        for shape_tuple in output_shape:
+            x = (
+                shape_tuple[0],
+                shape_tuple[1],
+                int(shape_tuple[2] * image_size_times),
+                int(shape_tuple[3] * image_size_times),
+            )
+            temp_shape.append(x)
+        resnet_shapes_list.append(temp_shape)
+    else:
+        if len(output_shape) == 2:
+            resnet_shapes_list.append(output_shape)
+        else:
+            x = (
+                output_shape[0],
+                output_shape[1],
+                int(output_shape[2] * image_size_times),
+                int(output_shape[3] * image_size_times),
+            )
+            resnet_shapes_list.append(x)
 
-resnet_shapes_list = get_shapes_spatial(
-    shape_list=model_gen_seq.shape_list,
-    slice_method=args.slice_method,
-    spatial_size=spatial_size,
-    num_spatial_parts_list=num_spatial_parts_list,
-    image_size_times=image_size_times,
-)
+model_gen.shape_list = resnet_shapes_list
+# logging.info(f"Shape of model on local_rank {local_rank} : {model_gen.shape_list}")
 
-print(model_gen_seq.shape_list, resnet_shapes_list)
 
-del model_seq
-del model_gen_seq
+del model_gen
+del model
 torch.cuda.ipc_collect()
 
+model = resnet.get_resnet_v2(
+    (int(batch_size / parts), 3, image_size, image_size), get_depth(2, resnet_n)
+)
 
-if args.halo_d2:
-    model1 = amoebanet_d2.amoebanetd_spatial(
-        local_rank=mpi_comm_first.local_rank % mpi_comm_first.total_spatial_processes,
-        spatial_size=spatial_size,
-        num_spatial_parts=num_spatial_parts,
-        mp_size=split_size,
-        balance=balance,
-        slice_method="square",
-        num_classes=num_classes,
-        num_layers=num_layers,
-        num_filters=num_filters,
-    )
-
-    model2 = amoebanet_d2.amoebanetd_spatial(
-        local_rank=mpi_comm_second.local_rank % mpi_comm_second.total_spatial_processes,
-        spatial_size=spatial_size,
-        num_spatial_parts=num_spatial_parts,
-        mp_size=split_size,
-        balance=balance,
-        slice_method="square",
-        num_classes=num_classes,
-        num_layers=num_layers,
-        num_filters=num_filters,
-    )
-else:
-    model1 = amoebanet.amoebanetd_spatial(
-        local_rank=mpi_comm_first.local_rank % mpi_comm_first.total_spatial_processes,
-        spatial_size=spatial_size,
-        num_spatial_parts=num_spatial_parts,
-        mp_size=split_size,
-        balance=balance,
-        slice_method="square",
-        num_classes=num_classes,
-        num_layers=num_layers,
-        num_filters=num_filters,
-    )
-
-    model2 = amoebanet.amoebanetd_spatial(
-        local_rank=mpi_comm_second.local_rank % mpi_comm_second.total_spatial_processes,
-        spatial_size=spatial_size,
-        num_spatial_parts=num_spatial_parts,
-        mp_size=split_size,
-        balance=balance,
-        slice_method="square",
-        num_classes=num_classes,
-        num_layers=num_layers,
-        num_filters=num_filters,
-    )
-
-
+# GEMS Model 1
 model_gen1 = model_generator(
-    model=model1,
-    split_size=split_size,
+    model=model,
+    split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size, image_size),
-    balance=balance,
+    balance=None,
     shape_list=resnet_shapes_list,
 )
 model_gen1.ready_model(split_rank=mpi_comm_first.split_rank)
-# model_gen1.DDP_model(mpi_comm_first, num_spatial_parts, spatial_size, bucket_size=25, local_rank = mpi_comm_first.local_rank)
 
 
+model = resnet.get_resnet_v2(
+    (int(batch_size / parts), 3, image_size, image_size), get_depth(2, resnet_n)
+)
+
+# GEMS Model 2
 model_gen2 = model_generator(
-    model=model2,
-    split_size=split_size,
+    model=model,
+    split_size=mp_size,
     input_size=(int(batch_size / parts), 3, image_size, image_size),
-    balance=balance,
-    shape_list=resnet_shapes_list,
+    balance=None,
+    shape_list=model_gen1.shape_list,
 )
 model_gen2.ready_model(split_rank=mpi_comm_second.split_rank)
-# model_gen2.DDP_model(mpi_comm_second, num_spatial_parts, spatial_size, bucket_size=25, local_rank = mpi_comm_second.local_rank)
-
-
-# model_gen.mp_size = 5
 print("Shape list", resnet_shapes_list)
 
-
-# t_s1 = train_model_spatial(model_gen1, mpi_comm_first.local_rank,batch_size,epochs=1, spatial_size=spatial_size, num_spatial_parts=num_spatial_parts ,criterion=None,optimizer=None,parts=parts,ASYNC=True,GEMS_INVERSE=False, slice_method = args.slice_method,
-# 							LOCAL_DP_LP=LOCAL_DP_LP,
-# 							mpi_comm = mpi_comm_first)
-
-
-# t_s2 = train_model_spatial(model_gen2, mpi_comm_second.local_rank,batch_size,epochs=1, spatial_size=spatial_size, num_spatial_parts=num_spatial_parts ,criterion=None,optimizer=None,parts=parts,ASYNC=True,GEMS_INVERSE=True, slice_method = args.slice_method,
-# 							LOCAL_DP_LP=LOCAL_DP_LP,
-# 							mpi_comm = mpi_comm_second)
-
+# tm_master = train_model_master(
+#     model_gen1,
+#     model_gen2,
+#     local_rank,
+#     batch_size,
+#     epoch,
+#     criterion=None,
+#     optimizer=None,
+#     parts=parts,
+#     ASYNC=ENABLE_ASYNC,
+# )
 t_s_master = train_spatial_model_master(
     model_gen1,
     model_gen2,
@@ -284,11 +246,10 @@ t_s_master = train_spatial_model_master(
     replications=int(args.times / 2),
 )
 
-x = torch.zeros(
-    (batch_size, 3, int(image_size / 2), int(image_size / 2)), device="cuda"
-)
-y = torch.zeros((batch_size,), dtype=torch.long, device="cuda")
+# sync_allreduce = gems_comm.SyncAllreduce(mpi_comm)
 
+
+############################## Dataset Definition ##############################
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -297,7 +258,7 @@ torch.manual_seed(0)
 
 if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        "/usr/workspace/jain8/project/cancer/1024_1024_5/train",
+        datapath,
         transform=transform,
         target_transform=None,
     )
@@ -308,10 +269,10 @@ if APP == 1:
         num_workers=0,
         pin_memory=True,
     )
-    size_dataset = 1030
+    size_dataset = len(my_dataloader.dataset)
 elif APP == 2:
     trainset = torchvision.datasets.CIFAR10(
-        root="./data", train=True, download=True, transform=transform
+        root=datapath, train=True, download=True, transform=transform
     )
     my_dataloader = torch.utils.data.DataLoader(
         trainset,
@@ -320,10 +281,10 @@ elif APP == 2:
         num_workers=0,
         pin_memory=True,
     )
-    size_dataset = 50000
+    size_dataset = len(my_dataloader.dataset)
 else:
     my_dataset = torchvision.datasets.FakeData(
-        size=10 * batch_size * args.times,
+        size=10 * batch_size,
         image_size=(3, image_size, image_size),
         num_classes=num_classes,
         transform=transform,
@@ -332,7 +293,7 @@ else:
     )
     my_dataloader = torch.utils.data.DataLoader(
         my_dataset,
-        batch_size=batch_size * args.times,
+        batch_size=batch_size * times,
         shuffle=False,
         num_workers=0,
         pin_memory=True,
@@ -340,7 +301,10 @@ else:
     size_dataset = 10 * batch_size
 
 
-# sync_allreduce.sync_model_spatial(model_gen)
+################################################################################
+
+# sync_allreduce.sync_model(model_gen1, model_gen2)
+
 perf = []
 
 sync_comm = gems_comm.SyncAllreduce(mpi_comm_first)
@@ -350,26 +314,25 @@ MASTER = args.times
 
 print("ENABLE_MASTER_OPT", ENABLE_MASTER_OPT)
 
+perf = []
+
 
 def run_epoch():
     for i_e in range(epoch):
         loss = 0
         correct = 0
+        size = len(my_dataloader.dataset)
         t = time.time()
         for i, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
+
             if i > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
-            # inputs=data_x
-            # labels = data_y
+
             inputs, labels = data
 
-            # inputs = inputs.to(device)
-            # labels = labels.to(device)
-
-            # t= time.time()
             if mpi_comm_first.local_rank < num_spatial_parts_list[0]:
                 x = split_input(
                     inputs=inputs,
@@ -467,6 +430,7 @@ def run_epoch():
 run_epoch()
 
 if mpi_comm_second.local_rank == 0:
-    print("Mean {} Median {}".format(sum(perf) / len(perf), np.median(perf)))
+    print(f"Mean {sum(perf) / len(perf)} Median {np.median(perf)}")
 
 exit()
+################################################################################
