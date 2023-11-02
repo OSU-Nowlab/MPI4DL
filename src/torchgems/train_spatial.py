@@ -22,6 +22,46 @@ import math
 import torch.distributed as dist
 
 
+def isPowerTwo(num):
+    return not (num & (num - 1))
+
+
+"""
+For SP, image size and image size after partitioning should be power of two.
+As, while performing convolution operations at different layers, odd input size
+(i.e. image size which is not power of 2) will lead to truncation of input. Thus,
+other GPU devices will receive truncated input with unexpected input size.
+"""
+
+
+def verify_spatial_config(slice_method, image_size, num_spatial_parts_list):
+    spatial_part_size = num_spatial_parts_list[
+        0
+    ]  # Partition size for spatial parallelism
+
+    assert slice_method in [
+        "square",
+        "vertical",
+        "horizontal",
+    ], "Possible slice methods are ['square', 'vertical', 'horizontal']"
+
+    assert isPowerTwo(int(image_size)), "Image size should be power of Two"
+
+    if slice_method == "square":
+        assert isPowerTwo(
+            int(image_size / math.sqrt(spatial_part_size))
+        ), "Image size of each partition should be power of Two"
+    else:
+        assert isPowerTwo(
+            int(image_size / spatial_part_size)
+        ), "Image size of each partition should be power of Two"
+
+    for each_part_size in num_spatial_parts_list:
+        assert (
+            each_part_size == spatial_part_size
+        ), "Size of each SP partition should be same"
+
+
 def get_shapes_spatial(
     shape_list, slice_method, spatial_size, num_spatial_parts_list, image_size_times
 ):
@@ -1317,7 +1357,16 @@ class train_model_spatial(train_model):
                 self.parts,
             )
             # print("MODEL :", " rank ", self.local_rank, self.models)
+            num_gpus = torch.cuda.device_count()
+
+            # Print information about each GPU device
+            for i in range(num_gpus):
+                gpu_properties = torch.cuda.get_device_properties(i)
+                print(f"GPU {i}: {gpu_properties.name}")
+                print(f"  Total Memory: {gpu_properties.total_memory / (1024 ** 2)} MB")
+
             y = self.models(input_x)
+            # NVMN -?GPU MEMORY  UTILIZATIOON
 
         print(
             "train_spatial:forward_pass: DONE_MODEL_TRAIN",

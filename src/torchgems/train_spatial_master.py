@@ -17,9 +17,36 @@
 # limitations under the License.
 
 
-from torchgems.train_spatial import train_model_spatial
+from torchgems.train_spatial import train_model_spatial, verify_spatial_config
 import torch
 import torch.distributed as dist
+
+
+def isPowerTwo(num):
+    return not (num & (num - 1))
+
+
+"""
+TBD : Update comments
+For SP+MASTER, image size and image size after partitioning should be power of two.
+As, while performing convolution operations at different layers, odd input size
+(i.e. image size which is not power of 2) will lead to truncation of input. Thus,
+other GPU devices will receive truncated input with unexpected input size.
+"""
+
+
+def verify_spatial_master_config(
+    slice_method, image_size, num_spatial_parts_list, spatial_size, mp_size
+):
+    spatial_part_size = num_spatial_parts_list[
+        0
+    ]  # Partition size for spatial parallelism
+
+    verify_spatial_config(slice_method, image_size, num_spatial_parts_list)
+
+    assert mp_size >= 2 * (
+        spatial_part_size
+    ), "Spatial parts from each models i.e. model1 and model2 should use different ranks (cuda devices); To avoid this, increase the split size by keeping other configuration same."
 
 
 class train_spatial_model_master:
@@ -397,7 +424,7 @@ class train_spatial_model_master:
         # torch.cuda.empty_cache()
         print("START RUN_STEP MODEL1", "rank ", self.local_rank)
 
-        # self.train_model1.models = self.train_model1.models.to('cuda')
+        self.train_model1.models = self.train_model1.models.to("cuda")
         temp_loss, temp_correct = self.train_model1.run_step(
             inputs[: self.batch_size], labels[: self.batch_size]
         )
@@ -405,18 +432,18 @@ class train_spatial_model_master:
         loss += temp_loss
         correct += temp_correct
 
-        # torch.cuda.empty_cache()
+        torch.cuda.empty_cache()
         print("START RUN_STEP MODEL2", "rank ", self.local_rank)
-        # self.train_model1.models = self.train_model1.models.to('cpu')
-        # self.train_model2.models = self.train_model2.models.to('cuda')
+        self.train_model1.models = self.train_model1.models.to("cpu")
+        self.train_model2.models = self.train_model2.models.to("cuda")
         temp_loss, temp_correct = self.train_model2.run_step(
             inputs[self.batch_size : 2 * self.batch_size],
             labels[self.batch_size : 2 * self.batch_size],
         )
         print("END RUN_STEP MODEL2", "rank ", self.local_rank)
-        # self.train_model2.models = self.train_model2.models.to('cpu')
+        self.train_model2.models = self.train_model2.models.to("cpu")
 
-        # torch.cuda.empty_cache()
+        torch.cuda.empty_cache()
 
         loss += temp_loss
         correct += temp_correct

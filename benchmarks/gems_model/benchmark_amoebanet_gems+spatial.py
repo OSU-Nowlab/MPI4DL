@@ -9,7 +9,10 @@ import math
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
 from torchgems.train_spatial import get_shapes_spatial, split_input
-from torchgems.train_spatial_master import train_spatial_model_master
+from torchgems.train_spatial_master import (
+    train_spatial_model_master,
+    verify_spatial_master_config,
+)
 import torchgems.comm as gems_comm
 
 parser_obj = parser.get_parser()
@@ -99,6 +102,7 @@ num_filters = args.num_filters
 balance = args.balance
 split_size = args.split_size
 spatial_size = args.spatial_size
+slice_method = args.slice_method
 ENABLE_MASTER_OPT = args.enable_master_comm_opt
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
@@ -110,8 +114,10 @@ else:
     num_spatial_parts = [int(i) for i in temp_num_spatial_parts]
     num_spatial_parts_list = num_spatial_parts
 
+spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
+
 times = args.times
-num_classes = 1000
+num_classes = args.num_classes
 LOCAL_DP_LP = args.local_DP
 
 
@@ -123,6 +129,15 @@ mpi_comm_first = gems_comm.MPIComm(
     spatial_size=spatial_size,
     LOCAL_DP_LP=LOCAL_DP_LP,
 )
+
+verify_spatial_master_config(
+    slice_method,
+    image_size,
+    num_spatial_parts_list,
+    spatial_size,
+    mpi_comm_first.mp_size,
+)
+
 mpi_comm_second = gems_comm.MPIComm(
     split_size=split_size,
     ENABLE_MASTER=True,
@@ -169,7 +184,7 @@ image_size_times = int(image_size / image_size_seq)
 
 resnet_shapes_list = get_shapes_spatial(
     shape_list=model_gen_seq.shape_list,
-    slice_method=args.slice_method,
+    slice_method=slice_method,
     spatial_size=spatial_size,
     num_spatial_parts_list=num_spatial_parts_list,
     image_size_times=image_size_times,
@@ -273,7 +288,7 @@ t_s_master = train_spatial_model_master(
     batch_size,
     spatial_size,
     num_spatial_parts,
-    args.slice_method,
+    slice_method,
     mpi_comm_first,
     mpi_comm_second,
     LOCAL_DP_LP=LOCAL_DP_LP,
@@ -374,7 +389,7 @@ def run_epoch():
                 x = split_input(
                     inputs=inputs,
                     image_size=image_size,
-                    slice_method=args.slice_method,
+                    slice_method=slice_method,
                     local_rank=mpi_comm_first.local_rank,
                     num_spatial_parts_list=num_spatial_parts_list,
                 )
@@ -382,7 +397,7 @@ def run_epoch():
                 x = split_input(
                     inputs=inputs,
                     image_size=image_size,
-                    slice_method=args.slice_method,
+                    slice_method=slice_method,
                     local_rank=mpi_comm_second.local_rank,
                     num_spatial_parts_list=num_spatial_parts_list,
                 )
