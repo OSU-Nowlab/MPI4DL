@@ -44,6 +44,46 @@ def verify_spatial_master_config(
 
     verify_spatial_config(slice_method, image_size, num_spatial_parts_list)
 
+    # Spatial parts from each models i.e. model1 and model2 should use different ranks (cuda devices):
+    # Example =>
+    # Consider following configurations.
+    # split_size = 2, spatial_size = 1, num_spatial_parts = 4
+    # This configurations are not valid as ranks 1, 2, 3 are used by spatial parts from both the model.
+    #  Model 1:
+    #  _______________        ____
+    # |   0(0)|  1(1) |      |    |
+    # |-------|-------|----->|4(4)|
+    # |  2(2) |  3(3) |      |    |
+    # |_______|_______|      |____|
+    #
+    # Model 2 (INVERSE GEMS):
+    #  _______________        ____
+    # |  0(4) |  1(3) |      |    |
+    # |-------|-------|----->|4(0)|
+    # |  2(2) |  3(1) |      |    |
+    # |_______|_______|      |____|
+    #
+    # Numbers inside the brackets () refer to World Rank
+    # whereas outside numbers refer to local rank for each model
+    #
+    # Valid configurations :
+    # split_size = 5, spatial_size = 1, num_spatial_parts = 4 are not valid as ranks 1, 2, 3 are used by spatial parts from both the model.
+    #  Model 1:
+    #  _______________        ____        ____        ____        ____
+    # |  0(0) |  1(1) |      |    |      |    |      |    |      |    |
+    # |-------|-------|----->|4(4)|----->|5(5)|----->|6(6)|----->|7(7)|
+    # |  2(2) |  3(3) |      |    |      |    |      |    |      |    |
+    # |_______|_______|      |____|      |____|      |____|      |____|
+    #
+    # Model 2 (INVERSE GEMS):
+    #  _______________        ____        ____        ____        ____
+    # |  0(7) |  1(6) |      |    |      |    |      |    |      |    |
+    # |-------|-------|----->|4(3)|----->|5(2)|----->|6(1)|----->|7(0)|
+    # |  2(5) |  3(4) |      |    |      |    |      |    |      |    |
+    # |_______|_______|      |____|      |____|      |____|      |____|
+    #
+    # Numbers inside the brackets () refer to World Rank
+    # whereas outside numbers refer to local rank for each model
     assert mp_size >= 2 * (
         spatial_part_size
     ), "Spatial parts from each models i.e. model1 and model2 should use different ranks (cuda devices); To avoid this, increase the split size by keeping other configuration same."
