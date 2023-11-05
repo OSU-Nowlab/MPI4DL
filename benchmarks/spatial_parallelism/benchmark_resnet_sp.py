@@ -28,7 +28,7 @@ import math
 import logging
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
-from torchgems.train_spatial import train_model_spatial
+from torchgems.train_spatial import train_model_spatial, split_input, get_shapes_spatial
 import torchgems.comm as gems_comm
 
 parser_obj = parser.get_parser()
@@ -84,6 +84,7 @@ split_size = args.split_size
 spatial_size = args.spatial_size
 times = args.times
 datapath = args.datapath
+num_workers = args.num_workers
 
 # APP
 # 1: Medical
@@ -206,179 +207,13 @@ model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 
 # Get the shape of model on each split rank for image_size and number of spatial parts
 image_size_times = int(image_size / image_size_seq)
-temp_count = 0
-if args.slice_method == "square":
-    resnet_shapes_list = []
-    for output_shape in model_gen_seq.shape_list:
-        if isinstance(output_shape, list):
-            temp_shape = []
-            for shape_tuple in output_shape:
-                if temp_count < spatial_size:
-                    # reduce shape only when it is smaller than spatial size
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(
-                            shape_tuple[2]
-                            * image_size_times
-                            / math.sqrt(spatial_part_size)
-                        ),
-                        int(
-                            shape_tuple[3]
-                            * image_size_times
-                            / math.sqrt(spatial_part_size)
-                        ),
-                    )
-                    temp_shape.append(x)
-                else:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times),
-                        int(shape_tuple[3] * image_size_times),
-                    )
-                    temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
-        else:
-            if len(output_shape) == 2:
-                x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
-            else:
-                if temp_count < spatial_size:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(
-                            output_shape[2]
-                            * image_size_times
-                            / math.sqrt(spatial_part_size)
-                        ),
-                        int(
-                            output_shape[3]
-                            * image_size_times
-                            / math.sqrt(spatial_part_size)
-                        ),
-                    )
-                    resnet_shapes_list.append(x)
-                else:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times),
-                        int(output_shape[3] * image_size_times),
-                    )
-                    resnet_shapes_list.append(x)
-        temp_count += 1
-
-elif args.slice_method == "vertical":
-    resnet_shapes_list = []
-    for output_shape in model_gen_seq.shape_list:
-        if isinstance(output_shape, list):
-            temp_shape = []
-            for shape_tuple in output_shape:
-                if temp_count < spatial_size:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times / 1),
-                        int(
-                            shape_tuple[3]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                    )
-                    temp_shape.append(x)
-                else:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times),
-                        int(shape_tuple[3] * image_size_times),
-                    )
-                    temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
-        else:
-            if len(output_shape) == 2:
-                x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
-            else:
-                if temp_count < spatial_size:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times / 1),
-                        int(
-                            output_shape[3]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                    )
-                    resnet_shapes_list.append(x)
-                else:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times),
-                        int(output_shape[3] * image_size_times),
-                    )
-                    resnet_shapes_list.append(x)
-        temp_count += 1
-
-
-elif args.slice_method == "horizontal":
-    resnet_shapes_list = []
-    for output_shape in model_gen_seq.shape_list:
-        if isinstance(output_shape, list):
-            temp_shape = []
-            for shape_tuple in output_shape:
-                if temp_count < spatial_size:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(
-                            shape_tuple[2]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                        int(shape_tuple[3] * image_size_times / 1),
-                    )
-                    temp_shape.append(x)
-                else:
-                    x = (
-                        int(shape_tuple[0]),
-                        shape_tuple[1],
-                        int(shape_tuple[2] * image_size_times),
-                        int(shape_tuple[3] * image_size_times),
-                    )
-                    temp_shape.append(x)
-            resnet_shapes_list.append(temp_shape)
-        else:
-            if len(output_shape) == 2:
-                x = (int(output_shape[0]), output_shape[1])
-                resnet_shapes_list.append(x)
-            else:
-                if temp_count < spatial_size:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(
-                            output_shape[2]
-                            * image_size_times
-                            / num_spatial_parts_list[temp_count]
-                        ),
-                        int(output_shape[3] * image_size_times / 1),
-                    )
-                    resnet_shapes_list.append(x)
-                else:
-                    x = (
-                        int(output_shape[0]),
-                        output_shape[1],
-                        int(output_shape[2] * image_size_times),
-                        int(output_shape[3] * image_size_times),
-                    )
-                    resnet_shapes_list.append(x)
-        temp_count += 1
-
+resnet_shapes_list = get_shapes_spatial(
+    model_gen_seq.shape_list,
+    args.slice_method,
+    spatial_size,
+    num_spatial_parts_list,
+    image_size_times,
+)
 
 del model_seq
 del model_gen_seq
@@ -470,7 +305,7 @@ if APP == 1:
         trainset,
         batch_size=times * batch_size,
         shuffle=True,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
@@ -482,7 +317,7 @@ elif APP == 2:
         trainset,
         batch_size=times * batch_size,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 50000
@@ -499,7 +334,7 @@ else:
         my_dataset,
         batch_size=batch_size * times,
         shuffle=False,
-        num_workers=0,
+        num_workers=num_workers,
         pin_memory=True,
     )
     size_dataset = 10 * batch_size
@@ -507,56 +342,6 @@ else:
 ################################################################################
 
 sync_allreduce.sync_model_spatial(model_gen)
-
-
-def split_input(inputs):
-    if args.slice_method == "square":
-        image_height_local = int(image_size / math.sqrt(spatial_part_size))
-        image_width_local = int(image_size / math.sqrt(spatial_part_size))
-
-        total_rows = int(math.sqrt(spatial_part_size))
-        total_cols = int(math.sqrt(spatial_part_size))
-
-        # current position of rank in matrix of math.sqrt(spatial_part_size) * math.sqrt(spatial_part_size)
-        row = int(local_rank / total_cols)
-        col = int(local_rank % total_cols)
-
-        start_left = col * image_width_local
-        end_right = (col + 1) * image_width_local
-
-        start_top = row * image_height_local
-        end_bottom = (row + 1) * image_height_local
-
-        return inputs[:, :, start_top:end_bottom, start_left:end_right]
-
-    elif args.slice_method == "vertical":
-        image_height_local = int(image_size / spatial_part_size)
-        image_width_local = int(image_size / spatial_part_size)
-
-        start_left = local_rank * image_width_local
-        end_right = (local_rank + 1) * image_width_local
-
-        if local_rank == spatial_part_size - 1:
-            # In case of GPU count, partition size will be uneven and last
-            # rank will receive remaining image
-            return inputs[:, :, :, start_left:]
-        else:
-            return inputs[:, :, :, start_left:end_right]
-
-    elif args.slice_method == "horizontal":
-        image_height_local = int(image_size / spatial_part_size)
-        image_width_local = int(image_size / spatial_part_size)
-
-        start_top = local_rank * image_height_local
-        end_bottom = (local_rank + 1) * image_height_local
-
-        if local_rank == spatial_part_size - 1:
-            # In case of odd GPU count, partition size will be uneven and last
-            # rank will receive remaining image
-            return inputs[:, :, start_top:, :]
-        else:
-            return inputs[:, :, start_top:end_bottom, :]
-
 
 ################################# Train Model ##################################
 
@@ -578,7 +363,9 @@ def run_epoch():
             inputs, labels = data
 
             if local_rank < spatial_part_size:
-                x = split_input(inputs)
+                x = split_input(
+                    inputs, args.slice_method, image_size, spatial_part_size, local_rank
+                )
             else:
                 x = inputs
 

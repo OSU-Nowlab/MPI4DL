@@ -67,8 +67,10 @@ def get_shapes_spatial(
 ):
     temp_count = 0
     spatial_shapes_list = []
+    spatial_part_size = num_spatial_parts_list[0]
 
     if slice_method == "square":
+        spatial_shapes_list = []
         for output_shape in shape_list:
             if isinstance(output_shape, list):
                 temp_shape = []
@@ -78,8 +80,16 @@ def get_shapes_spatial(
                         x = (
                             int(shape_tuple[0]),
                             shape_tuple[1],
-                            int(shape_tuple[2] * image_size_times / 2),
-                            int(shape_tuple[3] * image_size_times / 2),
+                            int(
+                                shape_tuple[2]
+                                * image_size_times
+                                / math.sqrt(spatial_part_size)
+                            ),
+                            int(
+                                shape_tuple[3]
+                                * image_size_times
+                                / math.sqrt(spatial_part_size)
+                            ),
                         )
                         temp_shape.append(x)
                     else:
@@ -100,8 +110,16 @@ def get_shapes_spatial(
                         x = (
                             int(output_shape[0]),
                             output_shape[1],
-                            int(output_shape[2] * image_size_times / 2),
-                            int(output_shape[3] * image_size_times / 2),
+                            int(
+                                output_shape[2]
+                                * image_size_times
+                                / math.sqrt(spatial_part_size)
+                            ),
+                            int(
+                                output_shape[3]
+                                * image_size_times
+                                / math.sqrt(spatial_part_size)
+                            ),
                         )
                         spatial_shapes_list.append(x)
                     else:
@@ -115,6 +133,7 @@ def get_shapes_spatial(
             temp_count += 1
 
     elif slice_method == "vertical":
+        spatial_shapes_list = []
         for output_shape in shape_list:
             if isinstance(output_shape, list):
                 temp_shape = []
@@ -168,6 +187,7 @@ def get_shapes_spatial(
             temp_count += 1
 
     elif slice_method == "horizontal":
+        spatial_shapes_list = []
         for output_shape in shape_list:
             if isinstance(output_shape, list):
                 temp_shape = []
@@ -222,66 +242,53 @@ def get_shapes_spatial(
     return spatial_shapes_list
 
 
-def split_input_2(inputs, image_size, slice_method, local_rank):
-    image_height_local = int(image_size / 2)
-    image_width_local = int(image_size / 2)
-
-    # square == vertical
-
-    if slice_method == "square" or slice_method == "vertical":
-        if local_rank == 0:
-            return inputs[:, :, :, :image_width_local]
-        elif local_rank == 1:
-            return inputs[:, :, :, image_width_local : 2 * image_width_local]
-
-    elif slice_method == "horizontal":
-        if local_rank == 0:
-            return inputs[:, :, :image_height_local, :]
-        elif local_rank == 1:
-            return inputs[:, :, image_height_local : 2 * image_height_local, :]
-
-
-def split_input_4(inputs, image_size, slice_method, local_rank):
-    image_height_local = int(image_size / 4)
-    image_width_local = int(image_size / 4)
-
+def split_input(inputs, slice_method, image_size, spatial_part_size, local_rank):
     if slice_method == "square":
-        if local_rank == 0:
-            return inputs[:, :, : int(image_size / 2), : int(image_size / 2)]
-        elif local_rank == 1:
-            return inputs[:, :, : int(image_size / 2), int(image_size / 2) :]
-        elif local_rank == 2:
-            return inputs[:, :, int(image_size / 2) :, : int(image_size / 2)]
-        elif local_rank == 3:
-            return inputs[:, :, int(image_size / 2) :, int(image_size / 2) :]
+        image_height_local = int(image_size / math.sqrt(spatial_part_size))
+        image_width_local = int(image_size / math.sqrt(spatial_part_size))
+
+        total_rows = int(math.sqrt(spatial_part_size))
+        total_cols = int(math.sqrt(spatial_part_size))
+
+        # current position of rank in matrix of math.sqrt(spatial_part_size) * math.sqrt(spatial_part_size)
+        row = int(local_rank / total_cols)
+        col = int(local_rank % total_cols)
+
+        start_left = col * image_width_local
+        end_right = (col + 1) * image_width_local
+
+        start_top = row * image_height_local
+        end_bottom = (row + 1) * image_height_local
+
+        return inputs[:, :, start_top:end_bottom, start_left:end_right]
 
     elif slice_method == "vertical":
-        if local_rank == 0:
-            return inputs[:, :, :, :image_width_local]
-        elif local_rank == 1:
-            return inputs[:, :, :, image_width_local : 2 * image_width_local]
-        elif local_rank == 2:
-            return inputs[:, :, :, 2 * image_width_local : 3 * image_width_local]
-        elif local_rank == 3:
-            return inputs[:, :, :, 3 * image_width_local : 4 * image_width_local]
+        image_height_local = int(image_size / spatial_part_size)
+        image_width_local = int(image_size / spatial_part_size)
+
+        start_left = local_rank * image_width_local
+        end_right = (local_rank + 1) * image_width_local
+
+        if local_rank == spatial_part_size - 1:
+            # In case of GPU count, partition size will be uneven and last
+            # rank will receive remaining image
+            return inputs[:, :, :, start_left:]
+        else:
+            return inputs[:, :, :, start_left:end_right]
 
     elif slice_method == "horizontal":
-        if local_rank == 0:
-            return inputs[:, :, :image_height_local, :]
-        elif local_rank == 1:
-            return inputs[:, :, image_height_local : 2 * image_height_local, :]
-        elif local_rank == 2:
-            return inputs[:, :, 2 * image_height_local : 3 * image_height_local, :]
-        elif local_rank == 3:
-            return inputs[:, :, 3 * image_height_local : 4 * image_height_local, :]
+        image_height_local = int(image_size / spatial_part_size)
+        image_width_local = int(image_size / spatial_part_size)
 
+        start_top = local_rank * image_height_local
+        end_bottom = (local_rank + 1) * image_height_local
 
-def split_input(inputs, image_size, slice_method, local_rank, num_spatial_parts_list):
-    if num_spatial_parts_list[0] == 2:
-        return split_input_2(inputs, image_size, slice_method, local_rank)
-
-    elif num_spatial_parts_list[0] == 4:
-        return split_input_4(inputs, image_size, slice_method, local_rank)
+        if local_rank == spatial_part_size - 1:
+            # In case of odd GPU count, partition size will be uneven and last
+            # rank will receive remaining image
+            return inputs[:, :, start_top:, :]
+        else:
+            return inputs[:, :, start_top:end_bottom, :]
 
 
 class train_model_spatial(train_model):

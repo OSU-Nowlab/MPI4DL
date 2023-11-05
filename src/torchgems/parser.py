@@ -133,4 +133,11 @@ def get_parser():
         help="Enable communication optimization for MASTER in Spatial",
     )
 
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=0,
+        help="Slice method (square, vertical, and horizontal) in Spatial parallelism",
+    )
+
     return parser
