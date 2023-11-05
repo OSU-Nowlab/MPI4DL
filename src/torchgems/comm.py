@@ -65,7 +65,6 @@ class MPIComm:
                 - spatial_size
                 + (split_size - spatial_size) * (LOCAL_DP_LP - 1)
             )
-        print("MP_SIZE : ", self.mp_size)
 
         if DISABLE_INIT:
             self.rank = dist.get_rank()
@@ -214,28 +213,19 @@ class MPIComm:
 
             if self.ENABLE_MASTER:
                 for i in range(len(ranks)):
-                    # ranks[i] = self.mp_size - 1 - ranks[i]
                     ranks.append(self.mp_size - 1 - ranks[i])
-            print("RANKS:", ranks)
+
             temp_spatial_allreduce_grp = torch.distributed.new_group(ranks=ranks)
 
             if self.ENABLE_MASTER:
                 if self.spatial_size == 1 and first_local_rank < self.num_spatial_parts:
                     self.first_spatial_allreduce_grp = temp_spatial_allreduce_grp
-                    print(
-                        "first_spatial_allreduce_grp", self.rank, self.local_rank, ranks
-                    )
+
                 elif (
                     self.spatial_size == 1
                     and second_local_rank < self.num_spatial_parts
                 ):
                     self.second_spatial_allreduce_grp = temp_spatial_allreduce_grp
-                    print(
-                        "second_spatial_allreduce_grp",
-                        self.rank,
-                        self.local_rank,
-                        ranks,
-                    )
 
                 elif self.spatial_size > 1:
                     if first_local_rank < np.sum(
@@ -323,7 +313,6 @@ def sync_comms_for_master(comm1, comm2):
     # MASTER related communicators are in comm2
     first_local_rank = comm1.local_rank
     second_local_rank = comm2.local_rank
-    print("sync_comms_for_master", first_local_rank, second_local_rank)
 
     if first_local_rank < comm1.total_spatial_processes:
         comm1.spatial_allreduce_grp = comm2.first_spatial_allreduce_grp

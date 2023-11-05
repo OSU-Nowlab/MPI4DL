@@ -437,7 +437,6 @@ class train_model:
         # part_number: part number between 0 and self.parts-1 used to find right input recv buffer
 
         # Receive inputs if local is not 0
-        print("mp_pipeline:forward_pass: START", data_x.size(), data_y.size())
         if self.split_rank == 0:
             input_x = data_x
         else:
@@ -458,11 +457,6 @@ class train_model:
 
         torch.cuda.synchronize()
 
-        print(
-            "mp_pipeline:forward_pass: SEND_INPUT_OR_CAL_LOSS",
-            data_x.size(),
-            data_y.size(),
-        )
         if self.split_rank != self.split_size - 1:
             if self.ENABLE_ASYNC == True:
                 self.send_input_async(y)
@@ -471,7 +465,7 @@ class train_model:
 
         else:
             loss = self.criterion(y, data_y)
-        print("mp_pipeline:forward_pass: END", data_x.size(), data_y.size())
+
         if self.split_rank == self.split_size - 1:
             corrects = (data_y.eq(torch.argmax(y, dim=-1).long())).sum().float()
             return loss, corrects / self.batch_size
@@ -524,61 +518,18 @@ class train_model:
         for i in range(self.parts):
             start = i * parts_size
             end = (i + 1) * parts_size
-            print(
-                "mp_pipeline:train_model:run_step : START FORWARD PASS",
-                " rank :",
-                self.local_rank,
-                " inverse : ",
-                self.GEMS_INVERSE,
-                self.parts,
-                start,
-                end,
-            )
             temp_y, temp_correct = self.forward_pass(
                 data_x[start:end], data_y[start:end], part_number=i
             )
-
-            print(
-                "mp_pipeline:train_model:run_step : END FORWARD PASS",
-                " rank :",
-                self.local_rank,
-                " inverse : ",
-                self.GEMS_INVERSE,
-                self.parts,
-                start,
-                end,
-            )
-
             y_list.append(temp_y)
 
             if self.split_rank == self.split_size - 1:
                 loss += temp_y.item()
                 corrects += temp_correct.item()
 
-        print(
-            "mp_pipeline:train_model:run_step : START BACKWARD PASS",
-            " rank :",
-            self.local_rank,
-            " inverse : ",
-            self.GEMS_INVERSE,
-            self.parts,
-            start,
-            end,
-        )
         for i in range(self.parts):
             None
             self.backward_pass(y_list[i], part_number=i)
-
-        print(
-            "mp_pipeline:train_model:run_step : END BACKWARD PASS",
-            " rank :",
-            self.local_rank,
-            " inverse : ",
-            self.GEMS_INVERSE,
-            self.parts,
-            start,
-            end,
-        )
 
         return loss, corrects
 

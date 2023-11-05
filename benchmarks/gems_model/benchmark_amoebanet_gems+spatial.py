@@ -1,3 +1,21 @@
+# Copyright 2023, The Ohio State University. All rights reserved.
+# The MPI4DL software package is developed by the team members of
+# The Ohio State University's Network-Based Computing Laboratory (NBCL),
+# headed by Professor Dhabaleswar K. (DK) Panda.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch
 import torch.distributed as dist
 import torchvision.transforms as transforms
@@ -6,6 +24,7 @@ import numpy as np
 import time
 import sys
 import math
+import logging
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
 from torchgems.train_spatial import get_shapes_spatial, split_input
@@ -17,6 +36,9 @@ import torchgems.comm as gems_comm
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
+
+if args.verbose:
+    logging.basicConfig(level=logging.DEBUG)
 
 if args.halo_d2:
     from models import amoebanet
@@ -63,46 +85,47 @@ sys.stdout = Unbuffered(sys.stdout)
 
 # Example of GEMS + SPATIAL split_size = 2, spatial_size = 1, num_spatial_parts = 4
 #
+# split_size = 5, spatial_size = 1, num_spatial_parts = 4 are not valid as ranks 1, 2, 3 are used by spatial parts from both the model.
 #  Model 1:
-#  _______________             ____
-# |   0(0)|  1(1) |           |    |
-# |-------|-------| --------->|4(4)|
-# |  2(2) |  3(3) |           |    |
-# |_______|_______|           |____|
+#  _______________        ____        ____        ____        ____
+# |  0(0) |  1(1) |      |    |      |    |      |    |      |    |
+# |-------|-------|----->|4(4)|----->|5(5)|----->|6(6)|----->|7(7)|
+# |  2(2) |  3(3) |      |    |      |    |      |    |      |    |
+# |_______|_______|      |____|      |____|      |____|      |____|
 #
 # Model 2 (INVERSE GEMS):
-#  _______________             ____
-# |  0(4) |  1(3) |           |    |
-# |-------|-------| --------->|4(0)|
-# |  2(2) |  3(1) |           |    |
-# |_______|_______|           |____|
+#  _______________        ____        ____        ____        ____
+# |  0(7) |  1(6) |      |    |      |    |      |    |      |    |
+# |-------|-------|----->|4(3)|----->|5(2)|----->|6(1)|----->|7(0)|
+# |  2(5) |  3(4) |      |    |      |    |      |    |      |    |
+# |_______|_______|      |____|      |____|      |____|      |____|
 #
 # Numbers inside the brackets () refer to World Rank
 # whereas outside numbers refer to local rank for each model
 
-# torch.set_num_threads(1)
 np.random.seed(seed=1405)
 parts = args.parts
 batch_size = args.batch_size
 resnet_n = 12
-epoch = args.num_epochs
+epochs = args.num_epochs
 ENABLE_ASYNC = True
 
 # APP
 # 1: Medical
 # 2: Cifar
 # 3: synthetic
-APP = 3
-amoebanet_test = False
+APP = args.app
 image_size = int(args.image_size)
-print("image size", image_size)
-steps = 100
 num_layers = args.num_layers
 num_filters = args.num_filters
 balance = args.balance
 split_size = args.split_size
 spatial_size = args.spatial_size
 slice_method = args.slice_method
+times = args.times
+datapath = args.datapath
+num_classes = args.num_classes
+LOCAL_DP_LP = args.local_DP
 ENABLE_MASTER_OPT = args.enable_master_comm_opt
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
@@ -115,11 +138,6 @@ else:
     num_spatial_parts_list = num_spatial_parts
 
 spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
-
-times = args.times
-num_classes = args.num_classes
-LOCAL_DP_LP = args.local_DP
-
 
 mpi_comm_first = gems_comm.MPIComm(
     split_size=split_size,
@@ -150,12 +168,6 @@ mpi_comm_second = gems_comm.MPIComm(
 
 gems_comm.sync_comms_for_master(mpi_comm_first, mpi_comm_second)
 comm_size = mpi_comm_first.size
-# rank = mpi_comm.local_rank
-# comm_size = mpi_comm.size
-# local_rank = rank
-
-# split_rank = mpi_comm.split_rank
-
 
 if args.balance != None:
     balance = args.balance.split(",")
@@ -164,24 +176,38 @@ else:
     balance = None
 
 
+##################### AmoebaNet model specific parameters #####################
+
+"""
+"image_size_seq" is required to determine the output shape after spatial partitioning of images.
+The shape of the output will be determined for each model partition based on the values in "image_size_seq."
+These values will then be used to calculate the output shape for a given input size and spatial partition.
+"""
 image_size_seq = 512
 
+###############################################################################
+
+# Initialize AmoebaNet model
 model_seq = amoebanet.amoebanetd(
     num_layers=num_layers, num_filters=num_filters, num_classes=num_classes
 )
-print("length", len(model_seq), balance)
+
+# Initialize parameters for Model Parallelism
 model_gen_seq = model_generator(
     model=model_seq,
     split_size=split_size,
     input_size=(int(batch_size / parts), 3, image_size_seq, image_size_seq),
     balance=balance,
 )
+# Get the shape of model on each split rank for image_size_seq and move it to device
+# Note : we take shape w.r.t image_size_seq as model w.r.t image_size may not be
+# able to fit in memory
 model_gen_seq.ready_model(
     split_rank=mpi_comm_second.split_rank, GET_SHAPES_ON_CUDA=True
 )
 
+# Get the shape of model on each split rank for image_size and number of spatial parts
 image_size_times = int(image_size / image_size_seq)
-
 resnet_shapes_list = get_shapes_spatial(
     shape_list=model_gen_seq.shape_list,
     slice_method=slice_method,
@@ -190,13 +216,11 @@ resnet_shapes_list = get_shapes_spatial(
     image_size_times=image_size_times,
 )
 
-print(model_gen_seq.shape_list, resnet_shapes_list)
-
 del model_seq
 del model_gen_seq
 torch.cuda.ipc_collect()
 
-
+# Initialize AmoebaNet model with Spatial and Model Parallelism support
 if args.halo_d2:
     model1 = amoebanet_d2.amoebanetd_spatial(
         local_rank=mpi_comm_first.local_rank % mpi_comm_first.total_spatial_processes,
@@ -254,9 +278,12 @@ model_gen1 = model_generator(
     balance=balance,
     shape_list=resnet_shapes_list,
 )
-model_gen1.ready_model(split_rank=mpi_comm_first.split_rank)
-# model_gen1.DDP_model(mpi_comm_first, num_spatial_parts, spatial_size, bucket_size=25, local_rank = mpi_comm_first.local_rank)
 
+# Move model it it's repective devices
+model_gen1.ready_model(split_rank=mpi_comm_first.split_rank)
+logging.info(
+    f"Shape of model1 on local_rank {mpi_comm_first.local_rank } : {model_gen1.shape_list}"
+)
 
 model_gen2 = model_generator(
     model=model2,
@@ -265,22 +292,13 @@ model_gen2 = model_generator(
     balance=balance,
     shape_list=resnet_shapes_list,
 )
+
+# Move model it it's repective devices
 model_gen2.ready_model(split_rank=mpi_comm_second.split_rank)
-# model_gen2.DDP_model(mpi_comm_second, num_spatial_parts, spatial_size, bucket_size=25, local_rank = mpi_comm_second.local_rank)
+logging.info(
+    f"Shape of model2 on local_rank {mpi_comm_first.local_rank } : {model_gen2.shape_list}"
+)
 
-
-# model_gen.mp_size = 5
-print("Shape list", resnet_shapes_list)
-
-
-# t_s1 = train_model_spatial(model_gen1, mpi_comm_first.local_rank,batch_size,epochs=1, spatial_size=spatial_size, num_spatial_parts=num_spatial_parts ,criterion=None,optimizer=None,parts=parts,ASYNC=True,GEMS_INVERSE=False, slice_method = args.slice_method,
-# 							LOCAL_DP_LP=LOCAL_DP_LP,
-# 							mpi_comm = mpi_comm_first)
-
-
-# t_s2 = train_model_spatial(model_gen2, mpi_comm_second.local_rank,batch_size,epochs=1, spatial_size=spatial_size, num_spatial_parts=num_spatial_parts ,criterion=None,optimizer=None,parts=parts,ASYNC=True,GEMS_INVERSE=True, slice_method = args.slice_method,
-# 							LOCAL_DP_LP=LOCAL_DP_LP,
-# 							mpi_comm = mpi_comm_second)
 
 t_s_master = train_spatial_model_master(
     model_gen1,
@@ -299,11 +317,7 @@ t_s_master = train_spatial_model_master(
     replications=int(args.times / 2),
 )
 
-x = torch.zeros(
-    (batch_size, 3, int(image_size / 2), int(image_size / 2)), device="cuda"
-)
-y = torch.zeros((batch_size,), dtype=torch.long, device="cuda")
-
+############################## Dataset Definition ##############################
 
 transform = transforms.Compose(
     [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
@@ -312,7 +326,7 @@ torch.manual_seed(0)
 
 if APP == 1:
     trainset = torchvision.datasets.ImageFolder(
-        "/usr/workspace/jain8/project/cancer/1024_1024_5/train",
+        datapath,
         transform=transform,
         target_transform=None,
     )
@@ -325,8 +339,16 @@ if APP == 1:
     )
     size_dataset = 1030
 elif APP == 2:
+    transform = transforms.Compose(
+        [
+            transforms.Resize((512, 512)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
+    torch.manual_seed(0)
     trainset = torchvision.datasets.CIFAR10(
-        root="./data", train=True, download=True, transform=transform
+        root=datapath, train=True, download=True, transform=transform
     )
     my_dataloader = torch.utils.data.DataLoader(
         trainset,
@@ -335,7 +357,7 @@ elif APP == 2:
         num_workers=0,
         pin_memory=True,
     )
-    size_dataset = 50000
+    size_dataset = len(my_dataloader.dataset)
 else:
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size * args.times,
@@ -354,37 +376,30 @@ else:
     )
     size_dataset = 10 * batch_size
 
-
-# sync_allreduce.sync_model_spatial(model_gen)
-perf = []
+################################################################################
 
 sync_comm = gems_comm.SyncAllreduce(mpi_comm_first)
 
+################################# Train Model ##################################
 
-MASTER = args.times
-
-print("ENABLE_MASTER_OPT", ENABLE_MASTER_OPT)
+perf = []
 
 
 def run_epoch():
-    for i_e in range(epoch):
+    for i_e in range(epochs):
         loss = 0
         correct = 0
         t = time.time()
-        for i, data in enumerate(my_dataloader, 0):
+        size = len(my_dataloader.dataset)
+        for batch, data in enumerate(my_dataloader, 0):
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
-            if i > math.floor(size_dataset / (times * batch_size)) - 1:
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
-            # inputs=data_x
-            # labels = data_y
+
             inputs, labels = data
 
-            # inputs = inputs.to(device)
-            # labels = labels.to(device)
-
-            # t= time.time()
             if mpi_comm_first.local_rank < num_spatial_parts_list[0]:
                 x = split_input(
                     inputs=inputs,
@@ -404,20 +419,15 @@ def run_epoch():
             else:
                 x = inputs
 
-            # for j in range(MASTER):
-
-            # 	temp_loss,temp_correct = t_s1.run_step(x,labels)
-            # 	temp_loss,temp_correct = t_s2.run_step(x,labels)
-
             if ENABLE_MASTER_OPT:
-                temp_loss, temp_correct = t_s_master.run_step_allreduce(
-                    x, labels, i % 2 == 1
+                local_loss, local_correct = t_s_master.run_step_allreduce(
+                    x, labels, batch % 2 == 1
                 )
             else:
-                temp_loss, temp_correct = t_s_master.run_step(x, labels)
+                local_loss, local_correct = t_s_master.run_step(x, labels)
 
-            loss += temp_loss
-            correct += temp_correct
+            loss += local_loss
+            correct += local_correct
 
             start_event_allreduce = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event_allreduce = torch.cuda.Event(enable_timing=True, blocking=True)
@@ -425,21 +435,13 @@ def run_epoch():
             t_allreduce_temp = time.time()
 
             if ENABLE_MASTER_OPT == False:
-                print("benchmark_amoebanet_gems+spatial : START ALL REDUCE OPERATION")
                 sync_comm.apply_allreduce_master_master(
                     model_gen1, model_gen2, mpi_comm_first, mpi_comm_second
                 )
-
-            """
-			if(local_rank < spatial_size * num_spatial_parts):
-				None
-				#No need for this as, DDP is now used
-				# sync_allreduce.apply_allreduce(model_gen,mpi_comm.spatial_allreduce_grp)
-			"""
             torch.cuda.synchronize()
 
             if ENABLE_MASTER_OPT:
-                if i % 2 == 1:
+                if batch % 2 == 1:
                     t_s_master.train_model1.update()
                 else:
                     t_s_master.train_model2.update()
@@ -453,8 +455,9 @@ def run_epoch():
             t_allreduce = time.time() - t_allreduce_temp
 
             if mpi_comm_second.local_rank == comm_size - 1:
-                None
-                # print("Step",i," LOSS",temp_loss, " Global loss:",loss/(i+1), " Acc:",temp_correct)
+                logging.info(
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
+                )
 
             if ENABLE_MASTER_OPT:
                 torch.distributed.barrier()
@@ -463,23 +466,19 @@ def run_epoch():
             torch.cuda.synchronize()
             t = start_event.elapsed_time(end_event) / 1000
             if mpi_comm_second.local_rank == 0:
-                None
                 print(
-                    "images per sec:",
-                    batch_size / t,
-                    "Time:",
-                    t,
-                    " Time Allreduce:",
-                    t_allreduce,
+                    f"Epoch: {i_e} images per sec:{batch_size / t} Time:{t} Time Allreduce:{t_allreduce}"
                 )
                 perf.append(batch_size / t)
 
             t = time.time()
         if mpi_comm_second.local_rank == comm_size - 1:
-            print("epoch", i_e, " Global loss:", loss, " acc", correct / i)
+            print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
 
 
 run_epoch()
+
+################################################################################
 
 if mpi_comm_second.local_rank == 0:
     print("Mean {} Median {}".format(sum(perf) / len(perf), np.median(perf)))

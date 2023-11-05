@@ -27,8 +27,7 @@ def isPowerTwo(num):
 
 
 """
-TBD : Update comments
-For SP+MASTER, image size and image size after partitioning should be power of two.
+For SP, image size and image size after partitioning should be power of two.
 As, while performing convolution operations at different layers, odd input size
 (i.e. image size which is not power of 2) will lead to truncation of input. Thus,
 other GPU devices will receive truncated input with unexpected input size.
@@ -462,25 +461,21 @@ class train_spatial_model_master:
     def run_step(self, inputs, labels):
         loss, correct = 0, 0
         # torch.cuda.empty_cache()
-        print("START RUN_STEP MODEL1", "rank ", self.local_rank)
 
         self.train_model1.models = self.train_model1.models.to("cuda")
         temp_loss, temp_correct = self.train_model1.run_step(
             inputs[: self.batch_size], labels[: self.batch_size]
         )
-        print("END RUN_STEP MODEL1", "rank ", self.local_rank)
         loss += temp_loss
         correct += temp_correct
 
         torch.cuda.empty_cache()
-        print("START RUN_STEP MODEL2", "rank ", self.local_rank)
         self.train_model1.models = self.train_model1.models.to("cpu")
         self.train_model2.models = self.train_model2.models.to("cuda")
         temp_loss, temp_correct = self.train_model2.run_step(
             inputs[self.batch_size : 2 * self.batch_size],
             labels[self.batch_size : 2 * self.batch_size],
         )
-        print("END RUN_STEP MODEL2", "rank ", self.local_rank)
         self.train_model2.models = self.train_model2.models.to("cpu")
 
         torch.cuda.empty_cache()
@@ -488,26 +483,20 @@ class train_spatial_model_master:
         loss += temp_loss
         correct += temp_correct
 
-        print("Calculated loss and accuracy for MODEL1 AND MODEL2")
-
         torch.cuda.synchronize()
         for times in range(self.replications - 1):
             index = (2 * times) + 2
-            print("Times :", times)
-            print("START RUN_STEP MODEL1")
             temp_loss, temp_correct = self.train_model1.run_step(
                 inputs[index * self.batch_size : (index + 1) * self.batch_size],
                 labels[index * self.batch_size : (index + 1) * self.batch_size],
             )
-            print("END RUN_STEP MODEL1")
             loss += temp_loss
             correct += temp_correct
-            print("START RUN_STEP MODEL2")
+
             temp_loss, temp_correct = self.train_model2.run_step(
                 inputs[(index + 1) * self.batch_size : (index + 2) * self.batch_size],
                 labels[(index + 1) * self.batch_size : (index + 2) * self.batch_size],
             )
-            print("END RUN_STEP MODEL2")
 
             loss += temp_loss
             correct += temp_correct

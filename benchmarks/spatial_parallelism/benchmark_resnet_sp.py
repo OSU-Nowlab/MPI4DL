@@ -106,7 +106,7 @@ spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial para
 ################## ResNet model specific parameters/functions ##################
 
 """
-"image_size_seq" is required to determine the output shape after spatial partitioning of images. 
+"image_size_seq" is required to determine the output shape after spatial partitioning of images.
 The shape of the output will be determined for each model partition based on the values in "image_size_seq."
 These values will then be used to calculate the output shape for a given input size and spatial partition.
 """
@@ -129,7 +129,7 @@ def isPowerTwo(num):
 
 
 """
-For ResNet model, image size and image size after partitioning should be power of two. 
+For ResNet model, image size and image size after partitioning should be power of two.
 As, ResNet performs convolution operations at different layers, odd input size
 (i.e. image size which is not power of 2) will lead to truncation of input. Thus,
 other GPU devices will receive truncated input with unexpected input size.
