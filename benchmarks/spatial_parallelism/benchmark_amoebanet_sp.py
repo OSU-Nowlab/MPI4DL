@@ -363,7 +363,11 @@ def run_epoch():
 
             if local_rank < spatial_part_size:
                 x = split_input(
-                    inputs, args.slice_method, image_size, spatial_part_size, local_rank
+                    inputs,
+                    image_size,
+                    args.slice_method,
+                    local_rank,
+                    num_spatial_parts_list,
                 )
             else:
                 x = inputs

@@ -462,23 +462,23 @@ class train_spatial_model_master:
         loss, correct = 0, 0
         # torch.cuda.empty_cache()
 
-        self.train_model1.models = self.train_model1.models.to("cuda")
+        # self.train_model1.models = self.train_model1.models.to("cuda")
         temp_loss, temp_correct = self.train_model1.run_step(
             inputs[: self.batch_size], labels[: self.batch_size]
         )
         loss += temp_loss
         correct += temp_correct
 
-        torch.cuda.empty_cache()
-        self.train_model1.models = self.train_model1.models.to("cpu")
-        self.train_model2.models = self.train_model2.models.to("cuda")
+        # torch.cuda.empty_cache()
+        # self.train_model1.models = self.train_model1.models.to("cpu")
+        # self.train_model2.models = self.train_model2.models.to("cuda")
         temp_loss, temp_correct = self.train_model2.run_step(
             inputs[self.batch_size : 2 * self.batch_size],
             labels[self.batch_size : 2 * self.batch_size],
         )
-        self.train_model2.models = self.train_model2.models.to("cpu")
+        # self.train_model2.models = self.train_model2.models.to("cpu")
 
-        torch.cuda.empty_cache()
+        # torch.cuda.empty_cache()
 
         loss += temp_loss
         correct += temp_correct

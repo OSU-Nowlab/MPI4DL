@@ -242,7 +242,10 @@ def get_shapes_spatial(
     return spatial_shapes_list
 
 
-def split_input(inputs, slice_method, image_size, spatial_part_size, local_rank):
+def split_input(inputs, image_size, slice_method, local_rank, num_spatial_parts_list):
+    spatial_part_size = num_spatial_parts_list[
+        0
+    ]  # Partition size for spatial parallelism
     if slice_method == "square":
         image_height_local = int(image_size / math.sqrt(spatial_part_size))
         image_width_local = int(image_size / math.sqrt(spatial_part_size))

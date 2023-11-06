@@ -221,7 +221,7 @@ torch.cuda.ipc_collect()
 if args.halo_d2:
     model1, balance = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
-        depth=get_depth(2, 12),
+        depth=get_depth(2, resnet_n),
         local_rank=mpi_comm_first.local_rank % mpi_comm_first.total_spatial_processes,
         mp_size=split_size,
         balance=balance,
@@ -234,7 +234,7 @@ if args.halo_d2:
 
     model2, balance = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
-        depth=get_depth(2, 12),
+        depth=get_depth(2, resnet_n),
         local_rank=mpi_comm_second.local_rank % mpi_comm_second.total_spatial_processes,
         mp_size=split_size,
         balance=balance,
@@ -247,7 +247,7 @@ if args.halo_d2:
 else:
     model1 = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
-        depth=get_depth(2, 12),
+        depth=get_depth(2, resnet_n),
         local_rank=mpi_comm_first.local_rank % mpi_comm_first.total_spatial_processes,
         mp_size=split_size,
         balance=balance,
@@ -260,7 +260,7 @@ else:
 
     model2 = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
-        depth=get_depth(2, 12),
+        depth=get_depth(2, resnet_n),
         local_rank=mpi_comm_second.local_rank % mpi_comm_second.total_spatial_processes,
         mp_size=split_size,
         balance=balance,
