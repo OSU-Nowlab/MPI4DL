@@ -20,7 +20,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="mpi4dl",
-    version="0.5",
+    version="0.6",
     url="https://github.com/OSU-Nowlab/MPI4DL",
     license="Apache License 2.0",
     packages=find_packages(where="src"),
