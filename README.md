@@ -2,7 +2,7 @@ MPI4DL is a [HiDL](https://hidl.cse.ohio-state.edu/) project. We encourage you t
 
 
 
-## News
+# News
 **[11/9/2023]** We now support several new spatial parallelism combinations, such as SP+GEMS+LP and SP+GEMS+PP. For a full list of new and existing features, please see [the MPI4DL feature page](http://hidl.cse.ohio-state.edu/features/#MPI4DL)
 
 # MPI4DL v0.6
