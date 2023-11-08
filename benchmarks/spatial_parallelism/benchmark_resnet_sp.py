@@ -28,8 +28,14 @@ import math
 import logging
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
-from torchgems.train_spatial import train_model_spatial, split_input, get_shapes_spatial
+from torchgems.train_spatial import (
+    train_model_spatial,
+    split_input,
+    get_shapes_spatial,
+    verify_spatial_config,
+)
 import torchgems.comm as gems_comm
+from torchgems.utils import get_depth
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -82,6 +88,7 @@ image_size = int(args.image_size)
 balance = args.balance
 split_size = args.split_size
 spatial_size = args.spatial_size
+slice_method = args.slice_method
 times = args.times
 datapath = args.datapath
 num_workers = args.num_workers
@@ -114,58 +121,10 @@ These values will then be used to calculate the output shape for a given input s
 image_size_seq = 32
 resnet_n = 12
 
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
-
 ###############################################################################
 
 
-def isPowerTwo(num):
-    return not (num & (num - 1))
-
-
-"""
-For ResNet model, image size and image size after partitioning should be power of two.
-As, ResNet performs convolution operations at different layers, odd input size
-(i.e. image size which is not power of 2) will lead to truncation of input. Thus,
-other GPU devices will receive truncated input with unexpected input size.
-"""
-
-
-def verify_config():
-    assert args.slice_method in [
-        "square",
-        "vertical",
-        "horizontal",
-    ], "Possible slice methods are ['square', 'vertical', 'horizontal']"
-
-    assert args.app in range(
-        1, 4
-    ), "Possible Application values should be 1, 2, or 3 i.e. 1.medical, 2.cifar, and 3.synthetic"
-
-    assert isPowerTwo(int(image_size)), "Image size should be power of Two"
-
-    if args.slice_method == "square":
-        assert isPowerTwo(
-            int(image_size / math.sqrt(spatial_part_size))
-        ), "Image size of each partition should be power of Two"
-    else:
-        assert isPowerTwo(
-            int(image_size / spatial_part_size)
-        ), "Image size of each partition should be power of Two"
-
-    for each_part_size in num_spatial_parts_list:
-        assert (
-            each_part_size == spatial_part_size
-        ), "Size of each SP partition should be same"
-
-
-verify_config()
+verify_spatial_config(slice_method, image_size, num_spatial_parts_list)
 
 mpi_comm = gems_comm.MPIComm(
     split_size=split_size,
@@ -189,7 +148,8 @@ else:
 
 # Initialize ResNet model
 model_seq = resnet.get_resnet_v2(
-    (int(batch_size / parts), 3, image_size_seq, image_size_seq), depth=get_depth(2, 12)
+    (int(batch_size / parts), 3, image_size_seq, image_size_seq),
+    depth=get_depth(2, resnet_n),
 )
 
 model_gen_seq = model_generator(
@@ -209,7 +169,7 @@ model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 image_size_times = int(image_size / image_size_seq)
 resnet_shapes_list = get_shapes_spatial(
     model_gen_seq.shape_list,
-    args.slice_method,
+    slice_method,
     spatial_size,
     num_spatial_parts_list,
     image_size_times,
@@ -223,7 +183,7 @@ torch.cuda.ipc_collect()
 if args.halo_d2:
     model, balance = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
-        depth=get_depth(2, 12),
+        depth=get_depth(2, resnet_n),
         local_rank=local_rank % spatial_part_size,
         mp_size=split_size,
         balance=balance,
@@ -231,12 +191,12 @@ if args.halo_d2:
         num_spatial_parts=num_spatial_parts,
         num_classes=num_classes,
         fused_layers=args.fused_layers,
-        slice_method=args.slice_method,
+        slice_method=slice_method,
     )
 else:
     model = resnet_spatial.get_resnet_v2(
         input_shape=(batch_size / parts, 3, image_size, image_size),
-        depth=get_depth(2, 12),
+        depth=get_depth(2, resnet_n),
         local_rank=local_rank % spatial_part_size,
         mp_size=split_size,
         balance=balance,
@@ -244,7 +204,7 @@ else:
         num_spatial_parts=num_spatial_parts,
         num_classes=num_classes,
         fused_layers=args.fused_layers,
-        slice_method=args.slice_method,
+        slice_method=slice_method,
     )
 
 
@@ -275,7 +235,7 @@ t_s = train_model_spatial(
     parts=1,
     ASYNC=True,
     GEMS_INVERSE=False,
-    slice_method=args.slice_method,
+    slice_method=slice_method,
     mpi_comm=mpi_comm,
 )
 
@@ -364,7 +324,11 @@ def run_epoch():
 
             if local_rank < spatial_part_size:
                 x = split_input(
-                    inputs, args.slice_method, image_size, spatial_part_size, local_rank
+                    inputs,
+                    image_size,
+                    slice_method,
+                    local_rank,
+                    num_spatial_parts_list,
                 )
             else:
                 x = inputs

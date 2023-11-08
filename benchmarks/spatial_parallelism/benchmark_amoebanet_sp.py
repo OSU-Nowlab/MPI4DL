@@ -27,7 +27,12 @@ import math
 import logging
 from torchgems import parser
 from torchgems.mp_pipeline import model_generator
-from torchgems.train_spatial import train_model_spatial, split_input, get_shapes_spatial
+from torchgems.train_spatial import (
+    train_model_spatial,
+    split_input,
+    get_shapes_spatial,
+    verify_spatial_config,
+)
 import torchgems.comm as gems_comm
 
 parser_obj = parser.get_parser()
@@ -62,7 +67,7 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
-def init_processes(backend="tcp"):
+def init_processes(backend="mpi"):
     """Initialize the distributed environment."""
     dist.init_process_group(backend)
     size = dist.get_world_size()
@@ -84,6 +89,7 @@ num_filters = args.num_filters
 balance = args.balance
 split_size = args.split_size
 spatial_size = args.spatial_size
+slice_method = args.slice_method
 times = args.times
 datapath = args.datapath
 num_workers = args.num_workers
@@ -107,48 +113,7 @@ else:
 spatial_part_size = num_spatial_parts_list[0]  # Partition size for spatial parallelism
 
 
-def isPowerTwo(num):
-    return not (num & (num - 1))
-
-
-"""
-For Amoebanet model, image size and image size after partitioning should be power of two.
-As, Amoebanet performs summation of results of two convolution layers during training,
-odd input size(i.e. image size which is not power of 2) will give different output sizes
-for convolution operations present at same layer, thus it will throw error as addition
-operation can not be performed with diffent size outputs.
-"""
-
-
-def verify_config():
-    assert args.slice_method in [
-        "square",
-        "vertical",
-        "horizontal",
-    ], "Possible slice methods are ['square', 'vertical', 'horizontal']"
-
-    assert args.app in range(
-        1, 4
-    ), "Possible Application values should be 1, 2, or 3 i.e. 1.medical, 2.cifar, and 3.synthetic"
-
-    assert isPowerTwo(int(image_size)), "Image size should be power of Two"
-
-    if args.slice_method == "square":
-        assert isPowerTwo(
-            int(image_size / math.sqrt(spatial_part_size))
-        ), "Image size of each partition should be power of Two"
-    else:
-        assert isPowerTwo(
-            int(image_size / spatial_part_size)
-        ), "Image size of each partition should be power of Two"
-
-    for each_part_size in num_spatial_parts_list:
-        assert (
-            each_part_size == spatial_part_size
-        ), "Size of each SP partition should be same"
-
-
-verify_config()
+verify_spatial_config(slice_method, image_size, num_spatial_parts_list)
 
 ##################### AmoebaNet model specific parameters #####################
 
@@ -207,7 +172,7 @@ model_gen_seq.ready_model(split_rank=split_rank, GET_SHAPES_ON_CUDA=True)
 image_size_times = int(image_size / image_size_seq)
 amoebanet_shapes_list = get_shapes_spatial(
     model_gen_seq.shape_list,
-    args.slice_method,
+    slice_method,
     spatial_size,
     num_spatial_parts_list,
     image_size_times,
@@ -273,7 +238,7 @@ t_s = train_model_spatial(
     parts=parts,
     ASYNC=True,
     GEMS_INVERSE=False,
-    slice_method=args.slice_method,
+    slice_method=slice_method,
     LOCAL_DP_LP=LOCAL_DP_LP,
     mpi_comm=mpi_comm,
 )
@@ -363,7 +328,11 @@ def run_epoch():
 
             if local_rank < spatial_part_size:
                 x = split_input(
-                    inputs, args.slice_method, image_size, spatial_part_size, local_rank
+                    inputs,
+                    image_size,
+                    slice_method,
+                    local_rank,
+                    num_spatial_parts_list,
                 )
             else:
                 x = inputs

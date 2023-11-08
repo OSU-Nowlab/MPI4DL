@@ -1,3 +1,21 @@
+# Copyright 2023, The Ohio State University. All rights reserved.
+# The MPI4DL software package is developed by the team members of
+# The Ohio State University's Network-Based Computing Laboratory (NBCL),
+# headed by Professor Dhabaleswar K. (DK) Panda.
+#
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import torch
 import torch.distributed as dist
 import torchvision.transforms as transforms
@@ -12,6 +30,7 @@ from torchgems import parser
 from torchgems.mp_pipeline import model_generator
 from torchgems.gems_master import train_model_master
 import torchgems.comm as gems_comm
+from torchgems.utils import get_depth
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -73,14 +92,6 @@ num_classes = args.num_classes
 image_size_seq = 32
 ENABLE_ASYNC = True
 resnet_n = 12
-
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
 
 ###############################################################################
 mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=True)

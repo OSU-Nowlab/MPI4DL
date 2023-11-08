@@ -20,6 +20,42 @@ from torchgems.mp_pipeline import train_model
 import torch
 import math
 import torch.distributed as dist
+from utils import isPowerTwo
+
+"""
+For SP, image size and image size after partitioning should be power of two.
+As, while performing convolution operations at different layers, odd input size
+(i.e. image size which is not power of 2) will lead to truncation of input. Thus,
+other GPU devices will receive truncated input with unexpected input size.
+"""
+
+
+def verify_spatial_config(slice_method, image_size, num_spatial_parts_list):
+    spatial_part_size = num_spatial_parts_list[
+        0
+    ]  # Partition size for spatial parallelism
+
+    assert slice_method in [
+        "square",
+        "vertical",
+        "horizontal",
+    ], "Possible slice methods are ['square', 'vertical', 'horizontal']"
+
+    assert isPowerTwo(int(image_size)), "Image size should be power of Two"
+
+    if slice_method == "square":
+        assert isPowerTwo(
+            int(image_size / math.sqrt(spatial_part_size))
+        ), "Image size of each partition should be power of Two"
+    else:
+        assert isPowerTwo(
+            int(image_size / spatial_part_size)
+        ), "Image size of each partition should be power of Two"
+
+    for each_part_size in num_spatial_parts_list:
+        assert (
+            each_part_size == spatial_part_size
+        ), "Size of each SP partition should be same"
 
 
 def get_shapes_spatial(
@@ -202,7 +238,10 @@ def get_shapes_spatial(
     return spatial_shapes_list
 
 
-def split_input(inputs, slice_method, image_size, spatial_part_size, local_rank):
+def split_input(inputs, image_size, slice_method, local_rank, num_spatial_parts_list):
+    spatial_part_size = num_spatial_parts_list[
+        0
+    ]  # Partition size for spatial parallelism
     if slice_method == "square":
         image_height_local = int(image_size / math.sqrt(spatial_part_size))
         image_width_local = int(image_size / math.sqrt(spatial_part_size))

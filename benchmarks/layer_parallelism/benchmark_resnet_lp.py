@@ -28,7 +28,7 @@ import time
 from torchgems.mp_pipeline import model_generator, train_model
 from models import resnet
 import torchgems.comm as gems_comm
-
+from torchgems.utils import get_depth
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -78,14 +78,6 @@ num_classes = args.num_classes
 
 image_size_seq = 32
 resnet_n = 12
-
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
 
 ###############################################################################
 
