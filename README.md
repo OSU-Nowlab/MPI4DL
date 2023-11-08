@@ -1,6 +1,11 @@
 MPI4DL is a [HiDL](https://hidl.cse.ohio-state.edu/) project. We encourage you to visit the [HiDL website](https://hidl.cse.ohio-state.edu/) for additional information, the latest performance numbers, and similar projects on high-performance machine and deep learning. For the latest announcements on HiDL projects, [register for the HiDL mailing list](https://hidl.cse.ohio-state.edu/mailinglists/).
 
-# MPI4DL v0.5
+
+
+# News
+**[11/9/2023]** We now support several new spatial parallelism combinations, such as SP+GEMS+LP and SP+GEMS+PP. For a full list of new and existing features, please see [the MPI4DL feature page](http://hidl.cse.ohio-state.edu/features/#MPI4DL)
+
+# MPI4DL v0.6
 
 The size of image-based DL models regularly grows beyond the memory available on a single processor (we call such models **out-of-core**), and require advanced parallelism schemes to fit within device memory. Further, the massive image sizes required in specialized applications such as medical and satellite imaging can themselves place significant device memory pressure, and require parallelism schemes to process efficiently during training. Finally, the simplest parallelism scheme, [layer parallelism](#layer-parallelism), is highly inefficient. While there are several approaches that have been proposed to address some of the limitations of layer parallelism. However, most studies are performed for low-resolution images that exhibit different characteristics. Compared to low-resolution images, high-resolution images (e.g. digital pathology, satellite imaging) result in higher activation memory and larger tensors, which in turn lead to a larger communication overhead.    
 
