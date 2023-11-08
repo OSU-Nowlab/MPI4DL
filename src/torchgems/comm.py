@@ -213,6 +213,7 @@ class MPIComm:
 
             if self.ENABLE_MASTER:
                 for i in range(len(ranks)):
+                    # ranks[i] = (self.mp_size - 1 - ranks[i])
                     ranks.append(self.mp_size - 1 - ranks[i])
 
             temp_spatial_allreduce_grp = torch.distributed.new_group(ranks=ranks)

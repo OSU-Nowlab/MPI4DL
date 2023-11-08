@@ -358,7 +358,7 @@ elif APP == 2:
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
-else:
+elif APP == 3:
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size * args.times,
         image_size=(3, image_size, image_size),
@@ -375,6 +375,27 @@ else:
         pin_memory=True,
     )
     size_dataset = 10 * batch_size
+else:
+    transform = transforms.Compose(
+        [
+            transforms.Resize((512, 512)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
+    trainset = torchvision.datasets.ImageFolder(
+        datapath,
+        transform=transform,
+        target_transform=None,
+    )
+    my_dataloader = torch.utils.data.DataLoader(
+        trainset,
+        batch_size=times * batch_size,
+        shuffle=True,
+        num_workers=0,
+        pin_memory=True,
+    )
+    size_dataset = len(my_dataloader.dataset)
 
 ################################################################################
 
