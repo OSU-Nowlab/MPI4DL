@@ -66,19 +66,12 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
-def init_processes(backend="tcp"):
+def init_processes(backend="mpi"):
     """Initialize the distributed environment."""
     dist.init_process_group(backend)
     size = dist.get_world_size()
     rank = dist.get_rank()
     return size, rank
-
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
 
 
 sys.stdout = Unbuffered(sys.stdout)

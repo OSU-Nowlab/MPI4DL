@@ -30,6 +30,7 @@ from torchgems import parser
 from torchgems.mp_pipeline import model_generator
 from torchgems.gems_master import train_model_master
 import torchgems.comm as gems_comm
+from torchgems.utils import get_depth
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -91,14 +92,6 @@ num_classes = args.num_classes
 image_size_seq = 32
 ENABLE_ASYNC = True
 resnet_n = 12
-
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
 
 ###############################################################################
 mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=True)

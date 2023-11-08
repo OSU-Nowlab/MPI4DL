@@ -22,10 +22,6 @@ import torch
 import torch.distributed as dist
 
 
-def isPowerTwo(num):
-    return not (num & (num - 1))
-
-
 """
 For SP, image size and image size after partitioning should be power of two.
 As, while performing convolution operations at different layers, odd input size

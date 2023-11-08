@@ -34,6 +34,7 @@ from torchgems.train_spatial_master import (
 )
 import torchgems.comm as gems_comm
 from models import resnet
+from torchgems.utils import get_depth
 
 # Example of GEMS + SPATIAL split_size = 2, spatial_size = 1, num_spatial_parts = 4
 #
@@ -85,7 +86,7 @@ class Unbuffered(object):
         return getattr(self.stream, attr)
 
 
-def init_processes(backend="tcp"):
+def init_processes(backend="mpi"):
     """Initialize the distributed environment."""
     dist.init_process_group(backend)
     size = dist.get_world_size()
@@ -135,14 +136,6 @@ These values will then be used to calculate the output shape for a given input s
 """
 image_size_seq = 32
 resnet_n = 12
-
-
-def get_depth(version, n):
-    if version == 1:
-        return n * 6 + 2
-    elif version == 2:
-        return n * 9 + 2
-
 
 ###############################################################################
 
