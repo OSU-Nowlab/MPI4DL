@@ -23,6 +23,7 @@ import torch.distributed as dist
 from collections import OrderedDict
 import time
 from torch.nn.parallel import DistributedDataParallel as DDP
+import logging
 
 
 class model_generator:
@@ -53,9 +54,10 @@ class model_generator:
                 end_layer = len(self.model)
         else:
             num_layers = len(self.model)
+            # print(f"NUM LAYERS : {num_layers}")
             assert sum(self.balance) == len(
                 self.model
-            ), "balance and number of layers differs"
+            ), f"balance and number of layers differs, {sum(self.balance)} != {len(self.model)}"
 
             if split_rank == 0:
                 start_layer = 0
@@ -82,12 +84,57 @@ class model_generator:
 
         return nn.Sequential(layers)
 
-    def ready_model(self, split_rank, GET_SHAPES_ON_CUDA=False):
+    def load_checkpoint(self, checkpoint_path=None):
+        logging.info(f"Found Checkpoint path: {checkpoint_path}")
+        checkpoint = torch.load(checkpoint_path)
+
+        # load required layers from entire model
+        model_state_dist_split_layer = {}
+
+        for name, _ in self.models.named_parameters():
+            model_state_dist_split_layer[name] = checkpoint["model_state_dict"][name]
+            if ".bias" in name and ".batch" in name:
+                l_name = ".".join(name.split(".")[:-1])
+                running_mean = l_name + ".running_mean"
+                running_var = l_name + ".running_var"
+                model_state_dist_split_layer[running_mean] = checkpoint[
+                    "model_state_dict"
+                ][running_mean]
+                model_state_dist_split_layer[running_var] = checkpoint[
+                    "model_state_dict"
+                ][running_var]
+
+        self.models.load_state_dict(model_state_dist_split_layer)
+
+    def ready_model(
+        self,
+        split_rank,
+        GET_SHAPES_ON_CUDA=False,
+        eval_mode=False,
+        checkpoint_path=None,
+        precision="fp_32",
+    ):
         if self.shape_list == None:
             self.get_output_shapes(GET_SHAPES_ON_CUDA)
-        temp_model = self.get_model(split_rank=split_rank)
+        self.models = self.get_model(split_rank=split_rank)
         t = time.time()
-        self.models = temp_model.to("cuda:0")
+
+        # Training mode
+        if eval_mode == False:
+            self.models = self.models.to("cuda")
+            return
+
+        # Inference mode
+        logging.info(f"Inference Mode with precision : {precision}")
+        if checkpoint_path is not None:
+            self.load_checkpoint(checkpoint_path)
+
+        if precision == "fp_16":
+            self.models.half()
+        elif precision == "bfp_16":
+            self.models = self.models.to(dtype=torch.bfloat16)
+        self.models.eval()
+        self.models.to("cuda")
 
     def DDP_model(
         self, mpi_comm, num_spatial_parts, spatial_size, bucket_size=25, local_rank=None
@@ -126,17 +173,18 @@ class model_generator:
     def get_output_shapes(self, GET_SHAPES_ON_CUDA):
         self.shape_list = []
 
-        temp_dev = "cuda:0" if GET_SHAPES_ON_CUDA else "cpu"
+        temp_dev = "cuda" if GET_SHAPES_ON_CUDA else "cpu"
 
         orig_input_size = self.input_size
         input_size = list(self.input_size)
         input_size[0] = 1
+
         temp = torch.zeros(input_size, device=temp_dev)
         for i in range(self.split_size):
             model_x = self.get_model(split_rank=i)
 
             if GET_SHAPES_ON_CUDA:
-                model_x = model_x.to("cuda:0")
+                model_x = model_x.to("cuda")
             y = model_x(temp)
 
             if isinstance(y, tuple):
@@ -175,6 +223,8 @@ class train_model:
         local_rank,
         batch_size,
         epochs,
+        precision,
+        eval_mode,
         criterion=None,
         optimizer=None,
         parts=1,
@@ -188,6 +238,7 @@ class train_model:
         self.parts = parts
         self.epochs = epochs
         self.local_rank = local_rank
+        self.precision = precision
         self.ENABLE_ASYNC = ASYNC
         self.GEMS_INVERSE = GEMS_INVERSE
         self.batch_size = batch_size
@@ -227,7 +278,7 @@ class train_model:
         else:
             self.criterion = criterion
 
-        if optimizer == None:
+        if not eval_mode and optimizer == None:
             # self.optimizer = optim.SGD(self.models.parameters(), lr=0.000000001, momentum=0.9)
             self.optimizer = optim.SGD(self.models.parameters(), lr=0.001, momentum=0.9)
         else:
@@ -249,6 +300,11 @@ class train_model:
 
     def initialize_recv_buffers(self):
         self.input_x_list = []
+        datatype = torch.float32
+        if self.precision == "fp_16":
+            datatype = torch.float16
+        elif self.precision == "bfp_16":
+            datatype = torch.bfloat16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to
@@ -263,6 +319,7 @@ class train_model:
                             self.shape_list[self.split_rank - 1][i],
                             requires_grad=True,
                             device="cuda",
+                            dtype=datatype,
                         )
                         input_x.append(one_input)
                     input_x = tuple(input_x)
@@ -271,6 +328,7 @@ class train_model:
                         self.shape_list[self.split_rank - 1],
                         requires_grad=True,
                         device="cuda",
+                        dtype=datatype,
                     )
 
             self.input_x_list.append(input_x)
@@ -464,6 +522,10 @@ class train_model:
                 self.send_input_sync(y)
 
         else:
+            if (
+                y.dtype != torch.float32
+            ):  # converting to float32 to avoid RuntimeError: "nll_loss_forward_reduce_cuda_kernel_2d_index" not implemented for 'Half'
+                y = y.to(dtype=torch.float32)
             loss = self.criterion(y, data_y)
 
         if self.split_rank == self.split_size - 1:
@@ -506,9 +568,9 @@ class train_model:
                     self.input_x_list[part_number].detach().requires_grad_()
                 )
 
-    def run_step(self, data_x, data_y):
-        data_x = data_x.to("cuda:0")
-        data_y = data_y.to("cuda:0")
+    def run_step(self, data_x, data_y, eval_mode=False):
+        data_x = data_x.to("cuda")
+        data_y = data_y.to("cuda")
 
         parts_size = int(self.batch_size / self.parts)
 
@@ -527,9 +589,10 @@ class train_model:
                 loss += temp_y.item()
                 corrects += temp_correct.item()
 
-        for i in range(self.parts):
-            None
-            self.backward_pass(y_list[i], part_number=i)
+        if eval_mode == False:
+            for i in range(self.parts):
+                None
+                self.backward_pass(y_list[i], part_number=i)
 
         return loss, corrects
 

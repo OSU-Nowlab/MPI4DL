@@ -22,6 +22,11 @@ import os
 import math
 import numpy as np
 
+from torchgems import parser
+
+parser_obj = parser.get_parser()
+args = parser_obj.parse_args()
+
 
 def env2int(env_list, default=-1):
     for e in env_list:
@@ -29,6 +34,36 @@ def env2int(env_list, default=-1):
         if val >= 0:
             return val
     return default
+
+
+def mpi_discovery(distributed_port=29500, verbose=True):
+    """
+    Discovery MPI environment via mpi4py and map to relevant dist state
+    """
+    from mpi4py import MPI
+    import subprocess
+
+    comm = MPI.COMM_WORLD
+    rank = comm.Get_rank()
+    world_size = comm.Get_size()
+
+    master_addr = None
+    if rank == 0:
+        hostname_cmd = ["hostname -I"]
+        result = subprocess.check_output(hostname_cmd, shell=True)
+        master_addr = result.decode("utf-8").split()[0]
+    master_addr = comm.bcast(master_addr, root=0)
+
+    # Determine local rank by assuming hostnames are unique
+    proc_name = MPI.Get_processor_name()
+    all_procs = comm.allgather(proc_name)
+    local_rank = sum([i == proc_name for i in all_procs[:rank]])
+
+    os.environ["RANK"] = str(rank)
+    os.environ["WORLD_SIZE"] = str(world_size)
+    os.environ["LOCAL_RANK"] = str(local_rank)
+    os.environ["MASTER_ADDR"] = master_addr
+    os.environ["MASTER_PORT"] = str(distributed_port)
 
 
 def initialize_cuda():
@@ -45,6 +80,7 @@ class MPIComm:
     def __init__(
         self,
         split_size,
+        backend="mpi",
         ENABLE_MASTER=False,
         ENABLE_SPATIAL=False,
         num_spatial_parts=None,
@@ -70,7 +106,7 @@ class MPIComm:
             self.rank = dist.get_rank()
             self.size = dist.get_world_size()
         else:
-            self.size, self.rank = self.init_comm(backend="mpi")
+            self.size, self.rank = self.init_comm(backend=backend)
 
         self.local_rank = self.rank % self.mp_size
 
@@ -134,7 +170,8 @@ class MPIComm:
             self.LOCAL_DP_MP_Comm = None
 
         self.allreduce_grp = self.create_allreduce_comm()
-        self.test_allreduce_comm(self.allreduce_grp)
+        if not args.enable_evaluation:
+            self.test_allreduce_comm(self.allreduce_grp)
 
     def get_split_rank(self, num_spatial_parts_list, local_rank):
         if isinstance(num_spatial_parts_list, list):
@@ -151,8 +188,13 @@ class MPIComm:
         else:
             return math.floor(local_rank / num_spatial_parts_list)
 
-    def init_comm(self, backend="mpi"):
+    def init_comm(self, backend):
         """Initialize the distributed environment."""
+        initialize_cuda()
+        if backend == "nccl":
+            mpi_discovery()
+        # if backend == "mpi":
+        #     initialize_cuda()
         dist.init_process_group(backend)
         size = dist.get_world_size()
         rank = dist.get_rank()
@@ -372,10 +414,15 @@ class SyncAllreduce:
             )
 
     def sync_model_spatial(self, model_gen):
-        if self.local_rank < self.spatial_size * self.num_spatial_parts:
+        if isinstance(self.num_spatial_parts, list):
+            spatial_parts = self.num_spatial_parts[0]
+        else:
+            spatial_parts = self.num_spatial_parts
+
+        if self.local_rank < self.spatial_size * spatial_parts:
             self.sync_broadcast(
                 model_gen.models,
-                src=math.floor(self.local_rank / self.num_spatial_parts),
+                src=math.floor(self.local_rank / spatial_parts),
                 grp_comm=self.spatial_allreduce_grp,
             )
 

@@ -1,0 +1,5642 @@
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+Traceback (most recent call last):
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/examples/../benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 139, in <module>
+    mpi_comm = gems_comm.MPIComm(
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 172, in __init__
+    self.allreduce_grp = self.create_allreduce_comm()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 342, in create_allreduce_comm
+    return self.create_allreduce_comm_basic()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 209, in create_allreduce_comm_basic
+Traceback (most recent call last):
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/examples/../benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 139, in <module>
+    allreduce_grp = torch.distributed.new_group(ranks=ranks)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 3335, in new_group
+    mpi_comm = gems_comm.MPIComm(
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 172, in __init__
+    pg = _new_process_group_helper(
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 897, in _new_process_group_helper
+    pg = ProcessGroupNCCL(prefix_store, group_rank, group_size, pg_options)
+TypeError: __init__(): incompatible constructor arguments. The following argument types are supported:
+    1. torch._C._distributed_c10d.ProcessGroupNCCL(arg0: torch._C._distributed_c10d.Store, arg1: int, arg2: int, arg3: c10d::ProcessGroupNCCL::Options)
+    2. torch._C._distributed_c10d.ProcessGroupNCCL(store: torch._C._distributed_c10d.Store, rank: int, size: int, timeout: datetime.timedelta = datetime.timedelta(seconds=1800))
+
+Invoked with: <torch.distributed.distributed_c10d.PrefixStore object at 0x14b891010bb0>, None, 0, <torch._C._distributed_c10d.ProcessGroupNCCL.Options object at 0x14b891010cb0>
+    self.allreduce_grp = self.create_allreduce_comm()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 342, in create_allreduce_comm
+    return self.create_allreduce_comm_basic()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 209, in create_allreduce_comm_basic
+    allreduce_grp = torch.distributed.new_group(ranks=ranks)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 3335, in new_group
+    pg = _new_process_group_helper(
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 897, in _new_process_group_helper
+    pg = ProcessGroupNCCL(prefix_store, group_rank, group_size, pg_options)
+TypeError: __init__(): incompatible constructor arguments. The following argument types are supported:
+    1. torch._C._distributed_c10d.ProcessGroupNCCL(arg0: torch._C._distributed_c10d.Store, arg1: int, arg2: int, arg3: c10d::ProcessGroupNCCL::Options)
+    2. torch._C._distributed_c10d.ProcessGroupNCCL(store: torch._C._distributed_c10d.Store, rank: int, size: int, timeout: datetime.timedelta = datetime.timedelta(seconds=1800))
+
+Invoked with: <torch.distributed.distributed_c10d.PrefixStore object at 0x14e360282df0>, None, 0, <torch._C._distributed_c10d.ProcessGroupNCCL.Options object at 0x14e360282fb0>
+[a100-04.cluster:mpispawn_1][child_handler] MPI process (rank: 1, pid: 924946) exited with status 1
+[a100-03.cluster:mpispawn_0][child_handler] MPI process (rank: 0, pid: 3273023) exited with status 1
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+Traceback (most recent call last):
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/examples/../benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 139, in <module>
+    mpi_comm = gems_comm.MPIComm(
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 172, in __init__
+    self.allreduce_grp = self.create_allreduce_comm()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 342, in create_allreduce_comm
+    return self.create_allreduce_comm_basic()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 209, in create_allreduce_comm_basic
+    allreduce_grp = torch.distributed.new_group(ranks=ranks)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 3335, in new_group
+    pg = _new_process_group_helper(
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 897, in _new_process_group_helper
+    pg = ProcessGroupNCCL(prefix_store, group_rank, group_size, pg_options)
+TypeError: __init__(): incompatible constructor arguments. The following argument types are supported:
+    1. torch._C._distributed_c10d.ProcessGroupNCCL(arg0: torch._C._distributed_c10d.Store, arg1: int, arg2: int, arg3: c10d::ProcessGroupNCCL::Options)
+    2. torch._C._distributed_c10d.ProcessGroupNCCL(store: torch._C._distributed_c10d.Store, rank: int, size: int, timeout: datetime.timedelta = datetime.timedelta(seconds=1800))
+
+Invoked with: <torch.distributed.distributed_c10d.PrefixStore object at 0x145eee50eeb0>, None, 0, <torch._C._distributed_c10d.ProcessGroupNCCL.Options object at 0x145eee50ee70>
+Traceback (most recent call last):
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/examples/../benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 139, in <module>
+    mpi_comm = gems_comm.MPIComm(
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 172, in __init__
+    self.allreduce_grp = self.create_allreduce_comm()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 342, in create_allreduce_comm
+    return self.create_allreduce_comm_basic()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/comm.py", line 209, in create_allreduce_comm_basic
+    allreduce_grp = torch.distributed.new_group(ranks=ranks)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 3335, in new_group
+    pg = _new_process_group_helper(
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py", line 897, in _new_process_group_helper
+    pg = ProcessGroupNCCL(prefix_store, group_rank, group_size, pg_options)
+TypeError: __init__(): incompatible constructor arguments. The following argument types are supported:
+    1. torch._C._distributed_c10d.ProcessGroupNCCL(arg0: torch._C._distributed_c10d.Store, arg1: int, arg2: int, arg3: c10d::ProcessGroupNCCL::Options)
+    2. torch._C._distributed_c10d.ProcessGroupNCCL(store: torch._C._distributed_c10d.Store, rank: int, size: int, timeout: datetime.timedelta = datetime.timedelta(seconds=1800))
+
+Invoked with: <torch.distributed.distributed_c10d.PrefixStore object at 0x14fad1112b70>, None, 0, <torch._C._distributed_c10d.ProcessGroupNCCL.Options object at 0x14fad1112c70>
+[a100-03.cluster:mpispawn_0][child_handler] MPI process (rank: 0, pid: 3273371) exited with status 1
+[a100-04.cluster:mpispawn_1][child_handler] MPI process (rank: 1, pid: 925311) exited with status 1
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x14f476000000, count=67108864, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffeffb6c9bc) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[cli_0]: aborting job:
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x14f476000000, count=67108864, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffeffb6c9bc) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[a100-03.cluster:mpispawn_0][mtpmi_processops] parse_str() failed with error code -105
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x14cfd8000000, count=67108864, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffc7cbbe92c) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[cli_1]: aborting job:
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x14cfd8000000, count=67108864, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffc7cbbe92c) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[a100-04.cluster:mpispawn_1][mtpmi_processops] parse_str() failed with error code -105
+[a100-03.cluster:mpirun_rsh][process_mpispawn_connection] mpispawn_0 from node a100-03 aborted: MPISPAWN internal error (6)
+usage: benchmark_resnet_sp.py [-h] [-v] [--batch-size BATCH_SIZE]
+                              [--parts PARTS] [--split-size SPLIT_SIZE]
+                              [--num-spatial-parts NUM_SPATIAL_PARTS]
+                              [--spatial-size SPATIAL_SIZE] [--times TIMES]
+                              [--image-size IMAGE_SIZE]
+                              [--num-epochs NUM_EPOCHS]
+                              [--num-layers NUM_LAYERS]
+                              [--num-filters NUM_FILTERS]
+                              [--num-classes NUM_CLASSES] [--balance BALANCE]
+                              [--halo-D2] [--fused-layers FUSED_LAYERS]
+                              [--local-DP LOCAL_DP]
+                              [--slice-method SLICE_METHOD] [--app APP]
+                              [--datapath DATAPATH] [--enable-master-comm-opt]
+                              [--enable-evaluation] [--backend BACKEND]
+                              [--precision PRECISION]
+                              [--num-workers NUM_WORKERS]
+                              [--optimizer OPTIMIZER]
+                              [--learning-rate LEARNING_RATE]
+                              [--weight-decay WEIGHT_DECAY]
+                              [--learning-rate-decay LEARNING_RATE_DECAY]
+                              [--checkpoint CHECKPOINT]
+benchmark_resnet_sp.py: error: argument --slice-method: expected one argument
+usage: benchmark_resnet_sp.py [-h] [-v] [--batch-size BATCH_SIZE]
+                              [--parts PARTS] [--split-size SPLIT_SIZE]
+                              [--num-spatial-parts NUM_SPATIAL_PARTS]
+                              [--spatial-size SPATIAL_SIZE] [--times TIMES]
+                              [--image-size IMAGE_SIZE]
+                              [--num-epochs NUM_EPOCHS]
+                              [--num-layers NUM_LAYERS]
+                              [--num-filters NUM_FILTERS]
+                              [--num-classes NUM_CLASSES] [--balance BALANCE]
+                              [--halo-D2] [--fused-layers FUSED_LAYERS]
+                              [--local-DP LOCAL_DP]
+                              [--slice-method SLICE_METHOD] [--app APP]
+                              [--datapath DATAPATH] [--enable-master-comm-opt]
+                              [--enable-evaluation] [--backend BACKEND]
+                              [--precision PRECISION]
+                              [--num-workers NUM_WORKERS]
+                              [--optimizer OPTIMIZER]
+                              [--learning-rate LEARNING_RATE]
+                              [--weight-decay WEIGHT_DECAY]
+                              [--learning-rate-decay LEARNING_RATE_DECAY]
+                              [--checkpoint CHECKPOINT]
+benchmark_resnet_sp.py: error: argument --slice-method: expected one argument
+[a100-04.cluster:mpispawn_1][child_handler] MPI process (rank: 1, pid: 926256) exited with status 2
+[a100-03.cluster:mpispawn_0][child_handler] MPI process (rank: 0, pid: 3274120) exited with status 2
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+INFO:root:Shape of model on local_rank 1 : [(1, 256, 512, 256), (1, 10)]
+INFO:root:Shape of model on local_rank 0 : [(1, 256, 512, 256), (1, 10)]
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 1 sending to 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+Traceback (most recent call last):
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 452, in <module>
+    run_epoch()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 422, in run_epoch
+    local_loss, local_correct = t_s.run_step(x, labels, eval_mode=EVAL_MODE)
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/mp_pipeline.py", line 583, in run_step
+    temp_y, temp_correct = self.forward_pass(
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/train_spatial.py", line 1333, in forward_pass
+Traceback (most recent call last):
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 452, in <module>
+    run_epoch()
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/spatial_parallelism/benchmark_resnet_sp.py", line 422, in run_epoch
+    local_loss, local_correct = t_s.run_step(x, labels, eval_mode=EVAL_MODE)
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/mp_pipeline.py", line 583, in run_step
+    temp_y, temp_correct = self.forward_pass(
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/torchgems/train_spatial.py", line 1333, in forward_pass
+    y = self.models(input_x)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/container.py", line 204, in forward
+    input = module(input)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py", line 440, in forward
+    y = self.models(input_x)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    y = self.r2(y)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py", line 176, in forward
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/container.py", line 204, in forward
+    x = self.act(x)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/activation.py", line 102, in forward
+    input = module(input)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return F.relu(input, inplace=self.inplace)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/functional.py", line 1457, in relu
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py", line 440, in forward
+    result = torch.relu(input)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 128.00 MiB (GPU 0; 39.39 GiB total capacity; 37.53 GiB already allocated; 54.88 MiB free; 38.08 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+    y = self.r2(y)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py", line 176, in forward
+    x = self.act(x)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1194, in _call_impl
+    return forward_call(*input, **kwargs)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/modules/activation.py", line 102, in forward
+    return F.relu(input, inplace=self.inplace)
+  File "/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/nn/functional.py", line 1457, in relu
+    result = torch.relu(input)
+torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 128.00 MiB (GPU 0; 39.39 GiB total capacity; 37.53 GiB already allocated; 56.88 MiB free; 38.07 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+[1] Failed to dealloc pd (Device or resource busy)
+[0] Failed to dealloc pd (Device or resource busy)
+[a100-03.cluster:mpispawn_0][child_handler] MPI process (rank: 0, pid: 3274446) exited with status 1
+[a100-04.cluster:mpispawn_1][child_handler] MPI process (rank: 1, pid: 926563) exited with status 1
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+INFO:root:Shape of model on local_rank 1 : [(1, 256, 256, 128), (1, 10)]
+INFO:root:Shape of model on local_rank 0 : [(1, 256, 256, 128), (1, 10)]
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x1460f8000000, count=8388608, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffc4baa477c) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[cli_0]: aborting job:
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x1460f8000000, count=8388608, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffc4baa477c) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x146e1a000000, count=8388608, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffc7df32f4c) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[cli_1]: aborting job:
+Fatal error in PMPI_Isend:
+Invalid rank, error stack:
+PMPI_Isend(160): MPI_Isend(buf=0x146e1a000000, count=8388608, MPI_FLOAT, dest=2, tag=0, MPI_COMM_WORLD, request=0x7ffc7df32f4c) failed
+PMPI_Isend(108): Invalid rank has value 2 but must be nonnegative and less than 2
+
+[a100-04.cluster:mpispawn_1][mtpmi_processops] parse_str() failed with error code -105
+[a100-03.cluster:mpispawn_0][mtpmi_processops] parse_str() failed with error code -105
+[a100-03.cluster:mpirun_rsh][process_mpispawn_connection] mpispawn_0 from node a100-03 aborted: MPISPAWN internal error (6)
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+/home/gulhane.2/miniconda3/envs/PyTorch_1.13_n/lib/python3.9/site-packages/torch/distributed/distributed_c10d.py:262: UserWarning: torch.distributed.reduce_op is deprecated, please use torch.distributed.ReduceOp instead
+  warnings.warn(
+[a100-05.cluster:mpi_rank_2][dreg_register] [Performance Impact Warning]: Entries are being evicted from the InfiniBand registration cache. This can lead to degraded performance. Consider increasing MV2_NDREG_ENTRIES_MAX (current value: 16384) and MV2_NDREG_ENTRIES (current value: 8198)
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+INFO:root:Shape of model on local_rank 0 : [(1, 256, 256, 128), (1, 10)]
+INFO:root:Shape of model on local_rank 1 : [(1, 256, 256, 128), (1, 10)]
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+INFO:root:Shape of model on local_rank 2 : [(1, 256, 256, 128), (1, 10)]
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py:540: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+INFO:root:Step :0, LOSS: 2.294255495071411, Global loss: 2.294255495071411 Acc: 0.0 [    0/   10]
+Epoch: 0 images per sec:0.11881098054795067
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :1, LOSS: 2.4389564990997314, Global loss: 2.3666059970855713 Acc: 0.0 [    1/   10]
+Epoch: 0 images per sec:0.18089124267337472
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1local rank : 1 receiving from 0
+
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :2, LOSS: 2.4601402282714844, Global loss: 2.3977840741475425 Acc: 0.0 [    2/   10]
+Epoch: 0 images per sec:0.165984923576424
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :3, LOSS: 2.4610843658447266, Global loss: 2.4136091470718384 Acc: 0.0 [    3/   10]
+Epoch: 0 images per sec:0.16703390200982238
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :4, LOSS: 2.4611456394195557, Global loss: 2.423116445541382 Acc: 0.0 [    4/   10]
+Epoch: 0 images per sec:0.16695830020798047
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0end halo exchange on rank 0
+
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :5, LOSS: 2.4611496925354004, Global loss: 2.429455320040385 Acc: 0.0 [    5/   10]
+Epoch: 0 images per sec:0.16567480204368928
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0end halo exchange on rank 0
+
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :6, LOSS: 2.4611501693725586, Global loss: 2.433983155659267 Acc: 0.0 [    6/   10]
+Epoch: 0 images per sec:0.16594075688107215
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :7, LOSS: 2.4611501693725586, Global loss: 2.4373790323734283 Acc: 0.0 [    7/   10]
+Epoch: 0 images per sec:0.16715228977416485
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+INFO:root:Step :8, LOSS: 2.4611501693725586, Global loss: 2.440020269817776 Acc: 0.0 [    8/   10]
+Epoch: 0 images per sec:0.16624021613825601
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 1 sending to 0
+end halo exchange on rank 1
+local rank : 0 receiving from 1
+end halo exchange on rank 0
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 1 receiving from 0
+local rank : 0 sending to 1
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0end halo exchange on rank 0
+
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+local rank : 0 sending to 1
+local rank : 1 receiving from 0
+local rank : 0 receiving from 1
+local rank : 1 sending to 0
+end halo exchange on rank 0
+end halo exchange on rank 1
+Epoch 0 Global loss: 2.7134813997480602 Acc 0.0
+INFO:root:Step :9, LOSS: 2.4611501693725586, Global loss: 2.4421332597732546 Acc: 0.0 [    9/   10]
+Epoch: 0 images per sec:0.1665360724614064
+Mean 0.16312234863141412 Median 0.1663881442998312
+[0] Failed to dealloc pd (Device or resource busy)
+[1] Failed to dealloc pd (Device or resource busy)
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+images per sec:0.6310524648638123
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py:540: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+images per sec:1.076709364834793
+images per sec:13.958071474842043
+images per sec:13.093283149340564
+images per sec:12.940601403471566
+images per sec:12.340930637156848
+images per sec:13.111037600705727
+images per sec:12.65698716929213
+images per sec:12.986203644780486
+images per sec:12.932204001887262
+Mean 10.572708091117523 Median 12.936402702679414
+Evaluation Result => Global loss: 2.5462239583333335 Acc 0.3333333333333333
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] All nodes involved in the job were detected to be homogeneous in terms of processors and interconnects. Setting MV2_HOMOGENEOUS_CLUSTER=1 can improve job startup performance on such systems. The following link has more details on enhancing job startup performance. http://mvapich.cse.ohio-state.edu/performance/job-startup/.
+[a100-03.cluster:mpi_rank_0][rdma_param_handle_heterogeneity] To suppress this warning, please set MV2_SUPPRESS_JOB_STARTUP_PERFORMANCE_WARNING to 1
+[a100-03.cluster:mpi_rank_0][MPID_Init] [Performance Suggestion]: Application has requested for multi-thread capability. If allocating memory from different pthreads/OpenMP threads, please consider setting MV2_USE_ALIGNED_ALLOC=1 for improved performance.
+Use MV2_USE_THREAD_WARNING=0 to suppress this error message.
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet.py:265: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+images per sec:0.45364859843515604
+/home/gulhane.2/github_torch_gems/MPI4DL/src/models/resnet_spatial.py:540: UserWarning: Implicit dimension choice for softmax has been deprecated. Change the call to include dim=X as an argument.
+  x = F.softmax(self.fc1(x))
+images per sec:0.9086686008411395
+images per sec:12.565137457074322
+images per sec:13.122841114324164
+images per sec:13.284034409249042
+images per sec:13.05931540819278
+images per sec:13.326816608943767
+images per sec:12.003571252934108
+images per sec:13.37665260168198
+images per sec:13.297781139738504
+Mean 10.539846719141497 Median 13.091078261258472
+Evaluation Result => Global loss: 2.552517361111111 Acc 0.2222222222222222

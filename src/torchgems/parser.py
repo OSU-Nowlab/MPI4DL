@@ -134,10 +134,67 @@ def get_parser():
     )
 
     parser.add_argument(
+        "--enable-evaluation",
+        dest="enable_evaluation",
+        action="store_true",
+        default=False,
+        help="Enable evaluation mode in GEMS to perform inference ",
+    )
+
+    parser.add_argument(
+        "--backend",
+        type=str,
+        default="mpi",
+        help="Precision for evaluation [Note: not tested on training]",
+    )
+
+    parser.add_argument(
+        "--precision",
+        type=str,
+        default="fp32",
+        help="Precision for evaluation [Note: not tested on training]",
+    )
+
+    parser.add_argument(
         "--num-workers",
         type=int,
         default=0,
         help="Slice method (square, vertical, and horizontal) in Spatial parallelism",
+    )
+
+    parser.add_argument(
+        "--optimizer",
+        type=str,
+        default="adam",
+        help="Optimizer",
+    )
+
+    parser.add_argument(
+        "--learning-rate",
+        type=float,
+        default=0.001,
+        help="Learning Rate",
+    )
+
+    parser.add_argument(
+        "--weight-decay",
+        type=float,
+        default=1e-4,
+        help="Weight Decay",
+    )
+
+    parser.add_argument(
+        "--learning-rate-decay",
+        type=float,
+        default=0.85,
+        help="Learning Rate Decay",
+    )
+
+    parser.add_argument(
+        "--checkpoint",
+        type=str,
+        default="./checkpoint.pth",
+        help="Checkpoint path",
     )
 
     return parser

@@ -28,7 +28,7 @@ import time
 from torchgems.mp_pipeline import model_generator, train_model
 from models import resnet
 import torchgems.comm as gems_comm
-from torchgems.utils import get_depth
+from torchgems.utils import get_depth, verify_quant_support
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -74,6 +74,11 @@ num_workers = args.num_workers
 # 3: synthetic
 APP = args.app
 num_classes = args.num_classes
+precision = str(args.precision)
+backend = args.backend
+EVAL_MODE = args.enable_evaluation
+CHECKPOINT = None
+
 ################## ResNet model specific parameters/functions ##################
 
 image_size_seq = 32
@@ -81,7 +86,9 @@ resnet_n = 12
 
 ###############################################################################
 
-mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False)
+verify_quant_support(precision)
+
+mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False, backend=backend)
 rank = mpi_comm.rank
 
 local_rank = rank % mp_size
@@ -161,7 +168,13 @@ model_gen = model_generator(
 )
 
 # Move model it it's repective devices
-model_gen.ready_model(split_rank=local_rank, GET_SHAPES_ON_CUDA=True)
+model_gen.ready_model(
+    split_rank=local_rank,
+    GET_SHAPES_ON_CUDA=True,
+    eval_mode=EVAL_MODE,
+    checkpoint_path=CHECKPOINT,
+    precision=precision,
+)
 
 tm = train_model(
     model_gen,
@@ -172,6 +185,8 @@ tm = train_model(
     optimizer=None,
     parts=parts,
     ASYNC=ENABLE_ASYNC,
+    precision=precision,
+    eval_mode=EVAL_MODE,
 )
 
 ############################## Dataset Definition ##############################
@@ -247,7 +262,7 @@ def run_epoch():
 
             inputs, labels = data
 
-            local_loss, local_correct = tm.run_step(inputs, labels)
+            local_loss, local_correct = tm.run_step(inputs, labels, eval_mode=False)
             loss += local_loss
             correct += local_correct
             tm.update()
@@ -271,7 +286,57 @@ def run_epoch():
             print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
 
 
-run_epoch()
+def run_eval():
+    for i_e in range(epochs):
+        loss = 0
+        correct = 0
+        size = len(my_dataloader.dataset)
+        t = time.time()
+        with torch.no_grad():
+            for batch, data in enumerate(my_dataloader, 0):
+                start_event = torch.cuda.Event(enable_timing=True, blocking=True)
+                end_event = torch.cuda.Event(enable_timing=True, blocking=True)
+                start_event.record()
+
+                if batch > math.floor(size_dataset / (times * batch_size)) - 1:
+                    break
+
+                inputs, labels = data
+
+                if precision == "fp_16":
+                    inputs = inputs.half()
+                elif precision == "bfp_16":
+                    inputs = inputs.to(torch.bfloat16)
+
+                local_loss, local_correct = tm.run_step(
+                    inputs, labels, eval_mode=EVAL_MODE
+                )
+                loss += local_loss
+                correct += local_correct
+
+                end_event.record()
+                torch.cuda.synchronize()
+                t = start_event.elapsed_time(end_event) / 1000
+
+                if local_rank == mp_size - 1:
+                    logging.info(
+                        f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct}  [{batch * len(inputs):>5d}/{size:>5d}]"
+                    )
+
+                if local_rank == 0:
+                    print(f"Epoch: {i_e} images per sec:{batch_size / t}")
+                    perf.append(batch_size / t)
+
+                t = time.time()
+
+            if local_rank == mp_size - 1:
+                print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
+
+
+if EVAL_MODE == True:
+    run_eval()
+else:
+    run_epoch()
 
 if local_rank == 0:
     print(f"Mean {sum(perf) / len(perf)} Median {np.median(perf)}")

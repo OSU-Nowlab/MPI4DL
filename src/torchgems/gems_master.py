@@ -28,6 +28,8 @@ class train_model_master:
         local_rank,
         batch_size,
         epochs,
+        precision,
+        eval_mode,
         criterion=None,
         optimizer=None,
         parts=1,
@@ -43,6 +45,8 @@ class train_model_master:
             local_rank,
             batch_size,
             epochs,
+            precision,
+            eval_mode=eval_mode,
             criterion=None,
             optimizer=None,
             parts=parts,
@@ -54,6 +58,8 @@ class train_model_master:
             self.second_rank,
             batch_size,
             epochs,
+            precision,
+            eval_mode=eval_mode,
             criterion=None,
             optimizer=None,
             parts=parts,
@@ -69,16 +75,17 @@ class train_model_master:
 
         self.replications = replications
 
-    def run_step(self, inputs, labels):
+    def run_step(self, inputs, labels, eval_mode):
         loss, correct = 0, 0
         temp_loss, temp_correct = self.train_model1.run_step(
-            inputs[: self.batch_size], labels[: self.batch_size]
+            inputs[: self.batch_size], labels[: self.batch_size], eval_mode
         )
         loss += temp_loss
         correct += temp_correct
         temp_loss, temp_correct = self.train_model2.run_step(
             inputs[self.batch_size : 2 * self.batch_size],
             labels[self.batch_size : 2 * self.batch_size],
+            eval_mode,
         )
         loss += temp_loss
         correct += temp_correct
@@ -89,6 +96,7 @@ class train_model_master:
             temp_loss, temp_correct = self.train_model1.run_step(
                 inputs[index * self.batch_size : (index + 1) * self.batch_size],
                 labels[index * self.batch_size : (index + 1) * self.batch_size],
+                eval_mode,
             )
             loss += temp_loss
             correct += temp_correct
@@ -96,6 +104,7 @@ class train_model_master:
             temp_loss, temp_correct = self.train_model2.run_step(
                 inputs[(index + 1) * self.batch_size : (index + 2) * self.batch_size],
                 labels[(index + 1) * self.batch_size : (index + 2) * self.batch_size],
+                eval_mode,
             )
 
             loss += temp_loss

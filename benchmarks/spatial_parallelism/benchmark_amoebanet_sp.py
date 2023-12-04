@@ -100,6 +100,8 @@ LOCAL_DP_LP = args.local_DP
 # 3: synthetic
 APP = args.app
 num_classes = args.num_classes
+backend = args.backend
+EVAL_MODE = args.enable_evaluation
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
@@ -133,6 +135,7 @@ mpi_comm = gems_comm.MPIComm(
     num_spatial_parts=num_spatial_parts,
     spatial_size=spatial_size,
     LOCAL_DP_LP=LOCAL_DP_LP,
+    backend=backend,
 )
 sync_allreduce = gems_comm.SyncAllreduce(mpi_comm)
 
@@ -149,7 +152,7 @@ if balance != None:
 else:
     balance = None
 
-
+print(f"At start : Rank : {local_rank} : {torch.cuda.mem_get_info()}")
 # Initialize AmoebaNet model
 model_seq = amoebanet.amoebanetd(
     num_layers=num_layers, num_filters=num_filters, num_classes=num_classes
@@ -181,7 +184,7 @@ amoebanet_shapes_list = get_shapes_spatial(
 del model_seq
 del model_gen_seq
 torch.cuda.ipc_collect()
-
+print(f"before model defin : Rank : {local_rank} : {torch.cuda.mem_get_info()}")
 # Initialize AmoebaNet model with Spatial and Model Parallelism support
 if args.halo_d2:
     model = amoebanet_d2.amoebanetd_spatial(
@@ -222,7 +225,7 @@ model_gen.ready_model(split_rank=split_rank)
 model_gen.DDP_model(mpi_comm, num_spatial_parts, spatial_size, bucket_size=0)
 
 logging.info(f"Shape of model on local_rank {local_rank} : {model_gen.shape_list}")
-
+print(f"After model alloc : Rank : {local_rank} : {torch.cuda.mem_get_info()}")
 
 # Initialize parameters require for training the model with Spatial and Model
 # Parallelism support
@@ -305,6 +308,8 @@ else:
     )
     size_dataset = 10 * batch_size
 
+
+print(f"After dataloader : Rank : {local_rank} : {torch.cuda.mem_get_info()}")
 ################################################################################
 
 ################################# Train Model ##################################
@@ -319,6 +324,7 @@ def run_epoch():
         size = len(my_dataloader.dataset)
         t = time.time()
         for batch, data in enumerate(my_dataloader, 0):
+            print(f"At batch {batch} Rank : {local_rank} : {torch.cuda.mem_get_info()}")
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
@@ -337,7 +343,7 @@ def run_epoch():
             else:
                 x = inputs
 
-            local_loss, local_correct = t_s.run_step(x, labels)
+            local_loss, local_correct = t_s.run_step(x, labels, eval_mode=EVAL_MODE)
             loss += local_loss
             correct += local_correct
 
