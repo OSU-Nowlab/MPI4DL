@@ -87,6 +87,13 @@ datapath = args.datapath
 num_workers = args.num_workers
 num_classes = args.num_classes
 
+EVAL_MODE = True
+CHECKPOINT = None
+if EVAL_MODE:
+    # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
+    CHECKPOINT = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
+
+
 ################## ResNet model specific parameters/functions ##################
 
 image_size_seq = 32
@@ -106,6 +113,10 @@ model = resnet.get_resnet_v2(
     (int(batch_size / parts), 3, image_size_seq, image_size_seq),
     depth=get_depth(2, resnet_n),
     num_classes=num_classes,
+)
+
+print(
+    f"SPLIT_RANK : {local_rank}, TOTAL Number of layers : {sum(1 for _ in model.parameters())}"
 )
 
 mul_shape = int(args.image_size / image_size_seq)
@@ -159,7 +170,9 @@ del model
 torch.cuda.ipc_collect()
 
 model = resnet.get_resnet_v2(
-    (int(batch_size / parts), 3, image_size, image_size), get_depth(2, resnet_n)
+    (int(batch_size / parts), 3, image_size, image_size),
+    get_depth(2, resnet_n),
+    num_classes=num_classes,
 )
 
 # GEMS Model 1
@@ -170,11 +183,15 @@ model_gen1 = model_generator(
     balance=None,
     shape_list=resnet_shapes_list,
 )
-model_gen1.ready_model(split_rank=local_rank)
+model_gen1.ready_model(
+    split_rank=local_rank, eval_mode=EVAL_MODE, checkpoint_path=CHECKPOINT
+)
 
 
 model = resnet.get_resnet_v2(
-    (int(batch_size / parts), 3, image_size, image_size), get_depth(2, resnet_n)
+    (int(batch_size / parts), 3, image_size, image_size),
+    get_depth(2, resnet_n),
+    num_classes=num_classes,
 )
 
 # GEMS Model 2
@@ -185,7 +202,9 @@ model_gen2 = model_generator(
     balance=None,
     shape_list=model_gen1.shape_list,
 )
-model_gen2.ready_model(split_rank=mp_size - local_rank - 1)
+model_gen2.ready_model(
+    split_rank=mp_size - local_rank - 1, eval_mode=EVAL_MODE, checkpoint_path=CHECKPOINT
+)
 
 
 tm_master = train_model_master(
@@ -211,19 +230,47 @@ transform = transforms.Compose(
 torch.manual_seed(0)
 
 if APP == 1:
-    trainset = torchvision.datasets.ImageFolder(
-        datapath,
-        transform=transform,
-        target_transform=None,
-    )
-    my_dataloader = torch.utils.data.DataLoader(
-        trainset,
-        batch_size=times * batch_size,
-        shuffle=True,
-        num_workers=num_workers,
-        pin_memory=True,
-    )
-    size_dataset = len(my_dataloader.dataset)
+    if EVAL_MODE:
+        transform = transforms.Compose(
+            [
+                transforms.Resize((image_size, image_size)),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ]
+        )
+        torch.manual_seed(0)
+
+        # testset = torchvision.datasets.ImageNet(
+        #         root="/home/gulhane.2/GEMS_Inference/datasets/ImageNet/", split='val', transform=transform
+        # )
+        testset = torchvision.datasets.ImageFolder(
+            root="/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/single_gpu/imagenette2-320/val",
+            transform=transform,
+            target_transform=None,
+        )
+
+        my_dataloader = torch.utils.data.DataLoader(
+            testset,
+            batch_size=times * batch_size,
+            shuffle=False,
+            num_workers=num_workers,
+            pin_memory=True,
+        )
+        size_dataset = len(my_dataloader.dataset)
+    else:
+        trainset = torchvision.datasets.ImageFolder(
+            datapath,
+            transform=transform,
+            target_transform=None,
+        )
+        my_dataloader = torch.utils.data.DataLoader(
+            trainset,
+            batch_size=times * batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=True,
+        )
+        size_dataset = len(my_dataloader.dataset)
 elif APP == 2:
     trainset = torchvision.datasets.CIFAR10(
         root=datapath, train=True, download=True, transform=transform
@@ -236,7 +283,7 @@ elif APP == 2:
         pin_memory=True,
     )
     size_dataset = len(my_dataloader.dataset)
-else:
+elif APP == 3:
     my_dataset = torchvision.datasets.FakeData(
         size=10 * batch_size,
         image_size=(3, image_size, image_size),
@@ -253,6 +300,23 @@ else:
         pin_memory=True,
     )
     size_dataset = 10 * batch_size
+else:
+    transform = transforms.Compose(
+        [
+            transforms.Resize((image_size, image_size)),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+        ]
+    )
+    # root="/home/gulhane.2/GEMS_Inference/datasets/ImageNet/",
+    my_dataset = torchvision.datasets.ImageNet(
+        root=datapath, split="train", transform=transform
+    )
+
+    my_dataloader = torch.utils.data.DataLoader(
+        my_dataset, batch_size=batch_size, shuffle=False
+    )
+    size_dataset = len(my_dataloader.dataset)
 
 
 ################################################################################
@@ -278,7 +342,9 @@ def run_epoch():
 
             inputs, labels = data
 
-            local_loss, local_correct = tm_master.run_step(inputs, labels)
+            local_loss, local_correct = tm_master.run_step(
+                inputs, labels, eval_mode=EVAL_MODE
+            )
             loss += local_loss
             correct += local_correct
             sync_allreduce.apply_allreduce_master_and_update(
@@ -303,7 +369,54 @@ def run_epoch():
             print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
 
 
-run_epoch()
+def run_eval():
+    # ImageNettee:
+    # Global loss: 1.7099052721085777 Acc 0.753822629969419 batch = 1
+    # images per sec:32.311230273782776
+    # Global loss: 1.7051572809413988 Acc 0.761734693877551 batch = 4
+
+    loss = 0
+    correct = 0
+    size = len(my_dataloader.dataset)
+    with torch.no_grad():
+        for batch, data in enumerate(my_dataloader, 0):
+            start_event = torch.cuda.Event(enable_timing=True, blocking=True)
+            end_event = torch.cuda.Event(enable_timing=True, blocking=True)
+            start_event.record()
+            inputs, labels = data
+
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
+                break
+
+            local_loss, local_correct = tm_master.run_step(
+                inputs, labels, eval_mode=EVAL_MODE
+            )
+            loss += local_loss
+            correct += local_correct
+
+            end_event.record()
+            torch.cuda.synchronize()
+            t = start_event.elapsed_time(end_event) / 1000
+            perf.append(1 / t)
+
+            if local_rank == mp_size - 1:
+                logging.info(
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
+                )
+
+            if local_rank == 0:
+                print(f"images per sec:{batch_size / t}")
+                perf.append(batch_size / t)
+            t = time.time()
+        if local_rank == mp_size - 1:
+            print(f"Global loss: {loss / batch} Acc {correct / batch}")
+
+
+if EVAL_MODE == True:
+    run_eval()
+else:
+    run_epoch()
+
 
 if local_rank == 0:
     print(f"Mean {sum(perf) / len(perf)} Median {np.median(perf)}")

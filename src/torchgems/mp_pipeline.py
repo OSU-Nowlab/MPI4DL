@@ -82,12 +82,43 @@ class model_generator:
 
         return nn.Sequential(layers)
 
-    def ready_model(self, split_rank, GET_SHAPES_ON_CUDA=False):
+    def ready_model(
+        self,
+        split_rank,
+        GET_SHAPES_ON_CUDA=False,
+        eval_mode=False,
+        checkpoint_path=None,
+    ):
         if self.shape_list == None:
             self.get_output_shapes(GET_SHAPES_ON_CUDA)
         temp_model = self.get_model(split_rank=split_rank)
         t = time.time()
-        self.models = temp_model.to("cuda:0")
+        if eval_mode == False:
+            self.models = temp_model.to("cuda:0")
+            return
+
+        # eval_mode is True
+        assert checkpoint_path is not None, "No checkpoints found"
+        checkpoint = torch.load(checkpoint_path)
+        model_state_dist_split_layer = {}
+        self.models = temp_model
+
+        for name, _ in self.models.named_parameters():
+            model_state_dist_split_layer[name] = checkpoint["model_state_dict"][name]
+            if ".bias" in name and ".batch" in name:
+                l_name = ".".join(name.split(".")[:-1])
+                running_mean = l_name + ".running_mean"
+                running_var = l_name + ".running_var"
+                model_state_dist_split_layer[running_mean] = checkpoint[
+                    "model_state_dict"
+                ][running_mean]
+                model_state_dist_split_layer[running_var] = checkpoint[
+                    "model_state_dict"
+                ][running_var]
+
+        self.models.load_state_dict(model_state_dist_split_layer)
+        self.models.eval()
+        self.models.to("cuda:0")
 
     def DDP_model(
         self, mpi_comm, num_spatial_parts, spatial_size, bucket_size=25, local_rank=None
@@ -131,6 +162,7 @@ class model_generator:
         orig_input_size = self.input_size
         input_size = list(self.input_size)
         input_size[0] = 1
+
         temp = torch.zeros(input_size, device=temp_dev)
         for i in range(self.split_size):
             model_x = self.get_model(split_rank=i)
@@ -506,7 +538,7 @@ class train_model:
                     self.input_x_list[part_number].detach().requires_grad_()
                 )
 
-    def run_step(self, data_x, data_y):
+    def run_step(self, data_x, data_y, eval_mode):
         data_x = data_x.to("cuda:0")
         data_y = data_y.to("cuda:0")
 
@@ -527,9 +559,10 @@ class train_model:
                 loss += temp_y.item()
                 corrects += temp_correct.item()
 
-        for i in range(self.parts):
-            None
-            self.backward_pass(y_list[i], part_number=i)
+        if eval_mode == False:
+            for i in range(self.parts):
+                None
+                self.backward_pass(y_list[i], part_number=i)
 
         return loss, corrects
 
