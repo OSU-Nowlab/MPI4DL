@@ -86,10 +86,11 @@ mp_size = args.split_size
 datapath = args.datapath
 num_workers = args.num_workers
 num_classes = args.num_classes
+precision = str(args.precision)
 
-EVAL_MODE = True
+EVAL_MODE = args.enable_evaluation
 CHECKPOINT = None
-if EVAL_MODE:
+if EVAL_MODE and APP != 3:
     # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
     CHECKPOINT = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
 
@@ -115,9 +116,6 @@ model = resnet.get_resnet_v2(
     num_classes=num_classes,
 )
 
-print(
-    f"SPLIT_RANK : {local_rank}, TOTAL Number of layers : {sum(1 for _ in model.parameters())}"
-)
 
 mul_shape = int(args.image_size / image_size_seq)
 
@@ -184,9 +182,12 @@ model_gen1 = model_generator(
     shape_list=resnet_shapes_list,
 )
 model_gen1.ready_model(
-    split_rank=local_rank, eval_mode=EVAL_MODE, checkpoint_path=CHECKPOINT
+    split_rank=local_rank,
+    eval_mode=EVAL_MODE,
+    checkpoint_path=CHECKPOINT,
+    precision=precision,
 )
-
+# print_model_size(model_gen1.models, local_rank, False)
 
 model = resnet.get_resnet_v2(
     (int(batch_size / parts), 3, image_size, image_size),
@@ -203,9 +204,12 @@ model_gen2 = model_generator(
     shape_list=model_gen1.shape_list,
 )
 model_gen2.ready_model(
-    split_rank=mp_size - local_rank - 1, eval_mode=EVAL_MODE, checkpoint_path=CHECKPOINT
+    split_rank=mp_size - local_rank - 1,
+    eval_mode=EVAL_MODE,
+    checkpoint_path=CHECKPOINT,
+    precision=precision,
 )
-
+# print_model_size(model_gen2.models, local_rank, True)
 
 tm_master = train_model_master(
     model_gen1,
@@ -321,7 +325,8 @@ else:
 
 ################################################################################
 
-sync_allreduce.sync_model(model_gen1, model_gen2)
+if EVAL_MODE == False:
+    sync_allreduce.sync_model(model_gen1, model_gen2)
 
 perf = []
 
@@ -370,6 +375,7 @@ def run_epoch():
 
 
 def run_eval():
+    print("Running Evaluation ...")
     # ImageNettee:
     # Global loss: 1.7099052721085777 Acc 0.753822629969419 batch = 1
     # images per sec:32.311230273782776
@@ -380,10 +386,15 @@ def run_eval():
     size = len(my_dataloader.dataset)
     with torch.no_grad():
         for batch, data in enumerate(my_dataloader, 0):
+            inputs, labels = data
+
             start_event = torch.cuda.Event(enable_timing=True, blocking=True)
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
-            inputs, labels = data
+            if precision == "fp_16":
+                # inputs, labels = inputs.half(), labels.half()
+                inputs = inputs.to(torch.float16)
+                labels = labels.to(torch.float16)
 
             if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break

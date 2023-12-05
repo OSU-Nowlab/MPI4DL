@@ -28,3 +28,15 @@ def get_depth(version, n):
         return n * 6 + 2
     elif version == 2:
         return n * 9 + 2
+
+
+def print_model_size(model, rank, inverse):
+    param_size = 0
+    for param in model.parameters():
+        param_size += param.nelement() * param.element_size()
+    buffer_size = 0
+    for buffer in model.buffers():
+        buffer_size += buffer.nelement() * buffer.element_size()
+
+    size_all_mb = (param_size + buffer_size) / 1024**2
+    print(f"model size at rank {rank} Inverse {inverse} : {size_all_mb:.3f}MB")

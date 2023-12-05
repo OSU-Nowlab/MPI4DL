@@ -23,6 +23,7 @@ import torch.distributed as dist
 from collections import OrderedDict
 import time
 from torch.nn.parallel import DistributedDataParallel as DDP
+from .utils import print_model_size
 
 
 class model_generator:
@@ -88,6 +89,7 @@ class model_generator:
         GET_SHAPES_ON_CUDA=False,
         eval_mode=False,
         checkpoint_path=None,
+        precision=None,
     ):
         if self.shape_list == None:
             self.get_output_shapes(GET_SHAPES_ON_CUDA)
@@ -96,9 +98,21 @@ class model_generator:
         if eval_mode == False:
             self.models = temp_model.to("cuda:0")
             return
+        assert precision is not None, "precision req for evaluatoin mode"
+        if (
+            checkpoint_path is None
+        ):  # TBD: for testing purpose, we will be using evaluation on random weights for collecting throughput
+            self.models = temp_model
+            self.models.eval()
+            if precision == "fp_16":
+                self.models.half()
+            self.models.to("cuda:0")
+            print_model_size(self.models, split_rank, True)
+            return
 
         # eval_mode is True
         assert checkpoint_path is not None, "No checkpoints found"
+
         checkpoint = torch.load(checkpoint_path)
         model_state_dist_split_layer = {}
         self.models = temp_model
@@ -117,7 +131,10 @@ class model_generator:
                 ][running_var]
 
         self.models.load_state_dict(model_state_dist_split_layer)
+        if precision == "fp_16":
+            self.models.half()
         self.models.eval()
+        print_model_size(self.models, split_rank, True)
         self.models.to("cuda:0")
 
     def DDP_model(
