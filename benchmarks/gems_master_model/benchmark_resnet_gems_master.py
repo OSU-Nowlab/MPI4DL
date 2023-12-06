@@ -87,6 +87,7 @@ datapath = args.datapath
 num_workers = args.num_workers
 num_classes = args.num_classes
 precision = str(args.precision)
+backend = args.backend
 
 EVAL_MODE = args.enable_evaluation
 CHECKPOINT = None
@@ -102,7 +103,7 @@ ENABLE_ASYNC = True
 resnet_n = 12
 
 ###############################################################################
-mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=True)
+mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=True, backend=backend)
 rank = mpi_comm.rank
 
 local_rank = rank % mp_size
@@ -217,6 +218,7 @@ tm_master = train_model_master(
     local_rank,
     batch_size,
     epoch,
+    precision,
     criterion=None,
     optimizer=None,
     parts=parts,
@@ -392,9 +394,9 @@ def run_eval():
             end_event = torch.cuda.Event(enable_timing=True, blocking=True)
             start_event.record()
             if precision == "fp_16":
-                # inputs, labels = inputs.half(), labels.half()
-                inputs = inputs.to(torch.float16)
-                labels = labels.to(torch.float16)
+                inputs = inputs.half()
+                # inputs = inputs.to(torch.float16)
+                # labels = labels.to(torch.float16)
 
             if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break

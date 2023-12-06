@@ -142,6 +142,13 @@ def get_parser():
     )
 
     parser.add_argument(
+        "--backend",
+        type=str,
+        default="mpi",
+        help="Precision for evaluation [Note: not tested on training]",
+    )
+
+    parser.add_argument(
         "--precision",
         type=str,
         default="fp32",

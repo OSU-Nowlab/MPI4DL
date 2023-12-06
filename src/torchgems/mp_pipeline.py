@@ -224,6 +224,7 @@ class train_model:
         local_rank,
         batch_size,
         epochs,
+        precision,
         criterion=None,
         optimizer=None,
         parts=1,
@@ -237,6 +238,7 @@ class train_model:
         self.parts = parts
         self.epochs = epochs
         self.local_rank = local_rank
+        self.precision = precision
         self.ENABLE_ASYNC = ASYNC
         self.GEMS_INVERSE = GEMS_INVERSE
         self.batch_size = batch_size
@@ -298,6 +300,9 @@ class train_model:
 
     def initialize_recv_buffers(self):
         self.input_x_list = []
+        datatype = torch.float32
+        if self.precision == "fp_16":
+            datatype = torch.float16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to
@@ -312,6 +317,7 @@ class train_model:
                             self.shape_list[self.split_rank - 1][i],
                             requires_grad=True,
                             device="cuda",
+                            dtype=datatype,
                         )
                         input_x.append(one_input)
                     input_x = tuple(input_x)
@@ -320,6 +326,7 @@ class train_model:
                         self.shape_list[self.split_rank - 1],
                         requires_grad=True,
                         device="cuda",
+                        dtype=datatype,
                     )
 
             self.input_x_list.append(input_x)
@@ -513,6 +520,10 @@ class train_model:
                 self.send_input_sync(y)
 
         else:
+            if (
+                y.dtype != torch.float32
+            ):  # converting to float32 to avoid RuntimeError: "nll_loss_forward_reduce_cuda_kernel_2d_index" not implemented for 'Half'
+                y = y.to(dtype=torch.float32)
             loss = self.criterion(y, data_y)
 
         if self.split_rank == self.split_size - 1:
