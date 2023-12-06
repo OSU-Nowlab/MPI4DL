@@ -142,7 +142,7 @@ class end_part_v1(nn.Module):
         return x
 
 
-def get_resnet_v1(input_shape, depth, num_classes=10):
+def get_resnet_v1(input_shape, depth, num_classes):
     if (depth - 2) % 6 != 0:
         raise ValueError("depth should be 6n+2 (eg 20, 32, 44 in [a])")
 
@@ -267,7 +267,7 @@ class end_part_v2(nn.Module):
         return x
 
 
-def get_resnet_v2(input_shape, depth, num_classes=10):
+def get_resnet_v2(input_shape, depth, num_classes):
     if (depth - 2) % 9 != 0:
         raise ValueError("depth should be 9n+2 (eg 56 or 110 in [b])")
 
