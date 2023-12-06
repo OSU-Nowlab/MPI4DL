@@ -128,6 +128,8 @@ def load_torchResNet(device, precision):
     model.eval()
     if precision == "fp_16":
         model.half()
+    elif precision == "int_8":
+        model = torchResNetQuantization()
     model.to(device)
     return model
 
@@ -155,37 +157,89 @@ def get_depth(version, n):
         return n * 9 + 2
 
 
-def mpi4dlResNetQuantization():
-    from torch.ao.quantization import QConfigMapping
+def mpi4dlResNetQuantizationWithTensorRT(
+    device, batch_size, parts, image_size, resnet_n, num_classes, precision
+):
+    import torch_tensorrt
+    from custom_models import resnet
+    import os
+
+    # print(f"In mpi4dlResNetQuantizationWithTensorRT")
+    if os.path.exists("res_mpi4dl_quant_model_int4.pth"):
+        model = torch.jit.load("res_mpi4dl_quant_model.pth")
+        model.to(device)
+        return model
+    else:
+        CHECKPOINT_PATH = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee_tRT.pth"
+        checkpoint = torch.load(CHECKPOINT_PATH)
+        model = resnet.get_resnet_v2(
+            (int(batch_size / parts), 3, image_size, image_size),
+            depth=get_depth(2, resnet_n),
+            num_classes=num_classes,
+        )
+        # model.load_state_dict(checkpoint['model_state_dict'])
+
+        model.eval()
+        testing_dataloader = load_fake_dataset(batch_size, image_size, times)
+        calibrator = torch_tensorrt.ptq.DataLoaderCalibrator(
+            testing_dataloader,
+            cache_file="./calibration.cache",
+            use_cache=False,
+            algo_type=torch_tensorrt.ptq.CalibrationAlgo.ENTROPY_CALIBRATION_2,
+            device=torch.device(device),
+        )
+
+        print(f"precision : {precision}")
+        trt_mod = torch_tensorrt.compile(
+            model,
+            inputs=[torch_tensorrt.Input((batch_size, 3, image_size, image_size))],
+            enabled_precisions={torch.int8},
+            calibrator=calibrator,
+            device={
+                "device_type": torch_tensorrt.DeviceType.GPU,
+                "dla_core": 0,
+                "allow_gpu_fallback": False,
+                #  "disable_tf32": False
+            },
+        )
+        torch.jit.save(torch.jit.script(trt_mod), "res_mpi4dl_quant_model.pth")
+        # torch.save(trt_mod.state_dict(),'res_torch_quant_model_stats.pth')
+        # trt_mod.to(device)
+        return trt_mod
+
+
+def torchResNetQuantization():
     import torch.ao.quantization.quantize_fx as quantize_fx
     import copy
-    from custom_models import resnet
 
-    # model_fp = resnet50()
+    from torch.ao.quantization.backend_config import get_tensorrt_backend_config_dict
 
-    model_fp = resnet.get_resnet_v2(
-        (int(batch_size / parts), 3, image_size, image_size),
-        depth=get_depth(2, resnet_n),
-        num_classes=num_classes,
+    trt_qconfig = torch.ao.quantization.QConfig(
+        activation=torch.ao.quantization.observer.HistogramObserver.with_args(
+            qscheme=torch.per_tensor_symmetric, dtype=torch.qint8
+        ),
+        weight=torch.ao.quantization.default_weight_observer,
     )
+    trt_backend_config_dict = get_tensorrt_backend_config_dict()
+
+    CHECKPOINT_PATH = "/home/gulhane.2/GEMS_Inference/checkpoints/torch_ResNet50/resnet50-19c8e357.pth"
+    checkpoint = torch.load(CHECKPOINT_PATH)
+    model_fp = resnet50()
+    model_fp.load_state_dict(checkpoint)
 
     model_to_quantize = copy.deepcopy(model_fp)
     model_to_quantize.eval()
-    qconfig_mapping = QConfigMapping().set_global(
-        torch.ao.quantization.default_dynamic_qconfig
-    )
-    input_fp32 = torch.randn(1, 3, 256, 256)
-    example_inputs = input_fp32
 
+    input_fp32 = torch.randn(1, 3, 64, 64)
     model_prepared = quantize_fx.prepare_fx(
-        model_to_quantize, qconfig_mapping, example_inputs
+        model_to_quantize,
+        {"": trt_qconfig},
+        input_fp32,
+        backend_config=trt_backend_config_dict,
     )
 
     model_quantized = quantize_fx.convert_fx(model_prepared)
-    model_quantized.to("cuda")
-    input_fp32 = input_fp32.to("cuda")
-    res = model_quantized(input_fp32)
-    print(res.shape)
+    return model_quantized
 
 
 def mpi4dlResNet(
@@ -206,6 +260,10 @@ def mpi4dlResNet(
     model.eval()
     if precision == "fp_16":
         model.half()
+    elif precision == "int_8":
+        model = mpi4dlResNetQuantizationWithTensorRT(
+            device, batch_size, parts, image_size, resnet_n, num_classes, precision
+        )
 
     model.to(device)
     return model
@@ -369,10 +427,10 @@ WSI_IMAGES = False  # set image-size = 64, num_classes = 10 for imagenette check
 
 batch_size = 2
 parts = 1
-image_size = 2048
+image_size = 64
 resnet_n = 12
 num_classes = 2
-precision = "fp_16"  # values [fp_32, fp_16]
+precision = "int_8"  # values [fp_32, fp_16, int_8]
 
 times = 1
 if WSI_IMAGES:
@@ -399,5 +457,3 @@ print(f"Accuracy with pretrained model : {accuracy * 100}")
 #     dataloader = load_dataset(app = APP, batch_size = batch_size, image_size = image_size, times = times)
 #     accuracy = evaluate(device, model, dataloader, WSI_IMAGES, image_size)
 #     print(f"Accuracy with pretrained model : {accuracy * 100}")
-
-# mpi4dlResNetQuantization()
