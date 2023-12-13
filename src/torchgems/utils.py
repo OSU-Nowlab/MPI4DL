@@ -40,3 +40,47 @@ def print_model_size(model, rank, inverse):
 
     size_all_mb = (param_size + buffer_size) / 1024**2
     print(f"model size at rank {rank} Inverse {inverse} : {size_all_mb:.3f}MB")
+
+
+def get_gpu_memory(rank):
+    import subprocess as sp
+
+    output_to_list = lambda x: x.decode("ascii").split("\n")[:-1]
+    COMMAND = "nvidia-smi --query-gpu=memory.total --format=csv"
+    try:
+        memory_total_info = output_to_list(
+            sp.check_output(COMMAND.split(), stderr=sp.STDOUT)
+        )[1:]
+    except sp.CalledProcessError as e:
+        raise RuntimeError(
+            "command '{}' return with error (code {}): {}".format(
+                e.cmd, e.returncode, e.output
+            )
+        )
+    print(f"***********Total GPU Memory on Rank {rank} : {memory_total_info}*******")
+
+
+def load_fake_dataset(batch_size, channel, image_size1, image_size2):
+    import torch
+    import torchvision
+    import torchvision.transforms as transforms
+
+    transform = transforms.Compose(
+        [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    )
+    testset = torchvision.datasets.FakeData(
+        size=10 * batch_size,
+        image_size=(3, image_size1, image_size2),
+        num_classes=10,
+        transform=transform,
+        target_transform=None,
+        random_offset=0,
+    )
+    dataloader = torch.utils.data.DataLoader(
+        testset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=0,
+        pin_memory=True,
+    )
+    return dataloader

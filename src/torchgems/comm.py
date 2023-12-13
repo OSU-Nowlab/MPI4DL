@@ -184,8 +184,11 @@ class MPIComm:
 
     def init_comm(self, backend):
         """Initialize the distributed environment."""
+        initialize_cuda()
         if backend == "nccl":
             mpi_discovery()
+        # if backend == "mpi":
+        #     initialize_cuda()
         dist.init_process_group(backend)
         size = dist.get_world_size()
         rank = dist.get_rank()

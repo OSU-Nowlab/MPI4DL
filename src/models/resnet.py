@@ -208,15 +208,15 @@ class make_cell_v2(nn.Module):
             conv_first=False,
         )
         self.resblock = resblock
-        if resblock == 0:
-            self.r4 = resnet_layer(
-                in_num_filters=in_filters,
-                num_filters=out_filters2,
-                strides=strides,
-                activation=None,
-                batch_normalization=False,
-                kernel_size=1,
-            )
+        # if resblock == 0:
+        self.r4 = resnet_layer(
+            in_num_filters=in_filters,
+            num_filters=out_filters2,
+            strides=strides,
+            activation=None,
+            batch_normalization=False,
+            kernel_size=1,
+        )
 
     def forward(self, x):
         y = x

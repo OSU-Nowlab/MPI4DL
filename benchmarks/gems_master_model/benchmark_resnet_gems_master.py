@@ -30,7 +30,7 @@ from torchgems import parser
 from torchgems.mp_pipeline import model_generator
 from torchgems.gems_master import train_model_master
 import torchgems.comm as gems_comm
-from torchgems.utils import get_depth
+from torchgems.utils import get_depth, get_gpu_memory
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -107,6 +107,9 @@ mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=True, backend=bac
 rank = mpi_comm.rank
 
 local_rank = rank % mp_size
+
+get_gpu_memory(local_rank)
+max_memory_before = torch.cuda.max_memory_allocated(device="cuda")
 if balance is not None:
     balance = [int(i) for i in balance.split(",")]
 
@@ -219,6 +222,7 @@ tm_master = train_model_master(
     batch_size,
     epoch,
     precision,
+    eval_mode=EVAL_MODE,
     criterion=None,
     optimizer=None,
     parts=parts,
@@ -386,6 +390,7 @@ def run_eval():
     loss = 0
     correct = 0
     size = len(my_dataloader.dataset)
+    t = time.time()
     with torch.no_grad():
         for batch, data in enumerate(my_dataloader, 0):
             inputs, labels = data
@@ -400,6 +405,10 @@ def run_eval():
 
             if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
+            before_step = torch.cuda.max_memory_allocated(device="cuda")
+            print(
+                f"Max Memory before step {batch} on rank {local_rank} Using PyTorch CUDA: {before_step / (1024 ** 2):.2f} MB"
+            )
 
             local_loss, local_correct = tm_master.run_step(
                 inputs, labels, eval_mode=EVAL_MODE
@@ -410,12 +419,15 @@ def run_eval():
             end_event.record()
             torch.cuda.synchronize()
             t = start_event.elapsed_time(end_event) / 1000
-            perf.append(1 / t)
 
             if local_rank == mp_size - 1:
                 logging.info(
                     f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
                 )
+            after_step = torch.cuda.max_memory_allocated(device="cuda")
+            print(
+                f"Max Memory after step {batch} on rank {local_rank} Using PyTorch CUDA: {after_step / (1024 ** 2):.2f} MB"
+            )
 
             if local_rank == 0:
                 print(f"images per sec:{batch_size / t}")
@@ -429,6 +441,14 @@ if EVAL_MODE == True:
     run_eval()
 else:
     run_epoch()
+max_memory_after = torch.cuda.max_memory_allocated(device="cuda")
+
+print(
+    f"Max Memory Before on rank {local_rank} Using PyTorch CUDA: {max_memory_before / (1024 ** 2):.2f} MB"
+)
+print(
+    f"Max Memory Afteron on rank {local_rank} Using PyTorch CUDA: {max_memory_after / (1024 ** 2):.2f} MB"
+)
 
 
 if local_rank == 0:

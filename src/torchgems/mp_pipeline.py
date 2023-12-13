@@ -83,6 +83,86 @@ class model_generator:
 
         return nn.Sequential(layers)
 
+    def ModelQuantizaton(self, model, split_rank, model_no):
+        import torch_tensorrt
+        from .utils import load_fake_dataset
+
+        # import os
+
+        print("In ModelQunarization....")
+
+        quantized_model_path = f"/home/gulhane.2/MPI4DL_Copy/MPI4DL/benchmarks/MPI4DL_Checkpoints/gems/split_size{self.split_size}_rank{split_rank}_model{model_no}"
+        print(quantized_model_path)
+        # if os.path.exists(quantized_model_path):
+        if False:
+            model = torch.jit.load(quantized_model_path)
+            model.eval()
+            model.to("cuda")
+            return model
+
+        # Create and save quantized model
+        checkpoint_path = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
+        checkpoint = torch.load(checkpoint_path)
+        model_state_dist_split_layer = {}
+
+        # for name, _ in model.named_parameters():
+        #     print(name)
+        # model_state_dist_split_layer[name] = checkpoint["model_state_dict"][name]
+        # if ".bias" in name and ".batch" in name:
+        #     l_name = ".".join(name.split(".")[:-1])
+        #     running_mean = l_name + ".running_mean"
+        #     running_var = l_name + ".running_var"
+        #     model_state_dist_split_layer[running_mean] = checkpoint[
+        #         "model_state_dict"
+        #     ][running_mean]
+        #     model_state_dist_split_layer[running_var] = checkpoint[
+        #         "model_state_dict"
+        #     ][running_var]
+
+        # model.load_state_dict(model_state_dist_split_layer)
+        model.eval()
+        if split_rank == 0:
+            batch_size = self.input_size[0]
+            channel = self.input_size[1]
+            image_size1 = self.input_size[2]
+            image_size2 = self.input_size[3]
+        else:
+            batch_size = self.shape_list[split_rank - 1][0]
+            channel = self.shape_list[split_rank - 1][1]
+            image_size1 = self.shape_list[split_rank - 1][2]
+            image_size2 = self.shape_list[split_rank - 1][3]
+        # batch_size = 1
+        # channel = 3
+        # image_size = 64
+
+        testing_dataloader = load_fake_dataset(
+            batch_size, channel, image_size1, image_size2
+        )
+        calibrator = torch_tensorrt.ptq.DataLoaderCalibrator(
+            testing_dataloader,
+            # cache_file="./calibration.cache",
+            use_cache=False,
+            algo_type=torch_tensorrt.ptq.CalibrationAlgo.ENTROPY_CALIBRATION_2,
+            device=torch.device("cuda"),
+        )
+        trt_mod = torch_tensorrt.compile(
+            model,
+            inputs=[
+                torch_tensorrt.Input((batch_size, channel, image_size1, image_size2))
+            ],
+            enabled_precisions={torch.int8},
+            calibrator=calibrator,
+            device={
+                "device_type": torch_tensorrt.DeviceType.GPU,
+                "dla_core": 0,
+                "allow_gpu_fallback": False,
+                #  "disable_tf32": False
+            },
+        )
+        # torch.jit.save(torch.jit.script(trt_mod), quantized_model_path)
+        print("Completed tensort model {}")
+        return trt_mod
+
     def ready_model(
         self,
         split_rank,
@@ -96,7 +176,7 @@ class model_generator:
         temp_model = self.get_model(split_rank=split_rank)
         t = time.time()
         if eval_mode == False:
-            self.models = temp_model.to("cuda:0")
+            self.models = temp_model.to("cuda")
             return
         assert precision is not None, "precision req for evaluatoin mode"
         if (
@@ -104,10 +184,16 @@ class model_generator:
         ):  # TBD: for testing purpose, we will be using evaluation on random weights for collecting throughput
             self.models = temp_model
             self.models.eval()
+            print(f"precision : {precision}")
             if precision == "fp_16":
                 self.models.half()
-            self.models.to("cuda:0")
+            elif precision == "int_8":
+                self.models = self.ModelQuantizaton(temp_model, split_rank, model_no=1)
+            self.models.to("cuda")
             print_model_size(self.models, split_rank, True)
+
+            for param in self.models.parameters():
+                param.requires_grad = False
             return
 
         # eval_mode is True
@@ -135,7 +221,7 @@ class model_generator:
             self.models.half()
         self.models.eval()
         print_model_size(self.models, split_rank, True)
-        self.models.to("cuda:0")
+        self.models.to("cuda")
 
     def DDP_model(
         self, mpi_comm, num_spatial_parts, spatial_size, bucket_size=25, local_rank=None
@@ -174,7 +260,7 @@ class model_generator:
     def get_output_shapes(self, GET_SHAPES_ON_CUDA):
         self.shape_list = []
 
-        temp_dev = "cuda:0" if GET_SHAPES_ON_CUDA else "cpu"
+        temp_dev = "cuda" if GET_SHAPES_ON_CUDA else "cpu"
 
         orig_input_size = self.input_size
         input_size = list(self.input_size)
@@ -185,7 +271,7 @@ class model_generator:
             model_x = self.get_model(split_rank=i)
 
             if GET_SHAPES_ON_CUDA:
-                model_x = model_x.to("cuda:0")
+                model_x = model_x.to("cuda")
             y = model_x(temp)
 
             if isinstance(y, tuple):
@@ -225,6 +311,7 @@ class train_model:
         batch_size,
         epochs,
         precision,
+        eval_mode,
         criterion=None,
         optimizer=None,
         parts=1,
@@ -278,7 +365,7 @@ class train_model:
         else:
             self.criterion = criterion
 
-        if optimizer == None:
+        if not eval_mode and optimizer == None:
             # self.optimizer = optim.SGD(self.models.parameters(), lr=0.000000001, momentum=0.9)
             self.optimizer = optim.SGD(self.models.parameters(), lr=0.001, momentum=0.9)
         else:
@@ -567,8 +654,8 @@ class train_model:
                 )
 
     def run_step(self, data_x, data_y, eval_mode):
-        data_x = data_x.to("cuda:0")
-        data_y = data_y.to("cuda:0")
+        data_x = data_x.to("cuda")
+        data_y = data_y.to("cuda")
 
         parts_size = int(self.batch_size / self.parts)
 

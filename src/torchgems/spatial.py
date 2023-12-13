@@ -350,12 +350,18 @@ class conv_spatial(nn.Conv2d):
 
                 torch.cuda.synchronize()
 
+                print(
+                    f"start_halo_exchange on rank {self.local_rank}: temp dtype : {temp.dtype}"
+                )
+
                 temp_req = dist.isend(
                     temp, self.rank_neighbours[i], tag=self.send_tag[i]
                 )
                 req.append(temp_req)
                 self.send_tag[i] += 1
-
+        print(
+            f"complete send halo_exhange on rank {self.local_rank}: temp dtype : {temp.dtype}"
+        )
         self.recv_tensors = []
 
         shapes = halo_input.shape
@@ -375,10 +381,10 @@ class conv_spatial(nn.Conv2d):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
-				It will lead to data corruption 
-				Spent 1 week on this issue (data validation) 
+				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous
+				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros
+				It will lead to data corruption
+				Spent 1 week on this issue (data validation)
 				KEEP THIS IN MIND
 				"""
 
@@ -403,6 +409,7 @@ class conv_spatial(nn.Conv2d):
             req.wait()
 
     def copy_halo_exchange_values(self, halo_input):
+        print(f"copy halo exchage values at rank {self.local_rank}")
         for i in range(9):
             if self.neighbours[i] == 1:
                 halo_input[
@@ -1246,10 +1253,10 @@ class halo_exchange_layer(nn.Module):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
-				It will lead to data corruption 
-				Spent 1 week on this issue (data validation) 
+				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous
+				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros
+				It will lead to data corruption
+				Spent 1 week on this issue (data validation)
 				KEEP THIS IN MIND
 				"""
 

@@ -6,6 +6,34 @@ import torchvision
 import torchvision.transforms as transforms
 from torchvision.models import resnet50
 from dataloders import WSIDataloader
+from threading import Thread
+import subprocess as sp
+from torchgems import parser
+
+max_gpu_util = 0
+program_running = True
+parser_obj = parser.get_parser()
+args = parser_obj.parse_args()
+
+
+def get_gpu_memory():
+    while program_running:
+        output_to_list = lambda x: x.decode("ascii").split("\n")[:-1]
+        ACCEPTABLE_AVAILABLE_MEMORY = 1024
+        COMMAND = "nvidia-smi --query-gpu=memory.used --format=csv"
+        try:
+            memory_use_info = output_to_list(
+                sp.check_output(COMMAND.split(), stderr=sp.STDOUT)
+            )[1:]
+        except sp.CalledProcessError as e:
+            raise RuntimeError(
+                "command '{}' return with error (code {}): {}".format(
+                    e.cmd, e.returncode, e.output
+                )
+            )
+        memory_use_values = [int(x.split()[0]) for i, x in enumerate(memory_use_info)]
+        global max_gpu_util
+        max_gpu_util = max(max_gpu_util, memory_use_values[0])
 
 
 def print_model_size(model):
@@ -18,6 +46,25 @@ def print_model_size(model):
 
     size_all_mb = (param_size + buffer_size) / 1024**2
     print(f"model size: {size_all_mb:.3f} MB")
+
+
+# def print_model_parameters(model):
+#     total_params = 0
+#     total_buffers = 0
+#     print(model)
+
+#     for name, param in model.named_parameters():
+#         param_size = param.numel()
+#         total_params += param_size
+#         print(f'{name}: {param_size} parameters')
+
+#     for name, buffer in model.named_buffers():
+#         buffer_size = buffer.numel()
+#         total_buffers += buffer_size
+#         print(f'{name}: {buffer_size} buffers')
+
+#     print(f'Total number of parameters: {total_params}')
+#     print(f'Total number of buffers: {total_buffers}')
 
 
 def get_gpu_utilization():
@@ -164,8 +211,13 @@ def mpi4dlResNetQuantizationWithTensorRT(
     from custom_models import resnet
     import os
 
+    print(
+        f"mpi4dlResNetQuantizationWithTensorRT : {batch_size} {image_size} {num_classes} {precision}"
+    )
+
     # print(f"In mpi4dlResNetQuantizationWithTensorRT")
-    if os.path.exists("res_mpi4dl_quant_model_int4.pth"):
+    # if os.path.exists("res_mpi4dl_quant_model_int4.pth"):
+    if False:
         model = torch.jit.load("res_mpi4dl_quant_model.pth")
         model.to(device)
         return model
@@ -202,8 +254,14 @@ def mpi4dlResNetQuantizationWithTensorRT(
                 #  "disable_tf32": False
             },
         )
-        torch.jit.save(torch.jit.script(trt_mod), "res_mpi4dl_quant_model.pth")
-        # torch.save(trt_mod.state_dict(),'res_torch_quant_model_stats.pth')
+        path = f"res_mpi4dl_quant_model_img_{image_size}_batch_{batch_size}_classes_{num_classes}.pth"
+        torch.jit.save(torch.jit.script(trt_mod), path)
+        model_size = os.path.getsize(path) / (1024 * 1024)
+        print(f"Model Size: {model_size:.2f} MB")
+        os.remove(path)
+        state_path = f"res_mpi4dl_quant_model_img_{image_size}_batch_{batch_size}_classes_{num_classes}_state.pth"
+        # torch.save(trt_mod.state_dict(),state_path)
+        # print(trt_mod.state_dict())
         # trt_mod.to(device)
         return trt_mod
 
@@ -360,18 +418,21 @@ def evaluate_wsi(dataloader, model, device, tile_size):
 
 # Batchs size = 8: Mean 40.3627477810076 Median 40.46250402955721
 # Accuracy : 0.74828025477707
-def evaluate_traditional(dataloader, model, device, precision):
+def evaluate_traditional(dataloader, model, device, batch_size, precision):
+    print(f"Evaluate Traditional ...")
     corrects = 0
-    t = time.time()
     perf = []
-    count = 0
     size_dataset = len(dataloader.dataset)
+    t = time.time()
     with torch.no_grad():
         for batch, data in enumerate(dataloader):
-            if count > math.floor(size_dataset / (times * batch_size)) - 1:
-                print(f"Batch :  {count}")
+            start_event = torch.cuda.Event(enable_timing=True, blocking=True)
+            end_event = torch.cuda.Event(enable_timing=True, blocking=True)
+            start_event.record()
+
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
-            count += 1
+
             inputs, labels = data
             if precision == "fp_16":
                 inputs, labels = inputs.to(device, dtype=torch.float16), labels.to(
@@ -379,17 +440,14 @@ def evaluate_traditional(dataloader, model, device, precision):
                 )
             else:
                 inputs, labels = inputs.to(device), labels.to(device)
-
-            start_event = torch.cuda.Event(enable_timing=True, blocking=True)
-            end_event = torch.cuda.Event(enable_timing=True, blocking=True)
-            start_event.record()
-
             outputs = model(inputs)
 
             end_event.record()
             torch.cuda.synchronize()
             t = start_event.elapsed_time(end_event) / 1000
-            perf.append(len(inputs) / t)
+            perf.append(batch_size / t)
+            assert batch_size == len(inputs)
+            t = time.time()
 
             _, predicted = torch.max(outputs, 1)
             corrects += (predicted == labels).sum().item()
@@ -399,15 +457,20 @@ def evaluate_traditional(dataloader, model, device, precision):
     return accuracy
 
 
-def evaluate(device, model, dataloader, WSI_IMAGES, image_size, precision):
+def evaluate(device, model, dataloader, WSI_IMAGES, batch_size, image_size, precision):
     if WSI_IMAGES:
-        accuracy = evaluate_wsi(dataloader, model, device, tile_size=image_size)
+        accuracy = evaluate_wsi(
+            dataloader, model, device, batch_size, tile_size=image_size
+        )
     else:
-        accuracy = evaluate_traditional(dataloader, model, device, precision)
+        accuracy = evaluate_traditional(
+            dataloader, model, device, batch_size, precision
+        )
     return accuracy
 
 
 device = "cuda:0"
+max_memory_before = torch.cuda.max_memory_allocated(device=device)
 APP = 2
 
 ## FOR WSI IMAGES
@@ -425,35 +488,84 @@ WSI_IMAGES = False  # set image-size = 64, num_classes = 10 for imagenette check
 # MPI4DL = True
 # WSI_IMAGES = False
 
-batch_size = 2
+batch_size = 1
 parts = 1
-image_size = 64
+image_size = args.image_size
 resnet_n = 12
-num_classes = 2
-precision = "int_8"  # values [fp_32, fp_16, int_8]
+num_classes = 10
+# precision = "fp_16"  # values [fp_32, fp_16, int_8]
+precision = args.precision
 
 times = 1
 if WSI_IMAGES:
     assert APP == 2, "Use Pathology Dataset"
-model = load_model(
-    device,
-    batch_size=batch_size,
-    parts=parts,
-    image_size=image_size,
-    resnet_n=resnet_n,
-    num_classes=num_classes,
-    MPI4DL=MPI4DL,
-    precision=precision,
-)
-print_model_size(model)
-dataloader = load_dataset(
-    app=APP, batch_size=batch_size, image_size=image_size, times=times
-)
-accuracy = evaluate(device, model, dataloader, WSI_IMAGES, image_size, precision)
-print(f"Accuracy with pretrained model : {accuracy * 100}")
+# model = load_model(
+#     device,
+#     batch_size=batch_size,
+#     parts=parts,
+#     image_size=image_size,
+#     resnet_n=resnet_n,
+#     num_classes=num_classes,
+#     MPI4DL=MPI4DL,
+#     precision=precision,
+# )
+# print_model_size(model)
+# # print_model_parameters(model)
+# dataloader = load_dataset(
+#     app=APP, batch_size=batch_size, image_size=image_size, times=times
+# )
+# accuracy = evaluate(device, model, dataloader, WSI_IMAGES, image_size, precision)
+# print(f"Accuracy with pretrained model : {accuracy * 100}")
+
+# # Track the maximum memory allocated again
+# max_memory_after = torch.cuda.max_memory_allocated(device=device)
+# print(f"Max Memory Before Using PyTorch CUDA: {max_memory_before / (1024 ** 2):.2f} MB")
+# print(f"Max Memory After Using PyTorch CUDA: {max_memory_after / (1024 ** 2):.2f} MB")
+
 # for image_size in [512, 1024, 2048]:
 #     print(f"image_size : {image_size}")
 #     model = load_model(device, batch_size = batch_size, parts = parts, image_size = image_size, resnet_n = resnet_n, num_classes = num_classes, MPI4DL = MPI4DL)
 #     dataloader = load_dataset(app = APP, batch_size = batch_size, image_size = image_size, times = times)
 #     accuracy = evaluate(device, model, dataloader, WSI_IMAGES, image_size)
 #     print(f"Accuracy with pretrained model : {accuracy * 100}")
+
+for batch_size in [1, 2, 4, 8, 16, 32, 64]:
+    print(
+        f"*************** Using Config Info Image Size : {image_size} Batch Size {batch_size} Precision : {precision} Num Classes {num_classes}***************"
+    )
+    model = load_model(
+        device,
+        batch_size=batch_size,
+        parts=parts,
+        image_size=image_size,
+        resnet_n=resnet_n,
+        num_classes=num_classes,
+        MPI4DL=MPI4DL,
+        precision=precision,
+    )
+    print_model_size(model)
+    dataloader = load_dataset(
+        app=APP, batch_size=batch_size, image_size=image_size, times=times
+    )
+    max_gpu_util = 0
+    program_running = True
+    t1 = Thread(target=get_gpu_memory, name="t1")
+    t1.start()
+    max_memory_before = torch.cuda.max_memory_allocated(device=device)
+    accuracy = evaluate(
+        device, model, dataloader, WSI_IMAGES, batch_size, image_size, precision
+    )
+    print(
+        f"*************** Run Summary for Config Info Image Size : {image_size} Batch Size {batch_size} Precision : {precision} Num Classes {num_classes}***************"
+    )
+    print(f"Accuracy with pretrained model : {accuracy * 100}")
+
+    program_running = False
+    print(f"GPU Utilization nvidia-smi : {max_gpu_util}")
+    max_memory_after = torch.cuda.max_memory_allocated(device=device)
+    print(
+        f"Max Memory Before Using PyTorch CUDA: {max_memory_before / (1024 ** 2):.2f} MB"
+    )
+    print(
+        f"Max Memory After Using PyTorch CUDA: {max_memory_after / (1024 ** 2):.2f} MB"
+    )
