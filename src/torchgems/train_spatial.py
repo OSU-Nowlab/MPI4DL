@@ -308,6 +308,7 @@ class train_model_spatial(train_model):
         LOCAL_DP_LP=1,
         mpi_comm=None,
         precision=None,
+        eval_mode=None
     ):
         self.slice_method = slice_method
         # model_gen.mp_size = (spatial_size * num_spatial_parts) - spatial_size + model_gen.mp_size
@@ -377,6 +378,7 @@ class train_model_spatial(train_model):
             ASYNC=ASYNC,
             GEMS_INVERSE=GEMS_INVERSE,
             precision=precision,
+            eval_mode=eval_mode
         )
 
         # Call this function before initializing the recv buffers
@@ -731,9 +733,6 @@ class train_model_spatial(train_model):
                     reqs.append(req_temp)
                     tag_forward += 1
             else:
-                print(
-                    f"dtype of self.input_x_list[part_number][rank] {self.input_x_list[part_number][rank].dtype}"
-                )
                 req_temp = dist.irecv(
                     tensor=self.input_x_list[part_number][rank],
                     src=ranks[rank],
@@ -1283,7 +1282,6 @@ class train_model_spatial(train_model):
         # part_number: part number between 0 and self.parts-1 used to find right input recv buffer
 
         # Receive inputs if local is not 0
-        print(f"start forward_passon rank : {self.local_rank} ")
         if self.split_rank == 0:
             input_x = data_x
         else:
@@ -1319,7 +1317,6 @@ class train_model_spatial(train_model):
         # Apply forward pass
 
         torch.cuda.synchronize()
-        print(f"start self.models on  on rank : {self.local_rank} ")
 
         # For pipeline parallelism support
         if (
@@ -1332,8 +1329,6 @@ class train_model_spatial(train_model):
                 y = self.models(input_x)
         else:
             y = self.models(input_x)
-
-        print(f"complete self.modelson rank : {self.local_rank} y dtype : {y.dtype}")
 
         torch.cuda.synchronize()
 

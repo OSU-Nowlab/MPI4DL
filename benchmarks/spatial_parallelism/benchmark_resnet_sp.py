@@ -254,6 +254,7 @@ t_s = train_model_spatial(
     slice_method=slice_method,
     mpi_comm=mpi_comm,
     precision=precision,
+    eval_mode=EVAL_MODE
 )
 
 x = torch.zeros(
