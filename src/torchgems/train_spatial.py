@@ -463,10 +463,9 @@ class train_model_spatial(train_model):
 
         datatype = torch.float32
         if self.precision == "fp_16":
-            print(
-                f"initialize_recv_buffers_spatial_intermediate with with {self.precision}"
-            )
             datatype = torch.float16
+        elif self.precision == "bfp_16":
+            datatype = torch.bfloat16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to
@@ -525,8 +524,9 @@ class train_model_spatial(train_model):
 
         datatype = torch.float32
         if self.precision == "fp_16":
-            print(f"initialize_recv_buffers_joint with {self.precision}")
             datatype = torch.float16
+        elif self.precision == "bfp_16":
+            datatype = torch.bfloat16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to
@@ -865,10 +865,12 @@ class train_model_spatial(train_model):
 
         else:
             scatter_list = []
-            scatter_list.append(tempB)
+            # scatter_list.append(tempB)
             for i in range(self.LOCAL_DP_LP):
                 scatter_list.append(y[i * per_rank : (i + 1) * per_rank])
-
+                shapes = tuple(y[i * per_rank : (i + 1) * per_rank].shape)
+                dtype = y[i * per_rank : (i + 1) * per_rank].dtype
+            tempA = torch.zeros(shapes, dtype=dtype, device="cuda")
             src = self.local_rank
             if self.GEMS_INVERSE:
                 src = self.mp_size - 1 - src

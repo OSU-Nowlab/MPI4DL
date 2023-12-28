@@ -22,6 +22,9 @@ import os
 import math
 import numpy as np
 
+from torchgems import parser
+parser_obj = parser.get_parser()
+args = parser_obj.parse_args()
 
 def env2int(env_list, default=-1):
     for e in env_list:
@@ -165,7 +168,8 @@ class MPIComm:
             self.LOCAL_DP_MP_Comm = None
 
         self.allreduce_grp = self.create_allreduce_comm()
-        self.test_allreduce_comm(self.allreduce_grp)
+        if not args.enable_evaluation:
+            self.test_allreduce_comm(self.allreduce_grp)
 
     def get_split_rank(self, num_spatial_parts_list, local_rank):
         if isinstance(num_spatial_parts_list, list):
@@ -408,10 +412,15 @@ class SyncAllreduce:
             )
 
     def sync_model_spatial(self, model_gen):
-        if self.local_rank < self.spatial_size * self.num_spatial_parts:
+        if isinstance(self.num_spatial_parts, list):
+            spatial_parts = self.num_spatial_parts[0]
+        else:
+            spatial_parts = self.num_spatial_parts
+
+        if self.local_rank < self.spatial_size * spatial_parts:
             self.sync_broadcast(
                 model_gen.models,
-                src=math.floor(self.local_rank / self.num_spatial_parts),
+                src=math.floor(self.local_rank / spatial_parts),
                 grp_comm=self.spatial_allreduce_grp,
             )
 

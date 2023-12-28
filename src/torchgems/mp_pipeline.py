@@ -54,9 +54,10 @@ class model_generator:
                 end_layer = len(self.model)
         else:
             num_layers = len(self.model)
+            # print(f"NUM LAYERS : {num_layers}")
             assert sum(self.balance) == len(
                 self.model
-            ), "balance and number of layers differs"
+            ), f"balance and number of layers differs, {sum(self.balance)} != {len(self.model)}"
 
             if split_rank == 0:
                 start_layer = 0
@@ -91,8 +92,8 @@ class model_generator:
 
         print("In ModelQunarization....")
 
-        quantized_model_path = f"/home/gulhane.2/MPI4DL_Copy/MPI4DL/benchmarks/MPI4DL_Checkpoints/gems/split_size{self.split_size}_rank{split_rank}_model{model_no}"
-        print(quantized_model_path)
+        # quantized_model_path = f"/home/gulhane.2/MPI4DL_Copy/MPI4DL/benchmarks/MPI4DL_Checkpoints/gems/split_size{self.split_size}_rank{split_rank}_model{model_no}"
+        # print(quantized_model_path)
         # if os.path.exists(quantized_model_path):
         if False:
             model = torch.jit.load(quantized_model_path)
@@ -101,9 +102,9 @@ class model_generator:
             return model
 
         # Create and save quantized model
-        checkpoint_path = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
-        checkpoint = torch.load(checkpoint_path)
-        model_state_dist_split_layer = {}
+        # checkpoint_path = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
+        # checkpoint = torch.load(checkpoint_path)
+        # model_state_dist_split_layer = {}
 
         # for name, _ in model.named_parameters():
         #     print(name)
@@ -187,6 +188,9 @@ class model_generator:
             print(f"precision : {precision}")
             if precision == "fp_16":
                 self.models.half()
+            elif precision == "bfp_16":
+                print(f"using bfloat16.....main")
+                self.models = self.models.to(dtype=torch.bfloat16)
             elif precision == "int_8":
                 self.models = self.ModelQuantizaton(temp_model, split_rank, model_no=1)
             self.models.to("cuda")
@@ -198,10 +202,11 @@ class model_generator:
 
         # eval_mode is True
         assert checkpoint_path is not None, "No checkpoints found"
-
-        checkpoint = torch.load(checkpoint_path)
-        model_state_dist_split_layer = {}
         self.models = temp_model
+        checkpoint = torch.load(checkpoint_path)
+
+        # load required layers from entire model
+        model_state_dist_split_layer = {}
 
         for name, _ in self.models.named_parameters():
             model_state_dist_split_layer[name] = checkpoint["model_state_dict"][name]
@@ -217,8 +222,11 @@ class model_generator:
                 ][running_var]
 
         self.models.load_state_dict(model_state_dist_split_layer)
+
         if precision == "fp_16":
             self.models.half()
+        elif precision == "bfp_16":
+            self.models = self.models.to(dtype=torch.bfloat16)
         self.models.eval()
         print_model_size(self.models, split_rank, True)
         self.models.to("cuda")
@@ -390,6 +398,8 @@ class train_model:
         datatype = torch.float32
         if self.precision == "fp_16":
             datatype = torch.float16
+        elif self.precision == "bfp_16":
+            datatype = torch.bfloat16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to

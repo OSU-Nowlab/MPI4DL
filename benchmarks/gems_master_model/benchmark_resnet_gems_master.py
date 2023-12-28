@@ -89,11 +89,15 @@ num_classes = args.num_classes
 precision = str(args.precision)
 backend = args.backend
 
+
+if precision == "bf_16":
+    assert torch.cuda.is_bf16_supported() == True, "Native System doen't support bf16"
+
 EVAL_MODE = args.enable_evaluation
 CHECKPOINT = None
 if EVAL_MODE and APP != 3:
     # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
-    CHECKPOINT = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
+    CHECKPOINT = "/users/PAS2312/rgulhane/nowlab/checkpoints/imagenetee_img_size_64/MPI4DL_ImageNeteee_TensorRT_model_temp.pth"
 
 
 ################## ResNet model specific parameters/functions ##################
@@ -254,7 +258,7 @@ if APP == 1:
         #         root="/home/gulhane.2/GEMS_Inference/datasets/ImageNet/", split='val', transform=transform
         # )
         testset = torchvision.datasets.ImageFolder(
-            root="/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/single_gpu/imagenette2-320/val",
+            root=datapath,
             transform=transform,
             target_transform=None,
         )
@@ -400,15 +404,16 @@ def run_eval():
             start_event.record()
             if precision == "fp_16":
                 inputs = inputs.half()
-                # inputs = inputs.to(torch.float16)
+            elif precision == "bfp_16":
+                inputs = inputs.to(torch.bfloat16)
                 # labels = labels.to(torch.float16)
 
             if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
             before_step = torch.cuda.max_memory_allocated(device="cuda")
-            print(
-                f"Max Memory before step {batch} on rank {local_rank} Using PyTorch CUDA: {before_step / (1024 ** 2):.2f} MB"
-            )
+            # print(
+            #     f"Max Memory before step {batch} on rank {local_rank} Using PyTorch CUDA: {before_step / (1024 ** 2):.2f} MB"
+            # )
 
             local_loss, local_correct = tm_master.run_step(
                 inputs, labels, eval_mode=EVAL_MODE
@@ -425,9 +430,9 @@ def run_eval():
                     f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
                 )
             after_step = torch.cuda.max_memory_allocated(device="cuda")
-            print(
-                f"Max Memory after step {batch} on rank {local_rank} Using PyTorch CUDA: {after_step / (1024 ** 2):.2f} MB"
-            )
+            # print(
+            #     f"Max Memory after step {batch} on rank {local_rank} Using PyTorch CUDA: {after_step / (1024 ** 2):.2f} MB"
+            # )
 
             if local_rank == 0:
                 print(f"images per sec:{batch_size / t}")

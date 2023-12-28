@@ -25,6 +25,10 @@ from torchgems import parser
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
 
+def sync_all():
+    torch.cuda.synchronize()
+    dist.barrier()
+
 class conv_spatial(nn.Conv2d):
     def __init__(
         self,
@@ -337,6 +341,7 @@ class conv_spatial(nn.Conv2d):
         return shapes_recv
 
     def perform_halo_exchange(self, halo_input):
+        # print(f"start halo exchange on rank {self.local_rank}")
         # It is important to perform halo exchange in ring manner to avoid unexpected error and deadlock with 'nccl' backend.
         # Thus, first send halo region from lower rank to higher rank and receive halo region by higher rank -> first_req_batch
         # Then, send halo region from higher rank to lower ran and receive halo region by lower rank -> second_req_batch
@@ -356,6 +361,7 @@ class conv_spatial(nn.Conv2d):
 
         for i in range(9):
             if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
                 if self.rank_neighbours[i] > self.local_rank:
                     temp = (
                         halo_input[
@@ -378,6 +384,9 @@ class conv_spatial(nn.Conv2d):
                     datatype = torch.float32
                     if args.precision == "fp_16":
                         datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
                     temp_tensor = torch.zeros(
                         shapes[0],
                         shapes[1],
@@ -404,6 +413,7 @@ class conv_spatial(nn.Conv2d):
         second_req_batch = []
         for i in range(9):
             if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
                 if self.rank_neighbours[i] < self.local_rank:
                     temp = (
                         halo_input[
@@ -426,6 +436,9 @@ class conv_spatial(nn.Conv2d):
                     datatype = torch.float32
                     if args.precision == "fp_16":
                         datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
                     temp_tensor = torch.zeros(
                         shapes[0],
                         shapes[1],
@@ -453,9 +466,13 @@ class conv_spatial(nn.Conv2d):
                     self.recv_tag[i] += 1
                     self.recv_tensors[i] = temp_tensor
 
+
         for req in second_req_batch:
             req.wait()
         # sync_all()
+        # print(f"end halo exchange on rank {self.local_rank}")
+
+
 
     def start_halo_exchange(self, halo_input):
         req = []
@@ -1041,6 +1058,7 @@ class conv_spatial(nn.Conv2d):
 
         # GEMS Inverse
         if self.local_rank != dist.get_rank():
+            #assert 0, f"self.local_rank : {self.local_rank} and  dist.get_rank() : { dist.get_rank()}"
             world_size = dist.get_world_size()
             for i in range(9):
                 if self.neighbours[i] == 1:
@@ -1154,7 +1172,7 @@ class conv_spatial(nn.Conv2d):
             # self.end_halo_exchange(reqs)
             self.perform_halo_exchange(tensor)
             self.copy_halo_exchange_values(tensor)
-            # torch.cuda.synchronize()
+            torch.cuda.synchronize()
         res_final = super(conv_spatial, self).forward(tensor)
 
         return res_final
@@ -1336,6 +1354,7 @@ class halo_exchange_layer(nn.Module):
         return shapes_recv
 
     def perform_halo_exchange(self, halo_input):
+        #print(f"start halo exchange on rank {self.local_rank}")
         # It is important to perform halo exchange in ring manner to avoid unexpected error and deadlock with 'nccl' backend.
         # Thus, first send halo region from lower rank to higher rank and receive halo region by higher rank -> first_req_batch
         # Then, send halo region from higher rank to lower ran and receive halo region by lower rank -> second_req_batch
@@ -1355,6 +1374,7 @@ class halo_exchange_layer(nn.Module):
 
         for i in range(9):
             if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
                 if self.rank_neighbours[i] > self.local_rank:
                     temp = (
                         halo_input[
@@ -1377,6 +1397,9 @@ class halo_exchange_layer(nn.Module):
                     datatype = torch.float32
                     if args.precision == "fp_16":
                         datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
                     temp_tensor = torch.zeros(
                         shapes[0],
                         shapes[1],
@@ -1403,6 +1426,7 @@ class halo_exchange_layer(nn.Module):
         second_req_batch = []
         for i in range(9):
             if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
                 if self.rank_neighbours[i] < self.local_rank:
                     temp = (
                         halo_input[
@@ -1425,6 +1449,9 @@ class halo_exchange_layer(nn.Module):
                     datatype = torch.float32
                     if args.precision == "fp_16":
                         datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
                     temp_tensor = torch.zeros(
                         shapes[0],
                         shapes[1],
@@ -1455,6 +1482,7 @@ class halo_exchange_layer(nn.Module):
         for req in second_req_batch:
             req.wait()
         # sync_all()
+        #print(f"end halo exchange on rank {self.local_rank}")
 
     def start_halo_exchange(self, halo_input):
         req = []
@@ -1571,6 +1599,7 @@ class halo_exchange_layer(nn.Module):
 
         # GEMS Inverse
         if self.local_rank != dist.get_rank():
+            #assert 0
             world_size = dist.get_world_size()
             for i in range(9):
                 if self.neighbours[i] == 1:

@@ -523,6 +523,7 @@ class Cell(nn.Module):
             op1 = operations[i]
             op2 = operations[i + 1]
 
+
             h1 = op1(h1)
             h2 = op2(h2)
 
