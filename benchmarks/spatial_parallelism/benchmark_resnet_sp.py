@@ -92,6 +92,7 @@ slice_method = args.slice_method
 times = args.times
 datapath = args.datapath
 num_workers = args.num_workers
+LOCAL_DP_LP = args.local_DP
 
 # APP
 # 1: Medical
@@ -99,6 +100,19 @@ num_workers = args.num_workers
 # 3: synthetic
 APP = args.app
 num_classes = args.num_classes
+precision = str(args.precision)
+backend = args.backend
+
+if precision == "bf_16":
+    assert torch.cuda.is_bf16_supported() == True, "Native System doen't support bf16"
+
+
+EVAL_MODE = args.enable_evaluation
+CHECKPOINT = None
+if EVAL_MODE and APP != 3:
+    # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
+    CHECKPOINT = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
+    # CHECKPOINT=f"/users/PAS2312/rgulhane/nowlab/checkpoints/sp_precision_32_gpu_5/checkpt_resnet_sp_{local_rank}.pth"
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
@@ -132,6 +146,8 @@ mpi_comm = gems_comm.MPIComm(
     ENABLE_SPATIAL=True,
     num_spatial_parts=num_spatial_parts,
     spatial_size=spatial_size,
+    LOCAL_DP_LP=LOCAL_DP_LP,
+    backend=backend,
 )
 sync_allreduce = gems_comm.SyncAllreduce(mpi_comm)
 rank = mpi_comm.rank
@@ -139,6 +155,9 @@ comm_size = mpi_comm.size
 local_rank = rank
 split_rank = mpi_comm.split_rank
 
+if EVAL_MODE and APP != 3:
+    # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
+    CHECKPOINT=f"/users/PAS2312/rgulhane/nowlab/checkpoints/sp_precision_32_gpu_5/checkpt_resnet_sp_{local_rank}.pth"
 
 if balance != None:
     balance = balance.split(",")
@@ -150,6 +169,7 @@ else:
 model_seq = resnet.get_resnet_v2(
     (int(batch_size / parts), 3, image_size_seq, image_size_seq),
     depth=get_depth(2, resnet_n),
+    num_classes=num_classes,
 )
 
 model_gen_seq = model_generator(
@@ -217,7 +237,14 @@ model_gen = model_generator(
 )
 
 # Move model it it's repective devices
-model_gen.ready_model(split_rank=split_rank)
+model_gen.ready_model(
+    split_rank=split_rank,
+    eval_mode=EVAL_MODE,
+    checkpoint_path=CHECKPOINT,
+    precision=precision,
+)
+# model_gen.DDP_model(mpi_comm, num_spatial_parts, spatial_size, bucket_size=0)
+
 
 logging.info(f"Shape of model on local_rank {local_rank} : {model_gen.shape_list}")
 
@@ -232,11 +259,14 @@ t_s = train_model_spatial(
     num_spatial_parts=num_spatial_parts,
     criterion=None,
     optimizer=None,
-    parts=1,
+    parts=parts,
     ASYNC=True,
     GEMS_INVERSE=False,
     slice_method=slice_method,
     mpi_comm=mpi_comm,
+    LOCAL_DP_LP=LOCAL_DP_LP,
+    precision=precision,
+    eval_mode=EVAL_MODE
 )
 
 x = torch.zeros(
@@ -258,6 +288,10 @@ transform = transforms.Compose(
 torch.manual_seed(0)
 
 if APP == 1:
+    transform = transforms.Compose(
+    [transforms.Resize((image_size, image_size)),
+     transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
+    )
     trainset = torchvision.datasets.ImageFolder(
         datapath, transform=transform, target_transform=None
     )
@@ -301,11 +335,65 @@ else:
 
 ################################################################################
 
-sync_allreduce.sync_model_spatial(model_gen)
+# sync_allreduce.sync_model_spatial(model_gen)
 
 ################################# Train Model ##################################
 
 perf = []
+
+
+def run_eval():
+    print("Running Evaluation ...")
+    loss = 0
+    correct = 0
+    size = len(my_dataloader.dataset)
+    t = time.time()
+    with torch.no_grad():
+        for batch, data in enumerate(my_dataloader, 0):
+            start_event = torch.cuda.Event(enable_timing=True, blocking=True)
+            end_event = torch.cuda.Event(enable_timing=True, blocking=True)
+            start_event.record()
+            if batch > math.floor(size_dataset / (times * batch_size)) - 1:
+                break
+            inputs, labels = data
+
+            if local_rank < spatial_part_size:
+                x = split_input(
+                    inputs,
+                    image_size,
+                    slice_method,
+                    local_rank,
+                    num_spatial_parts_list,
+                )
+            else:
+                x = inputs
+
+            if precision == "fp_16":
+                x = x.half()
+            elif precision == "bfp_16":
+                x = x.to(torch.bfloat16)
+
+
+            local_loss, local_correct = t_s.run_step(x, labels, eval_mode=EVAL_MODE)
+            loss += local_loss
+            correct += local_correct
+
+            torch.cuda.synchronize()
+            if local_rank == spatial_part_size:
+                logging.info(
+                    f"Step :{batch}, LOSS: {local_loss}, Global loss: {loss/(batch+1)} Acc: {local_correct} [{batch * len(inputs):>5d}/{size:>5d}]"
+                )
+
+            end_event.record()
+            torch.cuda.synchronize()
+            t = start_event.elapsed_time(end_event) / 1000
+            if local_rank == 0:
+                print(f"images per sec:{batch_size / t}")
+                perf.append(batch_size / t)
+
+            t = time.time()
+        if local_rank == comm_size - 1:
+            print(f"Global loss: {loss / batch} Acc {correct / batch}")
 
 
 def run_epoch():
@@ -333,7 +421,7 @@ def run_epoch():
             else:
                 x = inputs
 
-            local_loss, local_correct = t_s.run_step(x, labels)
+            local_loss, local_correct = t_s.run_step(x, labels, eval_mode=EVAL_MODE)
             loss += local_loss
             correct += local_correct
             if local_rank < spatial_size * spatial_part_size:
@@ -360,7 +448,10 @@ def run_epoch():
             print(f"Epoch {i_e} Global loss: {loss / batch} Acc {correct / batch}")
 
 
-run_epoch()
+if EVAL_MODE == True:
+    run_eval()
+else:
+    run_epoch()
 
 if local_rank == 0:
     print(f"Mean {sum(perf) / len(perf)} Median {np.median(perf)}")

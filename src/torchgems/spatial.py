@@ -21,6 +21,13 @@ import torch
 import torch.distributed as dist
 import math
 
+from torchgems import parser
+parser_obj = parser.get_parser()
+args = parser_obj.parse_args()
+
+def sync_all():
+    torch.cuda.synchronize()
+    dist.barrier()
 
 class conv_spatial(nn.Conv2d):
     def __init__(
@@ -333,6 +340,140 @@ class conv_spatial(nn.Conv2d):
 
         return shapes_recv
 
+    def perform_halo_exchange(self, halo_input):
+        # print(f"start halo exchange on rank {self.local_rank}")
+        # It is important to perform halo exchange in ring manner to avoid unexpected error and deadlock with 'nccl' backend.
+        # Thus, first send halo region from lower rank to higher rank and receive halo region by higher rank -> first_req_batch
+        # Then, send halo region from higher rank to lower ran and receive halo region by lower rank -> second_req_batch
+        shapes = halo_input.shape
+        self.halo_input_shape = shapes
+        if self.shapes_recv == None:
+            self.shapes_recv = self.get_shapes_recv(shapes)
+
+        self.recv_tensors = []
+        for i in range(9):
+            self.recv_tensors.append([])
+
+
+        first_req_batch = []
+
+        # sync_all()
+
+        for i in range(9):
+            if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
+                if self.rank_neighbours[i] > self.local_rank:
+                    temp = (
+                        halo_input[
+                            :,
+                            :,
+                            self.locations_send[i][0][0] : self.locations_send[i][0][1],
+                            self.locations_send[i][1][0] : self.locations_send[i][1][1],
+                        ]
+                        .clone()
+                        .detach()
+                    )
+                    #print(f"local rank : {self.local_rank} sending to {self.rank_neighbours[i]}")
+                    torch.cuda.synchronize()
+                    req = dist.isend(
+                        temp, self.rank_neighbours[i], tag=self.send_tag[i]
+                    )
+                    first_req_batch.append(req)
+                    self.send_tag[i] += 1
+                else:
+                    datatype = torch.float32
+                    if args.precision == "fp_16":
+                        datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
+                    temp_tensor = torch.zeros(
+                        shapes[0],
+                        shapes[1],
+                        self.shapes_recv[i][0],
+                        self.shapes_recv[i][1],
+                        dtype=datatype,
+                        device="cuda",
+                    )
+                    #print(f"local rank : {self.local_rank} receiving from {self.rank_neighbours[i]}")
+                    torch.cuda.synchronize()
+                    req = dist.irecv(
+                        tensor=temp_tensor,
+                        src=self.rank_neighbours[i],
+                        tag=self.recv_tag[i],
+                    )
+                    first_req_batch.append(req)
+                    self.recv_tag[i] += 1
+                    self.recv_tensors[i] = temp_tensor
+        for req in first_req_batch:
+            req.wait()
+
+        # sync_all()
+
+        second_req_batch = []
+        for i in range(9):
+            if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
+                if self.rank_neighbours[i] < self.local_rank:
+                    temp = (
+                        halo_input[
+                            :,
+                            :,
+                            self.locations_send[i][0][0] : self.locations_send[i][0][1],
+                            self.locations_send[i][1][0] : self.locations_send[i][1][1],
+                        ]
+                        .clone()
+                        .detach()
+                    )
+                    #print(f"local rank : {self.local_rank} sending to {self.rank_neighbours[i]}")
+                    torch.cuda.synchronize()
+                    req = dist.isend(
+                        temp, self.rank_neighbours[i], tag=self.send_tag[i]
+                    )
+                    second_req_batch.append(req)
+                    self.send_tag[i] += 1
+                else:
+                    datatype = torch.float32
+                    if args.precision == "fp_16":
+                        datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
+                    temp_tensor = torch.zeros(
+                        shapes[0],
+                        shapes[1],
+                        self.shapes_recv[i][0],
+                        self.shapes_recv[i][1],
+                        dtype=datatype,
+                        device="cuda",
+                    )
+                    #print(f"local rank : {self.local_rank} receiving from {self.rank_neighbours[i]}")
+
+                    """
+                    Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous
+                    MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros
+                    It will lead to data corruption
+                    Spent 1 week on this issue (data validation)
+                    KEEP THIS IN MIND
+                    """
+                    torch.cuda.synchronize()
+                    req = dist.irecv(
+                        tensor=temp_tensor,
+                        src=self.rank_neighbours[i],
+                        tag=self.recv_tag[i],
+                    )
+                    second_req_batch.append(req)
+                    self.recv_tag[i] += 1
+                    self.recv_tensors[i] = temp_tensor
+
+
+        for req in second_req_batch:
+            req.wait()
+        # sync_all()
+        # print(f"end halo exchange on rank {self.local_rank}")
+
+
+
     def start_halo_exchange(self, halo_input):
         req = []
         for i in range(9):
@@ -350,12 +491,18 @@ class conv_spatial(nn.Conv2d):
 
                 torch.cuda.synchronize()
 
+                print(
+                    f"start_halo_exchange on rank {self.local_rank}: temp dtype : {temp.dtype}"
+                )
+
                 temp_req = dist.isend(
                     temp, self.rank_neighbours[i], tag=self.send_tag[i]
                 )
                 req.append(temp_req)
                 self.send_tag[i] += 1
-
+        print(
+            f"complete send halo_exhange on rank {self.local_rank}: temp dtype : {temp.dtype}"
+        )
         self.recv_tensors = []
 
         shapes = halo_input.shape
@@ -375,10 +522,10 @@ class conv_spatial(nn.Conv2d):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
-				It will lead to data corruption 
-				Spent 1 week on this issue (data validation) 
+				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous
+				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros
+				It will lead to data corruption
+				Spent 1 week on this issue (data validation)
 				KEEP THIS IN MIND
 				"""
 
@@ -911,6 +1058,7 @@ class conv_spatial(nn.Conv2d):
 
         # GEMS Inverse
         if self.local_rank != dist.get_rank():
+            #assert 0, f"self.local_rank : {self.local_rank} and  dist.get_rank() : { dist.get_rank()}"
             world_size = dist.get_world_size()
             for i in range(9):
                 if self.neighbours[i] == 1:
@@ -1020,10 +1168,11 @@ class conv_spatial(nn.Conv2d):
         tensor = self.pads(tensor)
         if self.halo_len_height > 0 or self.halo_len_width > 0:
             torch.cuda.synchronize()
-            reqs = self.start_halo_exchange(tensor)
-            self.end_halo_exchange(reqs)
+            # reqs = self.start_halo_exchange(tensor)
+            # self.end_halo_exchange(reqs)
+            self.perform_halo_exchange(tensor)
             self.copy_halo_exchange_values(tensor)
-            # torch.cuda.synchronize()
+            torch.cuda.synchronize()
         res_final = super(conv_spatial, self).forward(tensor)
 
         return res_final
@@ -1204,6 +1353,137 @@ class halo_exchange_layer(nn.Module):
 
         return shapes_recv
 
+    def perform_halo_exchange(self, halo_input):
+        #print(f"start halo exchange on rank {self.local_rank}")
+        # It is important to perform halo exchange in ring manner to avoid unexpected error and deadlock with 'nccl' backend.
+        # Thus, first send halo region from lower rank to higher rank and receive halo region by higher rank -> first_req_batch
+        # Then, send halo region from higher rank to lower ran and receive halo region by lower rank -> second_req_batch
+        shapes = halo_input.shape
+        self.halo_input_shape = shapes
+        if self.shapes_recv == None:
+            self.shapes_recv = self.get_shapes_recv(shapes)
+
+        self.recv_tensors = []
+        for i in range(9):
+            self.recv_tensors.append([])
+
+
+        first_req_batch = []
+
+        # sync_all()
+
+        for i in range(9):
+            if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
+                if self.rank_neighbours[i] > self.local_rank:
+                    temp = (
+                        halo_input[
+                            :,
+                            :,
+                            self.locations_send[i][0][0] : self.locations_send[i][0][1],
+                            self.locations_send[i][1][0] : self.locations_send[i][1][1],
+                        ]
+                        .clone()
+                        .detach()
+                    )
+                    #print(f"local rank : {self.local_rank} sending to {self.rank_neighbours[i]}")
+                    torch.cuda.synchronize()
+                    req = dist.isend(
+                        temp, self.rank_neighbours[i], tag=self.send_tag[i]
+                    )
+                    first_req_batch.append(req)
+                    self.send_tag[i] += 1
+                else:
+                    datatype = torch.float32
+                    if args.precision == "fp_16":
+                        datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
+                    temp_tensor = torch.zeros(
+                        shapes[0],
+                        shapes[1],
+                        self.shapes_recv[i][0],
+                        self.shapes_recv[i][1],
+                        dtype=datatype,
+                        device="cuda",
+                    )
+                    #print(f"local rank : {self.local_rank} receiving from {self.rank_neighbours[i]}")
+                    torch.cuda.synchronize()
+                    req = dist.irecv(
+                        tensor=temp_tensor,
+                        src=self.rank_neighbours[i],
+                        tag=self.recv_tag[i],
+                    )
+                    first_req_batch.append(req)
+                    self.recv_tag[i] += 1
+                    self.recv_tensors[i] = temp_tensor
+        for req in first_req_batch:
+            req.wait()
+
+        # sync_all()
+
+        second_req_batch = []
+        for i in range(9):
+            if self.neighbours[i] == 1:
+                # assert abs(self.rank_neighbours[i] - self.local_rank) == 1, f"self.rank_neighbours[i] : {self.rank_neighbours[i]} self.local_rank : {self.local_rank}"
+                if self.rank_neighbours[i] < self.local_rank:
+                    temp = (
+                        halo_input[
+                            :,
+                            :,
+                            self.locations_send[i][0][0] : self.locations_send[i][0][1],
+                            self.locations_send[i][1][0] : self.locations_send[i][1][1],
+                        ]
+                        .clone()
+                        .detach()
+                    )
+                    #print(f"local rank : {self.local_rank} sending to {self.rank_neighbours[i]}")
+                    torch.cuda.synchronize()
+                    req = dist.isend(
+                        temp, self.rank_neighbours[i], tag=self.send_tag[i]
+                    )
+                    second_req_batch.append(req)
+                    self.send_tag[i] += 1
+                else:
+                    datatype = torch.float32
+                    if args.precision == "fp_16":
+                        datatype = torch.float16
+                    elif args.precision == "bfp_16":
+                        datatype = torch.bfloat16
+
+                    temp_tensor = torch.zeros(
+                        shapes[0],
+                        shapes[1],
+                        self.shapes_recv[i][0],
+                        self.shapes_recv[i][1],
+                        dtype=datatype,
+                        device="cuda",
+                    )
+                    #print(f"local rank : {self.local_rank} receiving from {self.rank_neighbours[i]}")
+
+                    """
+                    Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous
+                    MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros
+                    It will lead to data corruption
+                    Spent 1 week on this issue (data validation)
+                    KEEP THIS IN MIND
+                    """
+                    torch.cuda.synchronize()
+                    req = dist.irecv(
+                        tensor=temp_tensor,
+                        src=self.rank_neighbours[i],
+                        tag=self.recv_tag[i],
+                    )
+                    second_req_batch.append(req)
+                    self.recv_tag[i] += 1
+                    self.recv_tensors[i] = temp_tensor
+
+        for req in second_req_batch:
+            req.wait()
+        # sync_all()
+        #print(f"end halo exchange on rank {self.local_rank}")
+
     def start_halo_exchange(self, halo_input):
         req = []
         for i in range(9):
@@ -1246,10 +1526,10 @@ class halo_exchange_layer(nn.Module):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous 
-				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros 
-				It will lead to data corruption 
-				Spent 1 week on this issue (data validation) 
+				Synchronization is necessary at this point as all GPU operations in PyTorch are asynchronous
+				MPI copy operation is not under PyTorch therefore it can start before pytorch finishes initilization of tensor with zeros
+				It will lead to data corruption
+				Spent 1 week on this issue (data validation)
 				KEEP THIS IN MIND
 				"""
 
@@ -1319,6 +1599,7 @@ class halo_exchange_layer(nn.Module):
 
         # GEMS Inverse
         if self.local_rank != dist.get_rank():
+            #assert 0
             world_size = dist.get_world_size()
             for i in range(9):
                 if self.neighbours[i] == 1:
@@ -1405,8 +1686,9 @@ class halo_exchange_layer(nn.Module):
         tensor = self.pads(tensor)
 
         torch.cuda.synchronize()
-        reqs = self.start_halo_exchange(tensor)
-        self.end_halo_exchange(reqs)
+        # reqs = self.start_halo_exchange(tensor)
+        # self.end_halo_exchange(reqs)
+        self.perform_halo_exchange(tensor)
         self.copy_halo_exchange_values(tensor)
         torch.cuda.synchronize()
 

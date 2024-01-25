@@ -20,7 +20,7 @@ from torchgems.mp_pipeline import train_model
 import torch
 import math
 import torch.distributed as dist
-from utils import isPowerTwo
+from .utils import isPowerTwo
 
 """
 For SP, image size and image size after partitioning should be power of two.
@@ -307,6 +307,8 @@ class train_model_spatial(train_model):
         slice_method="square",
         LOCAL_DP_LP=1,
         mpi_comm=None,
+        precision=None,
+        eval_mode=None
     ):
         self.slice_method = slice_method
         # model_gen.mp_size = (spatial_size * num_spatial_parts) - spatial_size + model_gen.mp_size
@@ -375,6 +377,8 @@ class train_model_spatial(train_model):
             parts=parts,
             ASYNC=ASYNC,
             GEMS_INVERSE=GEMS_INVERSE,
+            precision=precision,
+            eval_mode=eval_mode
         )
 
         # Call this function before initializing the recv buffers
@@ -452,11 +456,16 @@ class train_model_spatial(train_model):
 
     def initialize_recv_buffers_spatial_intermediate(self):
         self.input_x_list = []
-
         num_recvs = int(
             self.num_spatial_parts_list[self.split_rank - 1]
             / self.num_spatial_parts_list[self.split_rank]
         )
+
+        datatype = torch.float32
+        if self.precision == "fp_16":
+            datatype = torch.float16
+        elif self.precision == "bfp_16":
+            datatype = torch.bfloat16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to
@@ -474,6 +483,7 @@ class train_model_spatial(train_model):
                                 self.shape_list[self.split_rank - 1][i],
                                 requires_grad=True,
                                 device="cuda",
+                                dtype=datatype,
                             )
                             input_x.append(one_input)
                         input_x = tuple(input_x)
@@ -482,6 +492,7 @@ class train_model_spatial(train_model):
                             self.shape_list[self.split_rank - 1],
                             requires_grad=True,
                             device="cuda",
+                            dtype=datatype,
                         )
                 input_x_list_ranks.append(input_x)
 
@@ -494,13 +505,15 @@ class train_model_spatial(train_model):
                 self.grad_overhead = []
                 for i in range(len(self.shape_list[self.split_rank])):
                     temp_grad = torch.zeros(
-                        self.shape_list[self.split_rank][i], device="cuda"
+                        self.shape_list[self.split_rank][i],
+                        device="cuda",
+                        dtype=datatype,
                     )
 
                     self.grad_overhead.append(temp_grad)
             else:
                 self.grad_overhead = torch.zeros(
-                    self.shape_list[self.split_rank], device="cuda"
+                    self.shape_list[self.split_rank], device="cuda", dtype=datatype
                 )
 
     def initialize_recv_buffers_joint(self):
@@ -508,6 +521,12 @@ class train_model_spatial(train_model):
         ranks = [
             self.local_rank - 1 - i for i in range(self.num_spatial_parts - 1, -1, -1)
         ]
+
+        datatype = torch.float32
+        if self.precision == "fp_16":
+            datatype = torch.float16
+        elif self.precision == "bfp_16":
+            datatype = torch.bfloat16
 
         # intializing recv buffer for the input
         # For parts we need different buffers as in backward pass we using grad variable to
@@ -525,6 +544,7 @@ class train_model_spatial(train_model):
                                 self.shape_list[self.split_rank - 1][i],
                                 requires_grad=True,
                                 device="cuda",
+                                dtype=datatype,
                             )
                             input_x.append(one_input)
                         input_x = tuple(input_x)
@@ -533,6 +553,7 @@ class train_model_spatial(train_model):
                             self.shape_list[self.split_rank - 1],
                             requires_grad=True,
                             device="cuda",
+                            dtype=datatype,
                         )
                 input_x_list_ranks.append(input_x)
 
@@ -545,13 +566,15 @@ class train_model_spatial(train_model):
                 self.grad_overhead = []
                 for i in range(len(self.shape_list[self.split_rank])):
                     temp_grad = torch.zeros(
-                        self.shape_list[self.split_rank][i], device="cuda"
+                        self.shape_list[self.split_rank][i],
+                        device="cuda",
+                        dtype=datatype,
                     )
 
                     self.grad_overhead.append(temp_grad)
             else:
                 self.grad_overhead = torch.zeros(
-                    self.shape_list[self.split_rank], device="cuda"
+                    self.shape_list[self.split_rank], device="cuda", dtype=datatype
                 )
 
     def initialize_send_recv_ranks(self):
@@ -842,10 +865,12 @@ class train_model_spatial(train_model):
 
         else:
             scatter_list = []
-            scatter_list.append(tempB)
+            # scatter_list.append(tempB)
             for i in range(self.LOCAL_DP_LP):
                 scatter_list.append(y[i * per_rank : (i + 1) * per_rank])
-
+                shapes = tuple(y[i * per_rank : (i + 1) * per_rank].shape)
+                dtype = y[i * per_rank : (i + 1) * per_rank].dtype
+            tempA = torch.zeros(shapes, dtype=dtype, device="cuda")
             src = self.local_rank
             if self.GEMS_INVERSE:
                 src = self.mp_size - 1 - src

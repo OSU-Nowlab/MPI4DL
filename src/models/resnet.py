@@ -142,7 +142,7 @@ class end_part_v1(nn.Module):
         return x
 
 
-def get_resnet_v1(input_shape, depth, num_classes=10):
+def get_resnet_v1(input_shape, depth, num_classes):
     if (depth - 2) % 6 != 0:
         raise ValueError("depth should be 6n+2 (eg 20, 32, 44 in [a])")
 
@@ -208,15 +208,15 @@ class make_cell_v2(nn.Module):
             conv_first=False,
         )
         self.resblock = resblock
-        if resblock == 0:
-            self.r4 = resnet_layer(
-                in_num_filters=in_filters,
-                num_filters=out_filters2,
-                strides=strides,
-                activation=None,
-                batch_normalization=False,
-                kernel_size=1,
-            )
+        # if resblock == 0:
+        self.r4 = resnet_layer(
+            in_num_filters=in_filters,
+            num_filters=out_filters2,
+            strides=strides,
+            activation=None,
+            batch_normalization=False,
+            kernel_size=1,
+        )
 
     def forward(self, x):
         y = x
@@ -267,7 +267,7 @@ class end_part_v2(nn.Module):
         return x
 
 
-def get_resnet_v2(input_shape, depth, num_classes=10):
+def get_resnet_v2(input_shape, depth, num_classes):
     if (depth - 2) % 9 != 0:
         raise ValueError("depth should be 9n+2 (eg 56 or 110 in [b])")
 

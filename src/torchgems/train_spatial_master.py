@@ -325,8 +325,8 @@ class train_spatial_model_master:
             self.flat_grads_model2 += flat_grads_recv
 
     def run_step_allreduce(self, inputs, labels, odd_iteration):
-        inputs = inputs.to("cuda:0")
-        labels = labels.to("cuda:0")
+        inputs = inputs.to("cuda")
+        labels = labels.to("cuda")
 
         parts_size = int(self.batch_size / self.parts)
 

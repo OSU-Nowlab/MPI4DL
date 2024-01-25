@@ -134,6 +134,28 @@ def get_parser():
     )
 
     parser.add_argument(
+        "--enable-evaluation",
+        dest="enable_evaluation",
+        action="store_true",
+        default=False,
+        help="Enable evaluation mode in GEMS to perform inference ",
+    )
+
+    parser.add_argument(
+        "--backend",
+        type=str,
+        default="mpi",
+        help="Precision for evaluation [Note: not tested on training]",
+    )
+
+    parser.add_argument(
+        "--precision",
+        type=str,
+        default="fp32",
+        help="Precision for evaluation [Note: not tested on training]",
+    )
+
+    parser.add_argument(
         "--num-workers",
         type=int,
         default=0,
