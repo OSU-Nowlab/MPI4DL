@@ -35,7 +35,7 @@ from torchgems.train_spatial import (
     verify_spatial_config,
 )
 import torchgems.comm as gems_comm
-from torchgems.utils import get_depth
+from torchgems.utils import get_depth, set_accelerator_visible
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -49,7 +49,8 @@ if args.halo_d2:
 else:
     from models import resnet_spatial
 
-gems_comm.initialize_cuda()
+# gems_comm.initialize_cuda()
+set_accelerator_visible()
 
 
 class Unbuffered(object):

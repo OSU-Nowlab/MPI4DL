@@ -21,24 +21,11 @@ import torch.distributed as dist
 import os
 import math
 import numpy as np
+from torchgems.utils import set_mpi_dist_environemnt, initialize_cuda
 
 
-def env2int(env_list, default=-1):
-    for e in env_list:
-        val = int(os.environ.get(e, -1))
-        if val >= 0:
-            return val
-    return default
 
 
-def initialize_cuda():
-    my_local_rank = env2int(
-        ["MPI_LOCALRANKID", "OMPI_COMM_WORLD_LOCAL_RANK", "MV2_COMM_WORLD_LOCAL_RANK"],
-        0,
-    )
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(my_local_rank % 4)
-
-    torch.cuda.init()
 
 
 class MPIComm:
@@ -133,8 +120,11 @@ class MPIComm:
             self.LP_SP_Groups, self.SP_LP_group = None, None
             self.LOCAL_DP_MP_Comm = None
 
+        print("start_all_reduce")
         self.allreduce_grp = self.create_allreduce_comm()
+        print("end_all_reduce")
         self.test_allreduce_comm(self.allreduce_grp)
+        print("end_test_reduce")
 
     def get_split_rank(self, num_spatial_parts_list, local_rank):
         if isinstance(num_spatial_parts_list, list):
@@ -152,10 +142,16 @@ class MPIComm:
             return math.floor(local_rank / num_spatial_parts_list)
 
     def init_comm(self, backend="mpi"):
+        print("starting init comm....")
         """Initialize the distributed environment."""
+        set_mpi_dist_environemnt()
         dist.init_process_group(backend)
         size = dist.get_world_size()
         rank = dist.get_rank()
+        local_rank = int(os.environ['LOCAL_RANK'])
+        torch.cuda.set_device(local_rank)
+        print("end init comm")
+        print(f"Initialization completed with SIZE , {size} and Rank : {rank}")
         return size, rank
 
     def create_allreduce_comm_basic(self):

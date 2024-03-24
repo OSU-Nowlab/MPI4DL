@@ -23,6 +23,7 @@ import numpy as np
 import os
 import math
 import argparse
+from torchgems.utils import set_accelerator_visible, set_mpi_dist_environemnt
 
 
 def get_parser():
@@ -313,7 +314,7 @@ class halo_bench_pt2pt:
                 )
                 req.append(temp_req)
                 self.send_tag[i] += 1
-
+        print(f"LOCAL_RANK : {self.local_rank} COMPLETED isend in start_halo_exchange")
         self.recv_tensors = []
 
         shapes = halo_input.shape
@@ -331,13 +332,14 @@ class halo_bench_pt2pt:
                     dtype=torch.float,
                     device="cuda",
                 )
+                print(f"LOCAL_RANK : {self.local_rank} created tensor and trying to recv from {self.rank_neighbours[i]} ")
 
                 """
-				Synchronization is necessary at this point as all GPU operations 
-    			in PyTorch are asynchronous MPI copy operation is not under 
-       			PyTorch therefore it can start before pytorch finishes 
-          		initilization of tensor with zeros It will lead to data  
-            	corruption Spent 1 week on this issue (data validation) 
+				Synchronization is necessary at this point as all GPU operations
+    			in PyTorch are asynchronous MPI copy operation is not under
+       			PyTorch therefore it can start before pytorch finishes
+          		initilization of tensor with zeros It will lead to data
+            	corruption Spent 1 week on this issue (data validation)
 				KEEP THIS IN MIND
 				"""
                 torch.cuda.synchronize()
@@ -350,6 +352,7 @@ class halo_bench_pt2pt:
                 self.recv_tag[i] += 1
 
                 self.recv_tensors.append(temp_tensor)
+                print(f"LOCAL_RANK : {self.local_rank} received from {self.rank_neighbours[i]} ")
             else:
                 self.recv_tensors.append([])
 
@@ -391,19 +394,23 @@ def env2int(env_list, default=-1):
     return default
 
 
-def initialize_cuda():
-    my_local_rank = env2int(
-        [
-            "MPI_LOCALRANKID",
-            "OMPI_COMM_WORLD_LOCAL_RANK",
-            "MV2_COMM_WORLD_LOCAL_RANK",
-            "LOCAL_RANK",
-        ],
-        0,
-    )
-    os.environ["CUDA_VISIBLE_DEVICES"] = str(my_local_rank % num_spatial_parts)
+# def initialize_cuda():
+#     my_local_rank = env2int(
+#         [
+#             "MPI_LOCALRANKID",
+#             "OMPI_COMM_WORLD_LOCAL_RANK",
+#             "MV2_COMM_WORLD_LOCAL_RANK",
+#             "LOCAL_RANK",
+#             "MVP_COMM_WORLD_LOCAL_RANK",
+#         ],
+#         0,
+#     )
+#     os.environ["CUDA_VISIBLE_DEVICES"] = str(my_local_rank % num_spatial_parts)
 
-    torch.cuda.init()
+#     print(f"Local rank : {my_local_rank}")
+#     print(f"CUDA_devices : {os.environ['CUDA_VISIBLE_DEVICES']}")
+
+#     torch.cuda.init()
 
 
 def init_comm(backend="mpi"):
@@ -598,6 +605,7 @@ def run_benchmark(rank, size, hostname):
     for i in range(args.warmup):
         y = b_pt2pt.run(input_tensor_local)
 
+
     start_event = torch.cuda.Event(enable_timing=True, blocking=True)
     end_event = torch.cuda.Event(enable_timing=True, blocking=True)
 
@@ -617,8 +625,15 @@ def run_benchmark(rank, size, hostname):
 
 def init_processes(hostname, fn, backend="mpi"):
     """Initialize the distributed environment."""
-    initialize_cuda()
+    # initialize_cuda()
+    # size, rank = init_comm()
+    set_accelerator_visible()
+    set_mpi_dist_environemnt()
     size, rank = init_comm()
+    local_rank = int(os.environ['LOCAL_RANK'])
+    torch.cuda.set_device(local_rank)
+    print(f"dist rank : {rank} world size : {size}")
+
     validate_config(num_spatial_parts, size)
     fn(rank, size, hostname)
 

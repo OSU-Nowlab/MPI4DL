@@ -87,7 +87,7 @@ class model_generator:
             self.get_output_shapes(GET_SHAPES_ON_CUDA)
         temp_model = self.get_model(split_rank=split_rank)
         t = time.time()
-        self.models = temp_model.to("cuda:0")
+        self.models = temp_model.to("cuda")
 
     def DDP_model(
         self, mpi_comm, num_spatial_parts, spatial_size, bucket_size=25, local_rank=None
@@ -126,7 +126,7 @@ class model_generator:
     def get_output_shapes(self, GET_SHAPES_ON_CUDA):
         self.shape_list = []
 
-        temp_dev = "cuda:0" if GET_SHAPES_ON_CUDA else "cpu"
+        temp_dev = "cuda" if GET_SHAPES_ON_CUDA else "cpu"
 
         orig_input_size = self.input_size
         input_size = list(self.input_size)
@@ -136,7 +136,7 @@ class model_generator:
             model_x = self.get_model(split_rank=i)
 
             if GET_SHAPES_ON_CUDA:
-                model_x = model_x.to("cuda:0")
+                model_x = model_x.to("cuda")
             y = model_x(temp)
 
             if isinstance(y, tuple):
@@ -507,8 +507,8 @@ class train_model:
                 )
 
     def run_step(self, data_x, data_y):
-        data_x = data_x.to("cuda:0")
-        data_y = data_y.to("cuda:0")
+        data_x = data_x.to("cuda")
+        data_y = data_y.to("cuda")
 
         parts_size = int(self.batch_size / self.parts)
 

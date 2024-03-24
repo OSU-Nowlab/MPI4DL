@@ -28,7 +28,8 @@ import time
 from torchgems.mp_pipeline import model_generator, train_model
 from models import resnet
 import torchgems.comm as gems_comm
-from torchgems.utils import get_depth
+from torchgems.utils import get_depth, set_accelerator_visible
+
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -36,8 +37,8 @@ args = parser_obj.parse_args()
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
-gems_comm.initialize_cuda()
-
+# gems_comm.initialize_cuda()
+set_accelerator_visible()
 
 class Unbuffered(object):
     def __init__(self, stream):
@@ -58,7 +59,7 @@ class Unbuffered(object):
 sys.stdout = Unbuffered(sys.stdout)
 
 np.random.seed(seed=1405)
-ENABLE_ASYNC = True
+ENABLE_ASYNC = False
 parts = args.parts
 batch_size = args.batch_size
 epochs = args.num_epochs
@@ -80,8 +81,9 @@ image_size_seq = 32
 resnet_n = 12
 
 ###############################################################################
-
+print("mpi comm start")
 mpi_comm = gems_comm.MPIComm(split_size=mp_size, ENABLE_MASTER=False)
+print("mpi comm compl")
 rank = mpi_comm.rank
 
 local_rank = rank % mp_size

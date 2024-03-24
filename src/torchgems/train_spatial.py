@@ -20,7 +20,7 @@ from torchgems.mp_pipeline import train_model
 import torch
 import math
 import torch.distributed as dist
-from utils import isPowerTwo
+from torchgems.utils import isPowerTwo
 
 """
 For SP, image size and image size after partitioning should be power of two.

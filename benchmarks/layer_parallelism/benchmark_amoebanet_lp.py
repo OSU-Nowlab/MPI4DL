@@ -28,7 +28,7 @@ import time
 from torchgems.mp_pipeline import model_generator, train_model
 from models import amoebanet
 import torchgems.comm as gems_comm
-
+from torchgems.utils import set_accelerator_visible
 
 parser_obj = parser.get_parser()
 args = parser_obj.parse_args()
@@ -36,7 +36,8 @@ args = parser_obj.parse_args()
 if args.verbose:
     logging.basicConfig(level=logging.DEBUG)
 
-gems_comm.initialize_cuda()
+# gems_comm.initialize_cuda()
+set_accelerator_visible()
 
 
 class Unbuffered(object):
