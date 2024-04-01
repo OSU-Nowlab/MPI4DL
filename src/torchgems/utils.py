@@ -18,6 +18,7 @@
 
 import os
 import torch
+import subprocess
 
 def isPowerTwo(num):
     return not (num & (num - 1))

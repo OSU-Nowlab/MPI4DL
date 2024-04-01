@@ -120,11 +120,12 @@ class MPIComm:
             self.LP_SP_Groups, self.SP_LP_group = None, None
             self.LOCAL_DP_MP_Comm = None
 
-        print("start_all_reduce")
+        print("create all_reduce group")
         self.allreduce_grp = self.create_allreduce_comm()
-        print("end_all_reduce")
+        print("done creating all_reduce group")
+        print("test all_reduce group")
         self.test_allreduce_comm(self.allreduce_grp)
-        print("end_test_reduce")
+        print("complete testing  all_reduce group")
 
     def get_split_rank(self, num_spatial_parts_list, local_rank):
         if isinstance(num_spatial_parts_list, list):
@@ -156,10 +157,12 @@ class MPIComm:
 
     def create_allreduce_comm_basic(self):
         # create allreduce comm for Hybrid MP-Basic
+        print(f"self.mp_size :{self.mp_size }  self.local_rank : { self.local_rank} and int(self.size / self.mp_size) : {int(self.size / self.mp_size)} ")
         ranks = [
             (self.mp_size * i) + self.local_rank
             for i in range(int(self.size / self.mp_size))
         ]
+        print(f"All reduce group : {ranks}")
         allreduce_grp = torch.distributed.new_group(ranks=ranks)
         return allreduce_grp
 
