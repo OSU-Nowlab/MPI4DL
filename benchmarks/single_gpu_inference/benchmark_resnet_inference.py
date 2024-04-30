@@ -5,7 +5,6 @@ import numpy as np
 import torch
 import torchvision
 import torchvision.transforms as transforms
-from dataloders import WSIDataloader
 from torchgems import parser
 from torchgems.utils import get_depth
 
@@ -81,26 +80,6 @@ def load_fake_dataset(batch_size, image_size):
     return dataloader
 
 
-def load_wsi_dataset():
-    batch_size = 1
-    num_workers = 1
-
-    # transform = transforms.Compose([
-    #     transforms.Resize((tile_size, tile_size)),  # Adjust the size as needed
-    #     transforms.ToTensor(),
-    # ])
-    testset = WSIDataloader.WSIDataloader(
-        root="/home/gulhane.2/GEMS_Inference/datasets/test_digital_pathology/CAMELYON16",
-        transform=None,
-    )
-
-    dataloader = torch.utils.data.DataLoader(
-        testset, batch_size=batch_size, shuffle=False
-    )
-
-    return dataloader
-
-
 def load_cifar10Test(batch_size):
     transform = transforms.Compose(
         [
@@ -125,10 +104,8 @@ def load_dataset(app, batch_size, image_size):
     if app == 1:
         return load_custom_dataset(batch_size, image_size)
     if app == 2:
-        return load_wsi_dataset()
-    if app == 3:
         return load_fake_dataset(batch_size, image_size)
-    if app == 4:
+    if app == 3:
         return load_cifar10Test(batch_size)
 
 
