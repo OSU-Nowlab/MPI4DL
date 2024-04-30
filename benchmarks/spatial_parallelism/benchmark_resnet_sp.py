@@ -1,5 +1,5 @@
 # Copyright 2023, The Ohio State University. All rights reserved.
-# The MPI4DL software package is developed by the team members of
+# The Infer-HiRes software package is developed by the team members of
 # The Ohio State University's Network-Based Computing Laboratory (NBCL),
 # headed by Professor Dhabaleswar K. (DK) Panda.
 #
@@ -24,6 +24,7 @@ import torchvision
 import numpy as np
 import time
 import sys
+import os
 import math
 import logging
 from torchgems import parser
@@ -103,11 +104,8 @@ num_classes = args.num_classes
 precision = str(args.precision)
 backend = args.backend
 EVAL_MODE = args.enable_evaluation
-CHECKPOINT = None
-if EVAL_MODE and APP != 3:
-    # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
-    CHECKPOINT = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee.pth"
-    # CHECKPOINT=f"/users/PAS2312/rgulhane/nowlab/checkpoints/sp_precision_32_gpu_5/checkpt_resnet_sp_{local_rank}.pth"
+CHECKPOINT_DIR_PATH = args.checkpoint
+
 
 temp_num_spatial_parts = args.num_spatial_parts.split(",")
 
@@ -151,9 +149,7 @@ comm_size = mpi_comm.size
 local_rank = rank
 split_rank = mpi_comm.split_rank
 
-if EVAL_MODE and APP != 3:
-    # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
-    CHECKPOINT = f"/users/PAS2312/rgulhane/nowlab/checkpoints/sp_precision_32_gpu_5/checkpt_resnet_sp_{local_rank}.pth"
+CHECKPOINT = os.path.join(CHECKPOINT_DIR_PATH, f"InferHiRes_{local_rank}.pth")
 
 if balance != None:
     balance = balance.split(",")

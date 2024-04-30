@@ -1,5 +1,5 @@
 # Copyright 2023, The Ohio State University. All rights reserved.
-# The MPI4DL software package is developed by the team members of
+# The Infer-HiRes software package is developed by the team members of
 # The Ohio State University's Network-Based Computing Laboratory (NBCL),
 # headed by Professor Dhabaleswar K. (DK) Panda.
 #
@@ -344,12 +344,12 @@ class halo_bench_pt2pt(nn.Conv2d):
                 )
 
                 """
-				Synchronization is necessary at this point as all GPU operations 
-    			in PyTorch are asynchronous. MPI copy operation is not under 
-       			PyTorch therefore it can start before pytorch finishes 
-          		initilization of tensor with zeros. It will lead to data 
+				Synchronization is necessary at this point as all GPU operations
+    			in PyTorch are asynchronous. MPI copy operation is not under
+       			PyTorch therefore it can start before pytorch finishes
+          		initilization of tensor with zeros. It will lead to data
             	corruption.
-				Spent 1 week on this issue (data validation) 
+				Spent 1 week on this issue (data validation)
 				KEEP THIS IN MIND
 				"""
                 torch.cuda.synchronize()
@@ -728,7 +728,7 @@ test_output_recv(recv, expected_output_recv, rank)
 
 
 """
-Sequential processing 
+Sequential processing
 """
 input_seq = np.asarray(
     list(range(0, args.batch_size * args.in_channels * image_size[0] * image_size[1])),

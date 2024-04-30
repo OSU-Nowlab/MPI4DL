@@ -14,28 +14,9 @@ args = parser_obj.parse_args()
 
 datapath = args.datapath
 device = "cuda" if torch.cuda.is_available() else "cpu"
-CHECKPOINT_PATH = None
-CHECKPOINT_PATH = "/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/six_hrs_imagenette2-320-adam_76_accuracy.pth"  # torch_resnet datapath="/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/single_gpu/imagenette2-320/val"/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/single_gpu/imagenette2-320/val"
-# CHECKPOINT_PATH = '/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/MPI4DL_Checkpoints/MPI4DL_ImageNeteee_TensorRT_model.pth'
-
-# APP = 2
-
-## FOR WSI IMAGES
-# APP = 2
-# MPI4DL = True
-
-# FOR Fake Dataset
-# APP = 3
-# MPI4DL = True
-
-# FOR ImageNette or ImageNet
-APP = 1
-MPI4DL = True
-
-
-# APP = 4
-# MPI4DL = True
-
+CHECKPOINT_PATH = args.checkpoint
+APP = args.app
+MPI4DL = False  # Enable if you want to use ResNet designed by MPI4DL
 
 batch_size = args.batch_size
 parts = 1
@@ -44,11 +25,8 @@ resnet_n = 12
 num_classes = args.num_classes
 precision = args.precision  # values [fp_32, fp_16, bf_16, int_8]
 
-times = 1
-
 
 def load_custom_dataset(batch_size, image_size):
-    # batch_size = 32
     num_workers = 1
     transform = transforms.Compose(
         [
@@ -77,7 +55,7 @@ def load_custom_dataset(batch_size, image_size):
     return dataloader
 
 
-def load_fake_dataset(batch_size, image_size, times):
+def load_fake_dataset(batch_size, image_size):
     transform = transforms.Compose(
         [
             transforms.Resize((image_size, image_size)),
@@ -86,7 +64,7 @@ def load_fake_dataset(batch_size, image_size, times):
         ]
     )
     testset = torchvision.datasets.FakeData(
-        size=10 * batch_size * times,
+        size=10 * batch_size,
         image_size=(3, image_size, image_size),
         num_classes=num_classes,
         transform=transform,
@@ -95,7 +73,7 @@ def load_fake_dataset(batch_size, image_size, times):
     )
     dataloader = torch.utils.data.DataLoader(
         testset,
-        batch_size=batch_size * times,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=0,
         pin_memory=True,
@@ -123,7 +101,7 @@ def load_wsi_dataset():
     return dataloader
 
 
-def load_cifar10Test(batch_size, times):
+def load_cifar10Test(batch_size):
     transform = transforms.Compose(
         [
             transforms.Resize((image_size, image_size)),
@@ -143,15 +121,15 @@ def load_cifar10Test(batch_size, times):
     return dataloader
 
 
-def load_dataset(app, batch_size, image_size, times):
+def load_dataset(app, batch_size, image_size):
     if app == 1:
         return load_custom_dataset(batch_size, image_size)
     if app == 2:
         return load_wsi_dataset()
     if app == 3:
-        return load_fake_dataset(batch_size, image_size, times)
+        return load_fake_dataset(batch_size, image_size)
     if app == 4:
-        return load_cifar10Test(batch_size, times)
+        return load_cifar10Test(batch_size)
 
 
 def int8_quantization_with_tensorRT(
@@ -167,7 +145,7 @@ def int8_quantization_with_tensorRT(
         return model
     else:
         model.eval()
-        testing_dataloader = load_fake_dataset(batch_size, image_size, times)
+        testing_dataloader = load_fake_dataset(batch_size, image_size)
         # important step o caliberation
         # testing_dataloader = load_custom_dataset(batch_size, image_size)
         calibrator = torch_tensorrt.ptq.DataLoaderCalibrator(
@@ -242,7 +220,7 @@ def evaluate(device, model, dataloader, precision):
     size_dataset = len(dataloader.dataset)
     with torch.no_grad():
         for batch, data in enumerate(dataloader):
-            if count > math.floor(size_dataset / (times * batch_size)) - 1:
+            if count > math.floor(size_dataset / (batch_size)) - 1:
                 break
             count += 1
             inputs, labels = data
@@ -283,9 +261,7 @@ def run_inference(image_size):
     print(
         f"\n\n*********** image_size : {image_size} Precision : {precision}  batch_size : {batch_size} num_classes : {num_classes} APP : {APP} ***********"
     )
-    dataloader = load_dataset(
-        app=APP, batch_size=batch_size, image_size=image_size, times=times
-    )
+    dataloader = load_dataset(app=APP, batch_size=batch_size, image_size=image_size)
 
     model = load_model(
         device,

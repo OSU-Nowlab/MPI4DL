@@ -1,5 +1,5 @@
 # Copyright 2023, The Ohio State University. All rights reserved.
-# The MPI4DL software package is developed by the team members of
+# The Infer-HiRes software package is developed by the team members of
 # The Ohio State University's Network-Based Computing Laboratory (NBCL),
 # headed by Professor Dhabaleswar K. (DK) Panda.
 #
@@ -94,11 +94,7 @@ if precision == "bf_16":
     assert torch.cuda.is_bf16_supported() == True, "Native System doen't support bf16"
 
 EVAL_MODE = args.enable_evaluation
-CHECKPOINT = None
-if EVAL_MODE and APP != 3:
-    # Note MPI4DL_ImageNeteee.pth is with image_size 256 and 10 num_classes
-    CHECKPOINT = "/users/PAS2312/rgulhane/nowlab/checkpoints/imagenetee_img_size_64/MPI4DL_ImageNeteee_TensorRT_model_temp.pth"
-
+CHECKPOINT = args.checkpoint
 
 ################## ResNet model specific parameters/functions ##################
 
@@ -250,9 +246,6 @@ if APP == 1:
         )
         torch.manual_seed(0)
 
-        # testset = torchvision.datasets.ImageNet(
-        #         root="/home/gulhane.2/GEMS_Inference/datasets/ImageNet/", split='val', transform=transform
-        # )
         testset = torchvision.datasets.ImageFolder(
             root=datapath,
             transform=transform,
@@ -405,10 +398,6 @@ def run_eval():
 
             if batch > math.floor(size_dataset / (times * batch_size)) - 1:
                 break
-            before_step = torch.cuda.max_memory_allocated(device="cuda")
-            # print(
-            #     f"Max Memory before step {batch} on rank {local_rank} Using PyTorch CUDA: {before_step / (1024 ** 2):.2f} MB"
-            # )
 
             local_loss, local_correct = tm_master.run_step(
                 inputs, labels, eval_mode=EVAL_MODE

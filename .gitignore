@@ -1,9 +1,7 @@
 __pycache__
-src/mpi4dl.egg-info/
+src/infer-hires.egg-info/
 build/
 dist/
 benchmarks/single_gpu/
 benchmarks/gems_master_model/benchmark_Pytorch_resnet_gems_master.py
-benchmarks/MPI4DL_Checkpoints/
-calibration.cache
-res_mpi4dl_quant_model.pth
+

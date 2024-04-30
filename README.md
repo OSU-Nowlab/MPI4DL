@@ -26,7 +26,7 @@ Python=3.9.16, cuda=11.6, gcc=10.3.0, cmake=3.22.2, PyTorch=1.13.1*
 
 ### Install Infer-HiRes
 ```bash
-cd quant-infer
+cd Infer-HiRes
 python setup.py install
 ```
 

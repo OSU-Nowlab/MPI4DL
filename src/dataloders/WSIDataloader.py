@@ -116,7 +116,7 @@ transform = transforms.Compose(
 # #         root="/home/gulhane.2/GEMS_Inference/datasets/ImageNet/", split='val', transform=transform
 # # )
 # testset = torchvision.datasets.ImageFolder(
-#     root="/home/gulhane.2/github_torch_gems/MPI4DL/benchmarks/single_gpu/imagenette2-320/val",
+#     root="/home/gulhane.2/github_torch_gems/Infer-HiRes/benchmarks/single_gpu/imagenette2-320/val",
 #     transform=transform,
 #     target_transform=None,
 # )

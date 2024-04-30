@@ -19,9 +19,9 @@
 from setuptools import setup, find_packages
 
 setup(
-    name="mpi4dl",
+    name="infer-hires",
     version="0.6",
-    url="https://github.com/OSU-Nowlab/MPI4DL",
+    url="https://github.com/OSU-Nowlab/Infer-HiRes",
     license="Apache License 2.0",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
