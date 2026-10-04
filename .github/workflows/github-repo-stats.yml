@@ -1,0 +1,27 @@
+name: github-repo-stats
+
+on:
+  schedule:
+    - cron: "0 23 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  stats:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Snapshot traffic and build report
+        uses: jgehrcke/github-repo-stats@v1.4.2
+        with:
+          ghtoken: ${{ secrets.ghrs_github_api_token }}
+
+      # Scheduled workflows auto-disable after 60 days without repo activity.
+      - name: Keepalive
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PUT \
+            repos/${{ github.repository }}/actions/workflows/github-repo-stats.yml/enable
