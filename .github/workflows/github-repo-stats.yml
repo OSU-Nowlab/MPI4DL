@@ -18,7 +18,6 @@ jobs:
         with:
           ghtoken: ${{ secrets.ghrs_github_api_token }}
 
-      # Scheduled workflows auto-disable after 60 days without repo activity.
       - name: Keepalive
         if: always()
         env:
