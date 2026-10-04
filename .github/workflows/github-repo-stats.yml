@@ -20,6 +20,7 @@ jobs:
 
       # Scheduled workflows auto-disable after 60 days without repo activity.
       - name: Keepalive
+        if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
